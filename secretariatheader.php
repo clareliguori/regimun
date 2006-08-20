@@ -11,7 +11,7 @@ include 'config.php';
 <body>
 
 <div id="header">
-<div id="logo"><img src="<?php echo $logo_location; ?>" alt="HAMUN Logo"></div>
+<div id="logo"><a href="index.php" class="logolink"><img src="<?php echo $logo_location; ?>" alt="HAMUN Logo"></a></div>
 <div id="pagename"><?php echo $conference_title; ?>: Secretariat Dashboard</div>
 </div>
 <div id="main-content">
