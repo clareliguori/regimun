@@ -1,7 +1,7 @@
 <?php
 
 function read_file($file_path) {
-  if(file_exists($file_path)) {
+  if(file_exists($file_path) && filesize($file_path) > 0) {
     $fh = fopen($file_path, 'r');
     $file_data = fread($fh, filesize($file_path));
     fclose($fh);
