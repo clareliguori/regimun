@@ -1,7 +1,7 @@
 <?php
 include 'lib.php';
 
-if(check_session()) {
+if(check_secretariat_session()) {
   include 'invoicelib.php';
   include 'config.php';
 
