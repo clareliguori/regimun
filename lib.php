@@ -92,6 +92,9 @@ function check_session() {
       return true;
     }
   } else {
+    if(check_secretariat_session()) {
+      return true;
+    }
     session_start();
     if(isset($_SESSION['school'])) {
       return true;
