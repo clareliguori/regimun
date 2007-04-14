@@ -30,8 +30,11 @@ if(isset($_POST['school'])) {
   $subject = "Conference Registration Password Reminder";
   $body = "Someone has filled out the 'Forgotten Password' form on the ".$conference_title." conference registration system.  \nIf you did not request this e-mail, please disregard it.\n\n";
   $body .= $_POST['school'] . "'s password: " . $password_match;
+  $headers = "From: " . $webmaster_email . "\r\n";
+  $headers .= "Reply-To: " . $webmaster_email . "\r\n";
+  $headers .= "X-Mailer: PHP/".phpversion();
 
-  if (mail($to, $subject, $body)) {
+  if (mail($to, $subject, $body, $headers)) {
     echo "Your school's password has been sent to: " . $to;
   } else {
     echo "E-mail delivery failed.  Please try again!";
