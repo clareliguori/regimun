@@ -36,7 +36,11 @@ if(isset($_POST['school']) && isset($_POST['password1']) && isset($_POST['passwo
 	$to = $_POST['email'];
 	$subject = "New Conference Registration Account";
 	$body = "You have created a new ".$conference_title." conference registration account for ".$_POST['school'].". Your password is ".$_POST['password1'].".";
-	if(mail($to,$subject,$body)) {
+	$headers = "From: " . $webmaster_email . "\r\n";
+	$headers .= "Reply-To: " . $webmaster_email . "\r\n";
+	$headers .= "X-Mailer: PHP/".phpversion();
+
+	if(mail($to,$subject,$body,$header)) {
 	  echo 'The account password has been e-mailed to the address you provided.  ';
 	}
 	echo '<a href="index.php">Return to the main page</a> to log into your account.';
