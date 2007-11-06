@@ -5,6 +5,11 @@ if(check_secretariat_session()) {
   include 'secretariatheader.php'; 
 ?>
 
+//Tabulate delegate count
+echo 'Total number of delegates registered for conference: ';
+$file_lines = read_file($delegate_list_location);
+echo sizeof(remove_blank_entries($file_lines)) . '<br/>';
+
 <h1>Communication</h1>
 <a href="sponsoremail.php">Email all registered faculty sponsors</a>
 

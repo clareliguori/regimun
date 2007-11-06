@@ -27,7 +27,7 @@ $file_lines = read_file($list_of_countries_location);
 </select><br /><br />
 
 <h3>Delegates (First and Last Name):</h3>
-If you do not have a delegate in a certain committee, leave the box blank.<br /><br />
+Enter names exactly as you want them to appear on name tags. If you do not have a delegate in a certain committee, leave the box blank.<br /><br />
 
 <?php
   foreach($committees as $committee) {
