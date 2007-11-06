@@ -2,7 +2,7 @@
 include 'lib.php';
 
 function get_email_list() {
-  include 'config.php';
+  include 'configdata.php';
   $file_lines = read_file($contact_file_location);
   $sponsor_emails = array();
   foreach($file_lines as $line) {

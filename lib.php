@@ -54,7 +54,7 @@ function display_page($output) {
 }
 
 function check_password($name, $password) {
-  include 'config.php';
+  include 'configdata.php';
   $password_match = false;
 
   $fh = fopen($password_file_location, 'r');
@@ -106,7 +106,7 @@ function check_session() {
 }
 
 function check_secretariat_session() {
-  include 'config.php';
+  include 'configdata.php';
   if(isset($_POST['secretariatpassword'])) {
     if($_POST['secretariatpassword'] == $secretariat_password){
       session_start();

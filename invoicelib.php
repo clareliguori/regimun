@@ -1,7 +1,7 @@
 <?php
 
 function invoice_header() {
-  include 'config.php';
+  include 'configdata.php';
   echo '<html>';
   echo '<head><title>Conference Invoice</title>' . "\n";
   echo '<style type="text/css" media="all">' . "\n";
@@ -13,7 +13,7 @@ function invoice_header() {
 }
 
 function print_invoice($school) {
-  include 'config.php';
+  include 'configdata.php';
   echo '<div id="main-content"><div id="invoice">';
   echo "<h2>INVOICE</h2>";
 

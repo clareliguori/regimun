@@ -3,7 +3,7 @@ include 'lib.php';
 
 if(check_secretariat_session()) {
   include 'invoicelib.php';
-  include 'config.php';
+  include 'configdata.php';
 
   // get school list
   $schools = array();
