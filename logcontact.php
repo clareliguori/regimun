@@ -1,11 +1,12 @@
 <?php
 include 'lib.php';
 
-if(check_session()) {
+$_POST = str_replace(array('"',',','\\'),"",$_POST);
+
+if(check_session() && $_SESSION['school'] != '' && $_POST['LastName'] != '') {
   include 'header.php';
 
   // Process form input
-  $_POST = str_replace(array('"',',','\\'),"",$_POST);
   $file_lines = read_file($contact_file_location);
   $file_lines = remove_blank_entries($file_lines);
   $_POST['LastName'] = str_replace(" ","",$_POST['LastName']);
