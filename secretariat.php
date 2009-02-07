@@ -42,7 +42,8 @@ Choose a school to view its information:<br>
   echo '<br><br><input TYPE="submit" NAME="submitlogin" VALUE="Submit"></form>';
   echo '<a href="allinvoices.php">Generate all invoices in one document</a>';
 ?>
-<h1>System Reset</h1>
+<h1>System Administration</h1>
+<a href="configuration.php">Configure registration</a><br/>
 <a href="backup.php">Backup all system data</a><br/>
 <a href="reset.php?type=delegates">Remove all delegates</a><br/>
 <a href="reset.php?type=full">Perform a full system reset</a><br/><br/>
