@@ -13,7 +13,10 @@ $webmaster_email = 'webmaster@hamun.org';
 $password_file_location = '/home/hamun/registration/data/schoolpasswd.csv';
 $contact_file_location = '/home/hamun/registration/data/schoolcontact.csv';
 $delegate_list_location = '/home/hamun/registration/data/delegates.csv';
+$list_of_committees_location = '/home/hamun/registration/data/committees.txt';
 $list_of_countries_location = '/home/hamun/registration/data/countries.txt';
+$school_country_assignments_location = '/home/hamun/registration/data/school-country-assignments.csv';
+$country_committee_assignments_location = '/home/hamun/registration/data/country-committee-assignments.csv';
 $backup_data_location = '/home/hamun/registration/data/backup/';
 
 # CONFERENCE INFORMATION
@@ -45,20 +48,4 @@ $contact_file_columns = array("School",
 			      "Zip Code",
 			      "Phone Number");
 $more_contact_file_columns = array();
-
-# CONFERENCE COMMITTEES / DELEGATE POSITIONS
-// If you allow more than one delegate from countries in a committee, add multiple entries in the array for that committee that have unique names (example: GAPlenaryDelegate1, GAPlenaryDelegate2 for two delegates per country in the GA Plenary).  These names can only contain letters and numbers (no special characters).
-$committees = array("GA Plenary Ambassador",
-		    "GA Plenary Assistant Ambassador",
-		    "GA 1",
-		    "GA 3",
-		    "GA 6",
-		    "Security Council Delegate 1",
-		    "Security Council Delegate 2",
-		    "European Union",
-		    "ICJ Delegate or Litigant",
-		    "ICJ Second Litigant",
-		    "Commission on Human Rights",
-		    "ECOSOC",
-		    "CSTD");
 ?>

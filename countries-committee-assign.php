@@ -51,7 +51,6 @@ Store these files somewhere that is *not* accessible through the web!
    <p>Password File Location: <input name="password_file_location" size="50" value="<?php echo $password_file_location; ?>"></p>
    <p>Contact File Location: <input name="contact_file_location" size="50" value="<?php echo $contact_file_location; ?>"></p>
    <p>Delegate List Location: <input name="delegate_list_location" size="50" value="<?php echo $delegate_list_location; ?>"></p>
-   <p>List of Committees File Location: <input name="list_of_committees_location" size="50" value="<?php echo $list_of_committees_location; ?>"></p>
    <p>List of Countries File Location: <input name="list_of_countries_location" size="50" value="<?php echo $list_of_countries_location; ?>"></p>
    <p>School-Country Assignment File Location: <input name="school_country_assignments_location" size="50" value="<?php echo $school_country_assignments_location; ?>"></p>
    <p>Country-Committee Assignment File Location: <input name="country_committee_assignments_location" size="50" value="<?php echo $country_committee_assignments_location; ?>"></p>
@@ -73,6 +72,17 @@ Store these files somewhere that is *not* accessible through the web!
    <p>Per Faculty Sponsor Charge: $<input name="per_faculty_sponsor_charge" size="10" value="<?php echo $per_faculty_sponsor_charge; ?>"></p>
    <p>Per Delegate Charge: $<input name="per_delegate_charge" size="10" value="<?php echo $per_delegate_charge; ?>"></p>
    <p>Payment Mailing Address: <input name="payment_mailing_address" size="50" value="<?php echo $payment_mailing_address; ?>"></p>
+
+<h2>Committees and Delegate Positions</h2>
+Enter the conference committees in the box below, one item per line.<br/>
+If you allow more than one delegate from countries in a committee, add multiple entries in the box for that committee that have unique names (example: GA Plenary Delegate 1, GA Plenary Delegate 2 for two delegates per country in the GA Plenary).  These names can only contain letters and numbers (no special characters).<br/>
+<?php
+$columns_value = "";
+foreach ($committees as $column) {
+  $columns_value .= $column . "\n";
+}
+?>
+<p><textarea name="committees" rows="10" cols="50"><?php echo trim($columns_value); ?></textarea></p>
 
 <h2>School Contact Information</h2>
 The system will automatically ask for school name, sponsor name, sponsor email, address, city, state, zip code, and phone number.<br/>

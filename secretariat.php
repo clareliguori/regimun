@@ -42,8 +42,15 @@ Choose a school to view its information:<br>
   echo '<br><br><input TYPE="submit" NAME="submitlogin" VALUE="Submit"></form>';
   echo '<a href="allinvoices.php">Generate all invoices in one document</a>';
 ?>
+
+<h1>Registration Configuration</h1>
+<a href="configuration.php">Configure system: conference information, registration data location, and conference fee structure</a><br/>
+<a href="countries-list.php">Edit list of countries</a><br/>
+<a href="committees-list.php">Edit list of committees</a><br/>
+<a href="countries-committee-assign.php">Assign committees to countries</a><br/>
+<a href="school-countries-assign.php">Assign countries to schools</a><br/>
+
 <h1>System Administration</h1>
-<a href="configuration.php">Configure registration</a><br/>
 <a href="backup.php">Backup all system data</a><br/>
 <a href="reset.php?type=delegates">Remove all delegates</a><br/>
 <a href="reset.php?type=full">Perform a full system reset</a><br/><br/>
