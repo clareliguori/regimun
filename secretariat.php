@@ -17,7 +17,10 @@ if(check_secretariat_session()) {
    These are CSV (comma separated value) files.  To view them in Excel in spreadsheet form, right click on the link and click Save Link As.  Save the file to your computer as something.csv (not showfile.php).  Then you should be able to double click on the file on your computer, and it will open up in Excel.<br><br>
 <a href="showfile.php?filename=<?php echo $contact_file_location; ?>">Sponsor Contact Info Spreadsheet</a><br>
 <a href="showfile.php?filename=<?php echo $delegate_list_location; ?>">Delegates Registration Spreadsheet</a><br>
-<a href="showfile.php?filename=<?php echo $password_file_location; ?>">School Password Spreadsheet</a>
+<a href="showfile.php?filename=<?php echo $password_file_location; ?>">School Password Spreadsheet</a><br>
+<br/>
+<a href="showfile.php?filename=<?php echo $school_country_assignments_location; ?>">School-Country Assignments Spreadsheet</a><br>
+<a href="showfile.php?filename=<?php echo $country_committee_assignments_location; ?>">Country-Committee Assignments Spreadsheet</a>
 
 <h1>School Information</h1>
 <form method="post" action="main.php">

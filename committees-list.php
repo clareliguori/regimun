@@ -31,6 +31,7 @@ If you allow more than one delegate from countries in a committee, add multiple 
 $committees_list = "";
 $file_lines = read_file($list_of_committees_location);
 foreach ($file_lines as $line) {
+  $line = str_replace("\r\n","\n",$line);
   $committees_list .= $line . "\n";
 }
 ?>

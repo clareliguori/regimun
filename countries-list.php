@@ -31,6 +31,7 @@ These names can only contain letters and numbers (no special characters like apo
 $countries_list = "";
 $file_lines = read_file($list_of_countries_location);
 foreach ($file_lines as $line) {
+  $line = str_replace("\r\n","\n",$line);
   $countries_list .= $line . "\n";
 }
 ?>
