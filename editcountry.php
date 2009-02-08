@@ -15,6 +15,7 @@ if(check_session()) {
     echo '<h3>Delegates (First and Last Name):</h3>';
     echo 'If you do not have a delegate in a certain committee, leave the box blank.<br /><br />';
 
+    $committees = read_file($list_of_committees_location);
     foreach($committees as $committee) {
       // find delegate's current information
       $found_string = "";

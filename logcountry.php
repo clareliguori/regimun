@@ -9,6 +9,7 @@ if(check_session()) {
   $file_lines = read_file($delegate_list_location);
   $file_lines = remove_blank_entries($file_lines);
 
+  $committees = read_file($list_of_committees_location);
   foreach($committees as $committee) {
     if($_POST[str_replace(" ","",$committee)] != "") {
       // school, country, committee, name

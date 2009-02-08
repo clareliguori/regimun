@@ -30,6 +30,8 @@ $file_lines = read_file($list_of_countries_location);
 Enter names exactly as you want them to appear on name tags. If you do not have a delegate in a certain committee, leave the box blank.<br /><br />
 
 <?php
+  $committees = read_file($list_of_committees_location);
+
   foreach($committees as $committee) {
     echo $committee . ':<br /><input name="' . str_replace(" ","",$committee) . '" size="50"><br /><br />';
   }
