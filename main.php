@@ -32,7 +32,6 @@ if(check_session()) {
 <?php
 
 	echo "<h1>Delegate Registration</h1>";
-	echo "The following delegates are currently registered for your school:<br />";
 
 // Get the school's assigned countries
 	$file_lines = read_file($school_country_assignments_location);
@@ -46,7 +45,8 @@ if(check_session()) {
 	}
 
 	if(sizeof($school_countries) > 0) {
-	
+		echo "The following delegates are currently registered for your school:<br />";
+
 // get all entries matching school in delegates.cvs
 		$file_lines = read_file($delegate_list_location);
 		$school_lines = array();
@@ -59,9 +59,9 @@ if(check_session()) {
 		sort($school_lines);
 		
 // Print out all the countries
-		foreach($school_countries as $current_country) {
-			echo "<br/><h2>" . $current_country . "</h2>\n";
-			
+		foreach($school_countries as $current_country) {		
+			echo "<br/><h2>" . $current_country . "</h2>";
+
 			$matching_delegate_lines = array();
 			foreach($school_lines as $line) {
 				if(strpos($line, '"'. $current_country . '"') !== FALSE) {
@@ -72,20 +72,23 @@ if(check_session()) {
 				foreach($matching_delegate_lines as $line) {
 					$entries = explode(',',$line);
 					$entries = str_replace('"','',$entries);
-					echo $entries[2] . ": " . $entries[3] . "<br>\n";
+					echo $entries[2] . ": " . $entries[3];
+					echo ' <small><a href="removedelegate.php?country='.$current_country.'&committee='.$entries[2].'&delegate='.$entries[3].'">(Delete)</a></small>';
+					echo "<br>\n";
 				}
+
+				echo "<a href=\"removecountry.php?country=" . $current_country . "\">(Delete all delegates)</a><br/>\n";
 			} else {
 				echo "<b>No current delegate assignments. Click 'Edit Country' below to register delegates for this country.</b><br/>\n";
 			}
 		}
+
+		echo "<br>";
+		echo '<a href="editcountry.php">Edit Country Registrations</a><br />';
 	} else {
-		echo "<br/><b>No countries have been assigned to your school yet.</b> <br>\n";
+		echo "No countries have been assigned to your school yet.<br>\n";
 	}
 ?>
-
-<br>
-<a href="editcountry.php">Edit Country</a><br />
-<a href="removecountry.php">Remove Country</a><br />
 
 <h1>School Invoice</h1>
 If you need an invoice, click the following link.  It will generate an invoice based on your delegate registration, which you can print from your web browser.<br><br>
