@@ -84,7 +84,7 @@ if(check_session()) {
 		}
 
 		echo "<br>";
-		echo '<a href="editcountry.php">Edit Country Registrations</a><br />';
+		echo '<a href="editcountry.php">Edit Country</a><br />';
 	} else {
 		echo "No countries have been assigned to your school yet.<br>\n";
 	}
