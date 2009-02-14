@@ -4,10 +4,19 @@ include 'lib.php';
 if(check_secretariat_session()) {
   include 'secretariatheader.php'; 
 
-  //Tabulate delegate count
-  echo 'Total number of delegates registered for conference: ';
+  //Tabulate delegate and school count
   $file_lines = read_file($delegate_list_location);
-  echo sizeof(remove_blank_entries($file_lines)) . '<br/>';
+  $file_lines = remove_blank_entries($file_lines);
+  $school_list = array();
+  foreach($file_lines as $line) {
+	  $entries = explode(',',$line);
+	  $school_name = $entries[0];
+	  array_push($school_list, $school_name);
+  }
+  echo 'Total number of delegates registered for conference: ';
+  echo sizeof($school_list) . '<br/>';
+  echo 'Total number of schools with registered delegates: ';
+  echo sizeof(array_unique($school_list)) . '<br/>';
 ?>
 
 <h1>Communication</h1>
