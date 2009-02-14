@@ -40,28 +40,32 @@ if(check_session()) {
   } else {
     // Print choose country form
     echo "<h1>Choose a country to edit</h1>";
-    echo '<form action="editcountry.php" method="POST">';
-    echo '<select name="country">';
 
-    $file_lines = read_file($delegate_list_location);
-    $countries = array();
-    foreach ($file_lines as $line) {
-      $entries = explode(',',$line);
-      $school_name = $entries[0];
-      $school_name = str_replace('"','',$school_name);
-      if($school_name == $_SESSION['school']) {
-	$entries = str_replace('"','',$entries);
-	array_push($countries,$entries[1]);
-      }
-    }
-    $countries = array_unique($countries);
-    sort($countries);
-    foreach ($countries as $country) {
-      echo '<option>' . $country . '</option>\n';
-    }
+// Get the school's assigned countries
+	$file_lines = read_file($school_country_assignments_location);
+	$countries = array();
+	foreach($file_lines as $line) {
+		$entries = explode(',',$line);
+		if($entries[1] == '"' . $_SESSION['school'] . '"') {
+			$country_name = str_replace('"','',$entries[0]);
+			array_push($countries,$country_name);
+		}
+	}
 
-    echo '</select>';
-    echo '<br /><br /><input type="submit" value="Submit"></form>';
+	if(sizeof($countries) > 0) {
+		echo '<form action="editcountry.php" method="POST">';
+		echo '<select name="country">';
+
+		sort($countries);
+		foreach ($countries as $country) {
+			echo '<option>' . $country . '</option>\n';
+		}
+		
+		echo '</select>';
+		echo '<br /><br /><input type="submit" value="Submit"></form>';
+	} else {
+		echo "No countries have been assigned to your school yet. <a href=\"main.php\">Return to the main page</a>.";
+	}
     
   }
 
