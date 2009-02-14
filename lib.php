@@ -5,6 +5,7 @@ function read_file($file_path) {
     $fh = fopen($file_path, 'r');
     $file_data = fread($fh, filesize($file_path));
     fclose($fh);
+    $file_data = str_replace("\r\n","\n",$file_data);
     return explode("\n",trim($file_data));
   } else {
     return array();

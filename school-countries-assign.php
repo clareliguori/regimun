@@ -64,7 +64,7 @@ if(check_secretariat_session()) {
 			  $assignment = $assignments[$country];
 		  }
 
-		  echo "<tr><td>" . $country . "</td><td>\n";
+		  echo "<tr><td style=\"text-align: right;\">" . $country . "</td><td>\n";
 		  echo '<select name="' . $country . '">';
 		  echo "<option></option>";
 		  foreach($schools as $school) {
