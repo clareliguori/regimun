@@ -97,6 +97,8 @@ if(check_session()) {
 	} else {
 		echo "No countries have been assigned to your school yet.<br>\n";
 	}
+	echo '<br/><a href="register-optional-event.php">Register for the ' . $optional_event_name . '</a><br />';
+
 ?>
 
 <h1>School Invoice</h1>

@@ -29,9 +29,13 @@ if(check_secretariat_session()) {
       remove_file($password_file_location);
       remove_file($contact_file_location);
       remove_file($delegate_list_location);
+      remove_file($optional_event_list_location);
+      remove_file($school_country_assignments_location);
+      remove_file($country_committee_assignments_location);
       echo 'Your system has been fully reset!  <a href="secretariat.php">Return to the main page</a>.';
     } else if($_POST['type'] == "delegates") {
       remove_file($delegate_list_location);
+      remove_file($optional_event_list_location);
       echo 'All delegates have been removed!  <a href="secretariat.php">Return to the main page</a>.';
     } else if($_POST['type'] == "school" && isset($_POST['school'])) {
       // find and remove school's entries in all data files

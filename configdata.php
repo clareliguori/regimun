@@ -13,6 +13,7 @@ $webmaster_email = 'webmaster@hamun.org';
 $password_file_location = '/home/hamun/registration/data/schoolpasswd.csv';
 $contact_file_location = '/home/hamun/registration/data/schoolcontact.csv';
 $delegate_list_location = '/home/hamun/registration/data/delegates.csv';
+$optional_event_list_location = '/home/hamun/registration/data/optional-event-list.csv';
 $list_of_committees_location = '/home/hamun/registration/data/committees.txt';
 $list_of_countries_location = '/home/hamun/registration/data/countries.txt';
 $school_country_assignments_location = '/home/hamun/registration/data/school-country-assignments.csv';
@@ -28,6 +29,10 @@ $organization_title = 'Houston Area Model United Nations, Inc.';
 $organization_mailing_address = "P.O. Box 667049, Houston, Texas, 77266";
 $secretary_general_email = "secgen@hamun.org";
 
+# OPTIONAL EVENT INFORMATION
+$enable_optional_event = "true";
+$optional_event_name = "Delegate Social";
+
 # COUNTRY SELECTION INFORMATION
 $country_selection_enable = "true";
 $country_selection_open = "true";
@@ -39,6 +44,7 @@ $per_school_charge = 10;
 $per_country_charge = 20;
 $per_faculty_sponsor_charge = 30;
 $per_delegate_charge = 40;
+$per_person_optional_event_charge = 5;
 $payment_mailing_address = "555 HAMUN Lane, Houston, Texas, 77777";
 
 # SCHOOL CONTACT FILE COLUMNS

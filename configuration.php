@@ -51,6 +51,7 @@ Store these files somewhere that is *not* accessible through the web!
    <p>Password File Location: <input name="password_file_location" size="50" value="<?php echo $password_file_location; ?>"></p>
    <p>Contact File Location: <input name="contact_file_location" size="50" value="<?php echo $contact_file_location; ?>"></p>
    <p>Delegate List Location: <input name="delegate_list_location" size="50" value="<?php echo $delegate_list_location; ?>"></p>
+   <p>Optional Event Registration List Location: <input name="optional_event_list_location" size="50" value="<?php echo $optional_event_list_location; ?>"></p>
    <p>List of Committees File Location: <input name="list_of_committees_location" size="50" value="<?php echo $list_of_committees_location; ?>"></p>
    <p>List of Countries File Location: <input name="list_of_countries_location" size="50" value="<?php echo $list_of_countries_location; ?>"></p>
    <p>School-Country Assignment File Location: <input name="school_country_assignments_location" size="50" value="<?php echo $school_country_assignments_location; ?>"></p>
@@ -65,6 +66,14 @@ Store these files somewhere that is *not* accessible through the web!
    <p>Organization Name: <input name="organization_title" size="50" value="<?php echo $organization_title; ?>"></p>
    <p>Organization Mailing Address: <input name="organization_mailing_address" size="50" value="<?php echo $organization_mailing_address; ?>"></p>
    <p>Secretary General's Email Address: <input name="secretary_general_email" size="50" value="<?php echo $secretary_general_email; ?>"></p>
+
+<h2>Optional Event Information</h2>
+   <p>Enable Optional Event: <select name="enable_optional_event">
+			<option<?php if($enable_optional_event == 'true') { echo ' selected="true"' ?>>true</option>
+			<option<?php if($enable_optional_event == 'false') { echo ' selected="true"' ?>>false</option>
+				              	      </select>
+   </p>
+   <p>Optional Event Name: <input name="optional_event_name" size="50" value="<?php echo $optional_event_name; ?>"></p>
 
 <h2>Country Preferences Information</h2>
    <p>Enable country preference submission for schools: <select name="country_selection_enable">
@@ -86,6 +95,7 @@ Store these files somewhere that is *not* accessible through the web!
    <p>Per Country Charge: $<input name="per_country_charge" size="10" value="<?php echo $per_country_charge; ?>"></p>
    <p>Per Faculty Sponsor Charge: $<input name="per_faculty_sponsor_charge" size="10" value="<?php echo $per_faculty_sponsor_charge; ?>"></p>
    <p>Per Delegate Charge: $<input name="per_delegate_charge" size="10" value="<?php echo $per_delegate_charge; ?>"></p>
+   <p>Per Person Charge for Optional Event: $<input name="per_person_optional_event_charge" size="10" value="<?php echo $per_person_optional_event_charge; ?>"></p>
    <p>Payment Mailing Address: <input name="payment_mailing_address" size="50" value="<?php echo $payment_mailing_address; ?>"></p>
 
 <h2>School Contact Information</h2>

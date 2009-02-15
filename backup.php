@@ -15,17 +15,21 @@ if(check_secretariat_session()) {
     $backup_data_location .= '/';
   }
 
-  $file_lines = read_file($password_file_location);
-  $backup_file = $backup_data_location . get_filename($password_file_location) . '.' . date("Ymd");
-  write_file($backup_file, $file_lines);
+  $files_to_backup = array();
+  array_push($files_to_backup, $password_file_location);
+  array_push($files_to_backup, $contact_file_location);
+  array_push($files_to_backup, $delegate_list_location);
+  array_push($files_to_backup, $optional_event_list_location);
+  array_push($files_to_backup, $list_of_committees_location);
+  array_push($files_to_backup, $list_of_countries_location);
+  array_push($files_to_backup, $school_country_assignments_location);
+  array_push($files_to_backup, $country_committee_assignments_location);
 
-  $file_lines = read_file($contact_file_location);
-  $backup_file = $backup_data_location . get_filename($contact_file_location) . '.' . date("Ymd");
-  write_file($backup_file, $file_lines);
-
-  $file_lines = read_file($delegate_list_location);
-  $backup_file = $backup_data_location . get_filename($delegate_list_location) . '.' . date("Ymd");
-  write_file($backup_file, $file_lines);
+  foreach($files_to_backup as $file_name) {
+	  $file_lines = read_file($file_name);
+	  $backup_file = $backup_data_location . get_filename($file_name) . '.' . date("Ymd");
+	  write_file($backup_file, $file_lines);
+  }
 
   echo 'All data has been backed up to '.$backup_data_location.'. <a href="secretariat.php">Return to the main page</a>.';
 

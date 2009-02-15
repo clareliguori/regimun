@@ -130,6 +130,25 @@ function print_invoice($school) {
     echo "<tr><td class=\"left\">Student Delegate Fee</td><td>$".number_format($per_delegate_charge, 2, '.', '')."</td><td>".$number."</td><td>$".number_format($charge, 2, '.', '')."</td></tr>";
   }
 
+  // optional event charge
+  if($enable_optional_event == "true" && $per_person_optional_event_charge != 0) {
+    $number = 0;
+
+    $file_lines = read_file($optional_event_list_location);
+    $school_lines = array();
+    foreach($file_lines as $line) {
+      $entries = explode(',',$line);
+      if(str_replace('"','',$entries[0]) == $school) {
+	$number = str_replace('"','',$entries[1]);
+      }
+    }
+
+    $charge = $number * $per_person_optional_event_charge;
+    $total_charge += $charge;
+    echo "<tr><td class=\"left\">".$optional_event_name." Fee</td><td>$".number_format($per_person_optional_event_charge, 2, '.', '')."</td><td>".$number."</td><td>$".number_format($charge, 2, '.', '')."</td></tr>";
+  }
+
+
   echo '<tr><th colspan="3">Total Amount Due</th><th>$'.number_format($total_charge, 2, '.', '').'</th></tr>';
   echo "</table>";
   echo "<br><br><br/>";

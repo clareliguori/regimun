@@ -17,6 +17,19 @@ if(check_secretariat_session()) {
   echo sizeof($school_list) . '<br/>';
   echo 'Total number of schools with registered delegates: ';
   echo sizeof(array_unique($school_list)) . '<br/>';
+
+  if($enable_optional_event == "true") {
+	  //Tabulate delegate social count
+	  echo 'Total number of people registered for ' . $optional_event_name . ': ';
+	  $file_lines = read_file($optional_event_list_location);
+	  $optional_event_count = 0;
+	  foreach ($file_lines as $line) {
+		  $entries = explode(',',$line);
+		  $optional_event_count += str_replace('"','',$entries[1]);
+	  }
+	  echo $optional_event_count;
+  }
+
 ?>
 
 <h1>Communication</h1>
@@ -26,6 +39,13 @@ if(check_secretariat_session()) {
    These are CSV (comma separated value) files.  To view them in Excel in spreadsheet form, right click on the link and click Save Link As.  Save the file to your computer as something.csv (not showfile.php).  Then you should be able to double click on the file on your computer, and it will open up in Excel.<br><br>
 <a href="showfile.php?filename=<?php echo $contact_file_location; ?>">Sponsor Contact Info Spreadsheet</a><br>
 <a href="showfile.php?filename=<?php echo $delegate_list_location; ?>">Delegates Registration Spreadsheet</a><br>
+
+<?php
+	 if($enable_optional_event == "true") {
+		 echo '<a href="showfile.php?filename=' . $optional_event_list_location . '">' . $optional_event_name . ' Spreadsheet</a><br>';
+	 }
+?>
+
 <a href="showfile.php?filename=<?php echo $password_file_location; ?>">School Password Spreadsheet</a><br>
 <br/>
 <a href="showfile.php?filename=<?php echo $school_country_assignments_location; ?>">School-Country Assignments Spreadsheet</a><br>
