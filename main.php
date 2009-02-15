@@ -31,6 +31,15 @@ if(check_session()) {
 <a href="removecontact.php">Remove Faculty Sponsor</a>
 <?php
 
+	 if($country_selection_enable == "true") {
+		 echo "<h1>Country Preferences</h1>";
+		 if($country_selection_open == "true") {
+			 echo "<a href=\"country_selection.php\">Submit your school's country preferences</a><br />";
+		 } else {
+			 echo "Country selection is currently closed.<br />";
+		 }
+	 }
+		 
 	echo "<h1>Delegate Registration</h1>";
 
 // Get the school's assigned countries

@@ -28,6 +28,12 @@ $organization_title = 'Houston Area Model United Nations, Inc.';
 $organization_mailing_address = "P.O. Box 667049, Houston, Texas, 77266";
 $secretary_general_email = "secgen@hamun.org";
 
+# COUNTRY SELECTION INFORMATION
+$country_selection_enable = "true";
+$country_selection_open = "true";
+$country_selection_email = "secgen@hamun.org";
+$number_of_selections_charge = 10;
+
 # CONFERENCE FEE STRUCTURE
 $per_school_charge = 10;
 $per_country_charge = 20;

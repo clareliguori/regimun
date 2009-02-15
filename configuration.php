@@ -66,6 +66,20 @@ Store these files somewhere that is *not* accessible through the web!
    <p>Organization Mailing Address: <input name="organization_mailing_address" size="50" value="<?php echo $organization_mailing_address; ?>"></p>
    <p>Secretary General's Email Address: <input name="secretary_general_email" size="50" value="<?php echo $secretary_general_email; ?>"></p>
 
+<h2>Country Preferences Information</h2>
+   <p>Enable country preference submission for schools: <select name="country_selection_enable">
+			<option<?php if($country_selection_enable == 'true') { echo ' selected="true"' ?>>true</option>
+			<option<?php if($country_selection_enable == 'false') { echo ' selected="true"' ?>>false</option>
+				              	      </select>
+   </p>
+   <p>Country preference submission is currently open: <select name="country_selection_open">
+			<option<?php if($country_selection_open == 'true') { echo ' selected="true"' ?>>true</option>
+			<option<?php if($country_selection_open == 'false') { echo ' selected="true"' ?>>false</option>
+				              	      </select>
+   </p>
+   <p>Send country preference submissions to this email address: <input name="country_selection_email" size="50" value="<?php echo $country_selection_email; ?>"></p>
+   <p>Number of preferences to submit: <input name="number_of_selections_charge" size="50" value="<?php echo $number_of_selections_charge; ?>"></p>
+
 <h2>Conference Fee Structure</h2>
     All fees are in dollars.  Enter only numbers into the text boxes (don't include the dollar sign).
    <p>Per School Charge: $<input name="per_school_charge" size="10" value="<?php echo $per_school_charge; ?>"></p>
