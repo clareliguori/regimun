@@ -15,8 +15,8 @@ if(check_session()) {
 <?php
 		 for($i = 1; $i <= $number_of_selections_charge; $i++) {
 			 echo 'Country #' . $i . ': ';
-			 echo '<select name="country' . $number . '">';
-			 echo '<option value="select" selected>Select your #' . $number . ' preferred country</option>';
+			 echo '<select name="country' . $i . '">';
+			 echo '<option value="select" selected>Select your #' . $i . ' preferred country</option>';
 			 
 			 $file_lines = read_file($list_of_countries_location);
 			 foreach($file_lines as $country_choice) {
