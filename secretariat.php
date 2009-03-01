@@ -76,6 +76,8 @@ Choose a school to view its information:<br>
 ?>
 
 <h1>Registration Configuration</h1>
+<a href="verify-delegates.php">Verify current delegate registrations</a><br/>
+<br/>
 <a href="configuration.php">Configure system: conference information, registration data location, and conference fee structure</a><br/>
 <a href="countries-list.php">Edit list of countries</a><br/>
 <a href="committees-list.php">Edit list of committees</a><br/>
