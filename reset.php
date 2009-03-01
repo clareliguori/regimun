@@ -8,9 +8,9 @@ if(check_secretariat_session()) {
     // confirm reset
     if($_GET['type'] == "full") {
       echo 'Performing a full system reset will remove all schools, sponsor contacts, and delegates from the system.  You cannot get these back!';
-    } else if($_GET['type'] == "delegates") {
+    } elseif($_GET['type'] == "delegates") {
       echo 'Removing all delegates will delete the registered delegates spreadsheet.  You cannot get these back!';
-    } else if($_GET['type'] == "school" && isset($_POST['schoolname'])) {
+    } elseif($_GET['type'] == "school" && isset($_POST['schoolname'])) {
       echo 'Removing ' . $_POST['schoolname'] . ' will remove all sponsor contacts and registered delegates for this school.  You cannot get these back!';
     }
 
@@ -33,11 +33,11 @@ if(check_secretariat_session()) {
       remove_file($school_country_assignments_location);
       remove_file($country_committee_assignments_location);
       echo 'Your system has been fully reset!  <a href="secretariat.php">Return to the main page</a>.';
-    } else if($_POST['type'] == "delegates") {
+    } elseif($_POST['type'] == "delegates") {
       remove_file($delegate_list_location);
       remove_file($optional_event_list_location);
       echo 'All delegates have been removed!  <a href="secretariat.php">Return to the main page</a>.';
-    } else if($_POST['type'] == "school" && isset($_POST['school'])) {
+    } elseif($_POST['type'] == "school" && isset($_POST['school'])) {
       // find and remove school's entries in all data files
       $match_string = $_POST['school'];
       $file_lines = read_file($contact_file_location);

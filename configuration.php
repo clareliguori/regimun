@@ -2,32 +2,32 @@
 include 'lib.php';
 
 if(check_secretariat_session()) {
-  include 'secretariatheader.php';
-  include 'configdata.php';
+	include 'secretariatheader.php';
+	include 'configdata.php';
 
-  if(isset($_POST['secretariat_password'])) {
-    $output_string = "<?php\n";
-    foreach ($_POST as $key => $value) {
-      if (strstr($key,"charge") != FALSE) {
-	$output_string .= '$' . $key . " = " . $value . ";\n";
-      } elseif ((strstr($key,"columns") != FALSE) || (strstr($key,"committees") != FALSE)) {
-	if ($value != "") {
-	  $value = str_replace("\r\n",'","',$value);
-	  $value = str_replace("\n",'","',$value);
-	  $output_string .= '$' . $key . ' = array("' . $value . '");' . "\n";
-	}
-	else
-	  $output_string .= '$' . $key . " = array();\n";
-      } else {
-	$output_string .= '$' . $key . ' = "' . $value . '";' . "\n";
-      }
-    }
-    $output_string .= '$contact_file_columns = array("School","First Name","Last Name","E-mail Address","Address","City","State","Zip Code","Phone Number");' . "\n";
-    $output_string .= "?>";
-   write_file("configdata.php",array($output_string));
-
-    echo 'New configuration has been saved.  Return to the <a href="secretariat.php">Secretariat Dashboard</a>.';
-  } else {
+	if(isset($_POST['secretariat_password'])) {
+		$output_string = "<?php\n";
+		foreach ($_POST as $key => $value) {
+			if (strstr($key,"charge") != FALSE) {
+				$output_string .= '$' . $key . " = " . $value . ";\n";
+			} elseif ((strstr($key,"columns") != FALSE)) {
+				if ($value != "") {
+					$value = str_replace("\r\n",'","',$value);
+					$value = str_replace("\n",'","',$value);
+					$output_string .= '$' . $key . ' = array("' . $value . '");' . "\n";
+				}
+				else
+					$output_string .= '$' . $key . " = array();\n";
+			} else {
+				$output_string .= '$' . $key . ' = "' . $value . '";' . "\n";
+			}
+		}
+		$output_string .= '$contact_file_columns = array("School","First Name","Last Name","E-mail Address","Address","City","State","Zip Code","Phone Number");' . "\n";
+		$output_string .= "?>";
+		write_file("configdata.php",array($output_string));
+		
+		echo 'New configuration has been saved.  Return to the <a href="secretariat.php">Secretariat Dashboard</a>.';
+	} else {
 ?>
 <style>
 <!--
@@ -69,28 +69,28 @@ Store these files somewhere that is *not* accessible through the web!
 
 <h2>Optional Event Information</h2>
    <p>Enable Optional Event: <select name="enable_optional_event">
-			<option<?php if($enable_optional_event == 'true') { echo ' selected="true"' ?>>true</option>
-			<option<?php if($enable_optional_event == 'false') { echo ' selected="true"' ?>>false</option>
+			<option<?php if($enable_optional_event == 'true') { echo ' selected="true"';} ?>>true</option>
+			<option<?php if($enable_optional_event == 'false') { echo ' selected="true"';} ?>>false</option>
 				              	      </select>
    </p>
    <p>Optional Event Name: <input name="optional_event_name" size="50" value="<?php echo $optional_event_name; ?>"></p>
 
 <h2>Country Preferences Information</h2>
    <p>Enable country preference submission for schools: <select name="country_selection_enable">
-			<option<?php if($country_selection_enable == 'true') { echo ' selected="true"' ?>>true</option>
-			<option<?php if($country_selection_enable == 'false') { echo ' selected="true"' ?>>false</option>
+			<option<?php if($country_selection_enable == 'true') { echo ' selected="true"';} ?>>true</option>
+			<option<?php if($country_selection_enable == 'false') { echo ' selected="true"';} ?>>false</option>
 				              	      </select>
    </p>
    <p>Country preference submission is currently open: <select name="country_selection_open">
-			<option<?php if($country_selection_open == 'true') { echo ' selected="true"' ?>>true</option>
-			<option<?php if($country_selection_open == 'false') { echo ' selected="true"' ?>>false</option>
+			<option<?php if($country_selection_open == 'true') { echo ' selected="true"'; }?>>true</option>
+			<option<?php if($country_selection_open == 'false') { echo ' selected="true"'; }?>>false</option>
 				              	      </select>
    </p>
    <p>Send country preference submissions to this email address: <input name="country_selection_email" size="50" value="<?php echo $country_selection_email; ?>"></p>
    <p>Number of preferences to submit: <input name="number_of_selections_charge" size="50" value="<?php echo $number_of_selections_charge; ?>"></p>
 
 <h2>Conference Fee Structure</h2>
-    All fees are in dollars.  Enter only numbers into the text boxes (don't include the dollar sign).
+    All fees are in dollars.  Enter only numbers into the text boxes (don\'t include the dollar sign).
    <p>Per School Charge: $<input name="per_school_charge" size="10" value="<?php echo $per_school_charge; ?>"></p>
    <p>Per Country Charge: $<input name="per_country_charge" size="10" value="<?php echo $per_country_charge; ?>"></p>
    <p>Per Faculty Sponsor Charge: $<input name="per_faculty_sponsor_charge" size="10" value="<?php echo $per_faculty_sponsor_charge; ?>"></p>
@@ -102,10 +102,10 @@ Store these files somewhere that is *not* accessible through the web!
 The system will automatically ask for school name, sponsor name, sponsor email, address, city, state, zip code, and phone number.<br/>
 Enter any additional contact information you want from each school faculty sponsor in the box below, one item per line.<br/>
 <?php
-$columns_value = "";
-foreach ($more_contact_file_columns as $column) {
-  $columns_value .= $column . "\n";
-}
+      $columns_value = "";
+      foreach ($more_contact_file_columns as $column) {
+	  $columns_value .= $column . "\n";
+      }
 ?>
 <p><textarea name="more_contact_file_columns" rows="5" cols="50"><?php echo trim($columns_value); ?></textarea></p>
 			       
@@ -113,8 +113,8 @@ foreach ($more_contact_file_columns as $column) {
 </form>
 
 <?php
-  }
-
-  include 'footer.php';
+		        }
+									     
+									     include 'footer.php';
 }
  ?>

@@ -67,11 +67,11 @@ if(check_secretariat_session()) {
 		  echo $delegate_name . ": School (" . $school_name . ") does not have an account) ";
 		  echo '<small><a href="removedelegate.php?school='.$school_name.'&country='.$country_name.'&committee='.$committee_name.'&delegate='.$delegate_name.'">(Delete)</a></small><br/>';
 		  // Check the school-country assignment
-	  } else if($country_school_assignments[$country_name] != $school_name) {
+	  } elseif($country_school_assignments[$country_name] != $school_name) {
 		  echo $delegate_name . ": School (" . $school_name . ") is not assigned the country (" . $country_name . ") ";
 		  echo '<small><a href="removedelegate.php?school='.$school_name.'&country='.$country_name.'&committee='.$committee_name.'&delegate='.$delegate_name.'">(Delete)</a></small><br/>';
 		  // Check the country-committee assignment
-	  } else if(count($country_committee_assignments[$country_name]) < 1 || array_search($committee_name, $country_committee_assignments[$country_name]) === FALSE) {
+	  } elseif(count($country_committee_assignments[$country_name]) < 1 || array_search($committee_name, $country_committee_assignments[$country_name]) === FALSE) {
 		  echo $delegate_name . ": Committee (" . $committee_name . ") is not assigned to the country (" . $country_name . ") ";
 		  echo '<small><a href="removedelegate.php?school='.$school_name.'&country='.$country_name.'&committee='.$committee_name.'&delegate='.$delegate_name.'">(Delete)</a></small><br/>';
 	  }
