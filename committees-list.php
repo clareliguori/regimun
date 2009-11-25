@@ -8,6 +8,7 @@ if(check_secretariat_session()) {
    //$_POST = str_replace(array('"',',','\\'),"",$_POST);
   if(isset($_POST['committees'])) {
 	  $list_of_committees = $_POST['committees'];
+	  $list_of_committees = str_replace(array('"',',','\\'),"",$list_of_committees);
 	  $committees_array = split("\n", $list_of_committees);
 	  $committees_array = remove_blank_entries($committees_array);
 	  sort($committees_array);

@@ -6,6 +6,7 @@ function read_file($file_path) {
     $file_data = fread($fh, filesize($file_path));
     fclose($fh);
     $file_data = str_replace("\r\n","\n",$file_data);
+    $file_data = str_replace("\\","",$file_data);
     return explode("\n",trim($file_data));
   } else {
     return array();
@@ -19,6 +20,8 @@ function write_file($file_path,$line_array) {
   }
   $fh = fopen($file_path, 'w');
   $lines_string = implode("\n",$line_array);
+  $lines_string = str_replace("_"," ",$lines_string);
+  $lines_string = str_replace("\\","",$lines_string);
   fwrite($fh, $lines_string);
   fclose($fh);
   if($created) {

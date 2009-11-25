@@ -5,9 +5,10 @@ if(check_secretariat_session()) {
   include 'secretariatheader.php';
   include 'configdata.php';
 
-   //$_POST = str_replace(array('"',',','\\'),"",$_POST);
+  #$_POST = str_replace(array('"',',','\\'),"",$_POST);
   if(isset($_POST['countries'])) {
 	  $list_of_countries = $_POST['countries'];
+	  $list_of_countries = str_replace(array('"',',','\\'),"",$list_of_countries);
 	  $countries_array = split("\n", $list_of_countries);
 	  $countries_array = remove_blank_entries($countries_array);
 	  sort($countries_array);
