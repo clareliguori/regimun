@@ -34,6 +34,7 @@ function remove_file($file_path) {
 
 function remove_blank_entries($arr) {
   for($i = 0; $i < sizeof($arr); $i++) {
+    $arr[$i] = str_replace("\r","",$arr[$i]);
     if(trim($arr[$i]) == "") {
       array_splice($arr, $i, 1);
     }

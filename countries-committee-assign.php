@@ -42,7 +42,7 @@ if(check_secretariat_session()) {
 -->
 </style>
 
-<h1>Assign countries to schools</h1>
+<h1>Assign committees to countries</h1>
 <form method="POST" action="countries-committee-assign.php">
 <table style="border-spacing: 0px">
 
