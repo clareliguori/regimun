@@ -1,0 +1,10 @@
+{% if schools_list %}
+	Schools for {{ conference.name }}
+    <ul>
+    {% for school in schools_list %}
+        <li>{{ school.name }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No schools are available for {{ conference.name }}.</p>
+{% endif %}

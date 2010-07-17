@@ -15,9 +15,6 @@ class Conference(models.Model):
 	state = models.CharField("State / Province / Region", max_length=200)
 	zip = models.CharField("ZIP / Postal Code", max_length=200,blank=True)
 	address_country = models.CharField("Country", max_length=200, blank=True)
-	def __init__(self, *args, **kwargs):
-		super(Conference,self).__init__()
-		self.url_name = self.name.replace(' ','')
 	def __unicode__(self):
 		return self.name
 	
@@ -37,6 +34,7 @@ class Country(models.Model):
 		return self.name
 	
 class School(models.Model):
+	conference = models.ForeignKey(Conference)
 	name = models.CharField(max_length=200, unique=True)
 	url_name = models.SlugField("Short Name", max_length=200, unique=True, help_text="You will use this name in unique registration URLs. Only alphanumeric characters, underscores, and hyphens are allowed.")
 	address_line_1 = models.CharField("Address Line 1", max_length=200)
