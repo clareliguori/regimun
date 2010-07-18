@@ -1,0 +1,10 @@
+{% if object.school_set.all %}
+	Schools for {{ object.name }}
+    <ul>
+    {% for school in object.school_set.all %}
+        <li><a href="{{ school.url_name }}">{{ school.name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No schools are available for {{ object.name }}.</p>
+{% endif %}
