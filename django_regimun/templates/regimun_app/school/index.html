@@ -1,1 +1,19 @@
-You're looking at the school admin page for {{ school.name }} at {{ conference.name }}
+{% extends "school_base.html" %}
+
+{% block pagecontent %}
+<h1>Conference Registration: {{ conference.name }}</h1>
+School: {{ school.name }}<br/>
+{% autoescape off %}{{ school.get_html_mailing_address }}{% endautoescape %}
+<br/>
+TODO: Edit school name, Edit address
+
+<h2>Faculty Sponsors</h2>
+{% for sponsor in school.facultysponsor_set.all %}
+	<b>Sponsor: {{ sponsor.user.get_full_name }} </b><br/>
+	E-mail Address: <a href="mailto:{{sponsor.user.email}}">{{ sponsor.user.email }}</a><br/>
+	Phone Number: {{ sponsor.phone }}
+{% endfor %}
+<br/>
+TODO: Add / Edit / Remove
+
+{% endblock %}

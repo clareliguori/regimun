@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ conference.name }} Registration - {{ school.name }}
+{% endblock %}
+
+{% block content %}
+
+{% if user.is_authenticated and user.is_active %}
+	{% if user.is_staff or user.faculty_sponsor and user.faculty_sponsor.school.pk == school.pk or user.secretariat_member and user.secretariat_member.conference.pk == conference.pk %}
+		{% block pagecontent %}{% endblock %}
+	{% else %}
+		You do not have access to this page.
+	{% endif %}
+{% else %}
+    <p>Please <a href="/accounts/login/">log in</a>.</p>
+{% endif %}
+
+{% endblock %}

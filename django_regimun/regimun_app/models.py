@@ -35,8 +35,8 @@ class Country(models.Model):
 	
 class School(models.Model):
 	conference = models.ForeignKey(Conference)
-	name = models.CharField(max_length=200, unique=True)
-	url_name = models.SlugField("Short Name", max_length=200, unique=True, help_text="You will use this name in unique registration URLs. Only alphanumeric characters, underscores, and hyphens are allowed.")
+	name = models.CharField(max_length=200)
+	url_name = models.SlugField("Short Name", max_length=200, help_text="You will use this name in unique registration URLs. Only alphanumeric characters, underscores, and hyphens are allowed.")
 	address_line_1 = models.CharField("Address Line 1", max_length=200)
 	address_line_2 = models.CharField("Address, Line 2", max_length=200, blank=True)
 	city = models.CharField(max_length=200)
@@ -45,6 +45,14 @@ class School(models.Model):
 	address_country = models.CharField("Country", max_length=200, blank=True)
 	def __unicode__(self):
 		return self.name
+	
+	def get_html_mailing_address(self):
+		ret = self.address_line_1;
+		if len(self.address_line_2): ret += "<br/>" + self.address_line_2
+		ret += "<br/>" + self.city + ", " + self.state
+		if len(self.zip): ret += ", " + self.zip
+		if len(self.address_country): ret += "<br/>" + self.address_country
+		return ret;
 
 class DelegatePosition(models.Model):
 	country = models.ForeignKey(Country)
@@ -66,11 +74,18 @@ class Delegate(models.Model):
 		return self.get_full_name()
 
 class FacultySponsor(models.Model):
-	user = models.OneToOneField(User)
-	school = models.ForeignKey(School, null=True)
+	user = models.OneToOneField(User, related_name="faculty_sponsor")
+	school = models.ForeignKey(School)
 	phone = models.CharField(max_length=30)
-	
+	def __unicode__(self):
+		return self.user.get_full_name()
+
 	class Meta:
 		ordering = ('user','phone',)
 
+class Secretariat(models.Model):
+	user = models.OneToOneField(User, related_name="secretariat_member")
+	conference = models.ForeignKey(Conference)
+	def __unicode__(self):
+		return self.user.get_full_name()
 	
