@@ -1,7 +1,13 @@
 from django.conf.urls.defaults import patterns
+from django.contrib.auth.decorators import login_required
+from django.views.generic.list_detail import object_detail
 from regimun_app.models import Conference
 
 conferences = Conference.objects.all()
+
+@login_required
+def limited_object_detail(*args, **kwargs):
+    return object_detail(*args, **kwargs)
 
 urlpatterns = patterns('',   #'django_regimun.regimun_app.views',
     # conferences index
@@ -14,7 +20,7 @@ urlpatterns = patterns('',   #'django_regimun.regimun_app.views',
 
     # secretariat admin page
     (r'^(?P<slug>[-\w]+)/secretariat/$',
-        'django.views.generic.list_detail.object_detail',
+        limited_object_detail,
         dict(queryset=conferences, slug_field='url_name', template_name='regimun_app/secretariat/index.html')),
 
     # register new school
