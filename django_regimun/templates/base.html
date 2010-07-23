@@ -1,7 +1,12 @@
 <html> <head>
 <title>{% block title %}{% endblock %}</title>
 <link rel="stylesheet" href="/site_media/style.css">
-<script type="text/javascript" src="/site_media/jquery-1.2.6.min.js"></script>
+<script type="text/javascript" src="/site_media/jquery-1.4.2.min.js"></script>
+
+<script type="text/javascript">
+{% block scriptblock %}{% endblock %}
+</script>
+
 </head>
 <body>
 <div class="container">

@@ -13,6 +13,10 @@ urlpatterns = patterns('',   #'django_regimun.regimun_app.views',
     # conferences index
     (r'^$', 'django.views.generic.list_detail.object_list', dict(queryset=conferences)),
     
+    # check school and username availability
+    #(r'^check_schoolname/', 'django_regimun.regimun_app.views.check_schoolname'),
+    #(r'^check_username/', 'django_regimun.regimun_app.views.check_username'),
+
     # schools index
     (r'^(?P<slug>[-\w]+)/$',
         'django.views.generic.list_detail.object_detail',
