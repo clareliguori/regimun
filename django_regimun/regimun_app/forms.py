@@ -1,4 +1,8 @@
 from django import forms
+from django.contrib.auth.models import User
+from django.forms.models import ModelForm
+from django.forms.widgets import PasswordInput
+from regimun_app.models import Conference
 
 class NewSchoolForm(forms.Form):
     school_name = forms.CharField(label="Name", max_length=200)
@@ -17,3 +21,15 @@ class NewFacultySponsorForm(forms.Form):
     sponsor_email = forms.EmailField(label="E-mail address", max_length=200)
     sponsor_phone = forms.CharField(label="Phone number", max_length=30)
     
+class ConferenceForm(ModelForm):
+    class Meta:
+        model = Conference
+        exclude = ('url_name',)
+
+class SecretariatUserForm(ModelForm):
+    class Meta:
+        model = User
+        fields = ('username','password',)
+        widgets = {
+            'password' : PasswordInput,
+        }

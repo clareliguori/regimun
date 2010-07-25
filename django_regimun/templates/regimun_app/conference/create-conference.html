@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}
+Create New Conference
+{% endblock %}
+
+{% block content %}
+
+<h1>Create New Conference</h1>
+
+<form action="/registration/new-conference/" method="post">
+
+{% for field in conference_form %}
+    <div class="fieldWrapper"><p>
+        {{ field.errors }}
+        {{ field.label_tag }}: {{ field }} <span id="{{ field.html_name }}">{{ field.help_text }}</span>
+    </p></div>
+{% endfor %}
+
+<hr/>
+Secretariat Username
+{% for field in secretariat_form %}
+    <div class="fieldWrapper"><p>
+        {{ field.errors }}
+        {{ field.label_tag }}: {{ field }}
+    </p></div>
+{% endfor %}
+
+<input type="submit" value="Submit" />
+</form>
+
+{% endblock %}

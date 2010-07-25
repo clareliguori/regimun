@@ -7,8 +7,12 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template.context import RequestContext
 from django.template.defaultfilters import slugify
 from recaptcha.client import captcha
-from regimun_app.forms import NewSchoolForm, NewFacultySponsorForm
-from regimun_app.models import Conference, School, FacultySponsor
+from regimun_app.forms import NewSchoolForm, NewFacultySponsorForm, \
+    ConferenceForm, SecretariatUserForm
+from regimun_app.models import Conference, School, FacultySponsor, Country, \
+    Committee, Secretariat
+from settings import MEDIA_ROOT
+import csv
 
 def render_response(req, *args, **kwargs):
     kwargs['context_instance'] = RequestContext(req)
@@ -50,11 +54,6 @@ def get_recaptcha_response(request):
                    request.META.get("REMOTE_ADDR", None))
         
     return captcha_response
-
-def school_created(request, conference_slug, school_slug):
-    conference = get_object_or_404(Conference, url_name=conference_slug)
-    school = get_object_or_404(School, url_name=school_slug)
-    return render_response(request, 'regimun_app/school/school_created.html', {'conference' : conference, 'school' : school})
 
 def create_school(request, conference_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
@@ -104,4 +103,60 @@ def create_school(request, conference_slug):
     return render_response(request, 'regimun_app/register-new-school.html', {
         'school_form': school_form, 'sponsor_form': sponsor_form, 'conference' : conference
     })
+
+def school_created(request, conference_slug, school_slug):
+    conference = get_object_or_404(Conference, url_name=conference_slug)
+    school = get_object_or_404(School, url_name=school_slug)
+    return render_response(request, 'regimun_app/school/school-created.html', {'conference' : conference, 'school' : school})
+
+def create_conference(request):
+    if request.method == 'POST': 
+        conference_form = ConferenceForm(request.POST)
+        user_form = SecretariatUserForm(request.POST)
+        
+        if conference_form.is_valid() and user_form.is_valid():
+            new_conference = conference_form.save(commit=False)
+            new_conference.url_name = slugify(conference_form.cleaned_data['name'])
+            new_conference.save()
+            
+            # create default countries
+            defaultCountriesList = MEDIA_ROOT + "default_countries/default_countries.csv"
+            countriesListReader = csv.reader(open(defaultCountriesList))
+            for row in countriesListReader:
+                new_country = Country()
+                new_country.conference = new_conference
+                new_country.name = row[0]
+                new_country.url_name = slugify(new_country.name)
+                new_country.flag_icon = "default_countries/icons/" + row[1]
+                new_country.save()
+                
+            # create default committees and delegate positions
+            defaultCommitteesList = MEDIA_ROOT + "default_committees.csv"
+            committeesListReader = csv.reader(open(defaultCommitteesList))
+            for row in committeesListReader:
+                new_committee = Committee()
+                new_committee.conference = new_conference
+                new_committee.name = row[0]
+                new_committee.url_name = slugify(new_committee.name)
+                new_committee.save()
+            
+            user = user_form.save()
+            secretariat_user = Secretariat()
+            secretariat_user.user = user
+            secretariat_user.conference = new_conference
+            secretariat_user.save()
+            
+            return HttpResponseRedirect(reverse('django_regimun.regimun_app.views.conference_created', 
+                                                args=(new_conference.url_name,)))
+    else:
+        conference_form = ConferenceForm()
+        user_form = SecretariatUserForm()
+
+    return render_response(request, 'regimun_app/conference/create-conference.html', {
+        'conference_form': conference_form, 'secretariat_form' : user_form
+    })
+
+def conference_created(request, conference_slug):
+    conference = get_object_or_404(Conference, url_name=conference_slug)
+    return render_response(request, 'regimun_app/conference/conference-created.html', {'conference' : conference,})
     

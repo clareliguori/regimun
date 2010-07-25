@@ -1,7 +1,8 @@
 <html> <head>
 <title>{% block title %}{% endblock %}</title>
 <link rel="stylesheet" href="/site_media/style.css">
-<script type="text/javascript" src="/site_media/jquery-1.4.2.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<!-- <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js"></script>-->
 
 <script type="text/javascript">
 {% block scriptblock %}{% endblock %}
@@ -9,6 +10,8 @@
 
 </head>
 <body>
+You are logged in as {{ user.username }}
+
 <div class="container">
 {% block content %}{% endblock %}
 </div>

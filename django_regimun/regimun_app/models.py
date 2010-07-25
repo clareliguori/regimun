@@ -2,11 +2,11 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Conference(models.Model):
-	name = models.CharField("Name", max_length=200, unique=True, help_text="This year's event name, such as CMUN 2010 or CMUN XXI")
+	name = models.CharField(max_length=200, unique=True, help_text="This year's event name, such as CMUN 2010 or CMUN XXI")
 	url_name = models.SlugField("Short Name", max_length=200, unique=True, help_text="You will use this name in your unique registration URL. Only alphanumeric characters, underscores, and hyphens are allowed. For example, CMUN2010.")
 	date = models.DateField()
 	location = models.CharField(max_length=200)
-	logo = models.ImageField(upload_to="conference_logos")
+	logo = models.ImageField(upload_to="conference_logos", blank=True)
 	website_url = models.URLField("Website URL", blank=True)
 	organization_name = models.CharField("Organization / Company / School", max_length=200, help_text="Who checks should be written to; Who issues invoices")
 	address_line_1 = models.CharField("Street Address", max_length=200)
@@ -17,6 +17,9 @@ class Conference(models.Model):
 	address_country = models.CharField("Country", max_length=200, blank=True)
 	def __unicode__(self):
 		return self.name
+
+	class Meta:
+		ordering = ('name',)
 	
 class Committee(models.Model):
 	conference = models.ForeignKey(Conference)
@@ -24,7 +27,10 @@ class Committee(models.Model):
 	url_name = models.SlugField("Short Name", max_length=200, help_text="You will use this name in unique registration URLs. Only alphanumeric characters, underscores, and hyphens are allowed.")
 	def __unicode__(self):
 		return self.name
-	
+
+	class Meta:
+		ordering = ('name',)
+		
 class Country(models.Model):
 	conference = models.ForeignKey(Conference)
 	name = models.CharField(max_length=200)
@@ -32,6 +38,9 @@ class Country(models.Model):
 	flag_icon = models.ImageField(upload_to="flag_icons")
 	def __unicode__(self):
 		return self.name
+
+	class Meta:
+		ordering = ('name',)	
 	
 class School(models.Model):
 	conference = models.ForeignKey(Conference)
@@ -46,6 +55,9 @@ class School(models.Model):
 	def __unicode__(self):
 		return self.name
 	
+	class Meta:
+		ordering = ('name',)	
+
 	def get_html_mailing_address(self):
 		ret = self.address_line_1;
 		if len(self.address_line_2): ret += "<br/>" + self.address_line_2
@@ -54,13 +66,19 @@ class School(models.Model):
 		if len(self.address_country): ret += "<br/>" + self.address_country
 		return ret;
 
+	def get_delegate_positions(self):
+		DelegatePosition.objects.filter(school=self)
+
 class DelegatePosition(models.Model):
 	country = models.ForeignKey(Country)
 	committee = models.ForeignKey(Committee)
 	school = models.ForeignKey(School)
 	title = models.CharField(max_length=200, default="Delegate", help_text="Ambassador, Judge, etc")
 	def __unicode__(self):
-		return self.country + ", " + self.committee + self.school
+		return self.country.name + ", " + self.committee.name + ", " + self.school.name
+
+	class Meta:
+		ordering = ('school','country','committee','title')
 	
 class Delegate(models.Model):
 	position_assignment = models.OneToOneField(DelegatePosition)
@@ -72,6 +90,9 @@ class Delegate(models.Model):
 		self.first_name + " " + self.last_name
 	def __unicode__(self):
 		return self.get_full_name()
+
+	class Meta:
+		ordering = ('last_name','first_name')	
 
 class FacultySponsor(models.Model):
 	user = models.OneToOneField(User, related_name="faculty_sponsor")
@@ -88,4 +109,7 @@ class Secretariat(models.Model):
 	conference = models.ForeignKey(Conference)
 	def __unicode__(self):
 		return self.user.get_full_name()
+
+	class Meta:
+		ordering = ('user',)	
 	

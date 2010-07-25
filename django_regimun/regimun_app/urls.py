@@ -13,6 +13,13 @@ urlpatterns = patterns('',   #'django_regimun.regimun_app.views',
     # conferences index
     (r'^$', 'django.views.generic.list_detail.object_list', dict(queryset=conferences)),
     
+    # register new cconference
+    (r'^new-conference/$',
+        'django_regimun.regimun_app.views.create_conference'),
+
+    # school was created
+    (r'^(?P<conference_slug>[-\w]+)/created$', 'django_regimun.regimun_app.views.conference_created'),
+    
     # check school and username availability
     #(r'^check_schoolname/', 'django_regimun.regimun_app.views.check_schoolname'),
     #(r'^check_username/', 'django_regimun.regimun_app.views.check_username'),

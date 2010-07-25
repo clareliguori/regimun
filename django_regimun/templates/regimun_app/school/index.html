@@ -1,19 +1,77 @@
 {% extends "school_base.html" %}
 
+{% block scriptblock %}
+
+function centeredPopup(elementName) {
+	var scrolledX, scrolledY;
+	if( self.pageYOffset ) {
+		scrolledX = self.pageXOffset;
+ 		rolledY = self.pageYOffset;
+	} else if( document.documentElement && document.documentElement.scrollTop ) {
+		scrolledX = document.documentElement.scrollLeft;
+		scrolledY = document.documentElement.scrollTop;
+	} else if( document.body ) {
+		scrolledX = document.body.scrollLeft;
+		scrolledY = document.body.scrollTop;
+	}
+	
+	var centerX, centerY;
+	if( self.innerHeight ) {
+		centerX = self.innerWidth;
+		centerY = self.innerHeight;
+	} else if( document.documentElement && document.documentElement.clientHeight ) {
+		centerX = document.documentElement.clientWidth;
+		centerY = document.documentElement.clientHeight;
+	} else if( document.body ) {
+		centerX = document.body.clientWidth;
+		centerY = document.body.clientHeight;
+	}
+	
+	var leftOffset = scrolledX + (centerX - 250) / 2;
+	var topOffset = scrolledY + (centerY - 200) / 2;
+	
+	document.getElementById(elementName).style.top = topOffset + "px";
+	document.getElementById(elementName).style.left = leftOffset + "px";
+}
+
+function fireEditSponsor() {
+  centeredPopup("mypopup");
+  document.getElementById("mypopup").style.display = "block";
+  document.body.onscroll = centeredPopup("mypopup");
+  window.onscroll = centeredPopup("mypopup");
+}
+
+{% endblock %}
+
 {% block pagecontent %}
-<h1>Conference Registration: {{ conference.name }}</h1>
-School: {{ school.name }}<br/>
+<h1>{{ conference.name }} Conference Registration</h1>
+Registration for <b>{{ school.name }}</b><br/>
 {% autoescape off %}{{ school.get_html_mailing_address }}{% endautoescape %}
 <br/>
-TODO: Edit school name, Edit address
+<small><a href="javascript:fireEditSchool()">Edit</a></small>
 
 <h2>Faculty Sponsors</h2>
 {% for sponsor in school.facultysponsor_set.all %}
-	<b>Sponsor: {{ sponsor.user.get_full_name }} </b><br/>
+	<b>{{ sponsor.user.get_full_name }} </b>
+	{% if sponsor.user.username == user.username %}
+		<small><i>(This is you)</i></small>
+	{% endif %}
+	<br/>
 	E-mail Address: <a href="mailto:{{sponsor.user.email}}">{{ sponsor.user.email }}</a><br/>
-	Phone Number: {{ sponsor.phone }}
+	Phone Number: {{ sponsor.phone }}<br/>
+
+	<!-- edit sponsor popup -->
+	<div id='mypopup' name='mypopup' style='position: absolute; width: 250px; height: 200px; display: none; background: #ddd; border: 1px solid #000;'>
+	<p>My content that will be displayed in the popup</p>
+	<input type='submit' value=' Close me! ' onClick='document.getElementById("mypopup").style.display="none"'>
+	</div>
+	<small><a href="javascript:fireEditSponsor()">Edit</a> / <a href="javascript:fireRemoveSponsor()">Remove</a></small>
 {% endfor %}
-<br/>
-TODO: Add / Edit / Remove
+<br/><br/>
+
+<a href="javascript:fireAddSponsor()">Add Sponsor</a>
+
+<h2>Delegations</h2>
+The following delegates are currently registered for your school:
 
 {% endblock %}
