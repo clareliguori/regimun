@@ -72,6 +72,22 @@ Registration for <b>{{ school.name }}</b><br/>
 <a href="javascript:fireAddSponsor()">Add Sponsor</a>
 
 <h2>Delegations</h2>
-The following delegates are currently registered for your school:
+
+{% for country,positions in school.get_delegations.items %}
+	<p><b>{{ country.name }}</b></p>
+	{% for position in positions %}
+		{% if position.first_name %}
+			<!-- Delegate object -->
+			{{ position.position_assignment.committee.name }} ({{ position.position_assignment.title }}): {{ position.get_full_name }}<br/>
+		{% else %}
+			<!-- DelegatePosition object -->
+			{{ position.committee.name }} ({{ position.title }}): No delegate registered<br/>
+		{% endif %}
+	{% empty %}
+		No positions have been assigned to this country.<br/>
+	{% endfor %}
+{% empty %}
+	No countries have been assigned to your school.
+{% endfor %}
 
 {% endblock %}

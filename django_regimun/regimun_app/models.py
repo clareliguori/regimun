@@ -1,5 +1,6 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 
 class Conference(models.Model):
 	name = models.CharField(max_length=200, unique=True, help_text="This year's event name, such as CMUN 2010 or CMUN XXI")
@@ -67,7 +68,22 @@ class School(models.Model):
 		return ret;
 
 	def get_delegate_positions(self):
-		DelegatePosition.objects.filter(school=self)
+		return DelegatePosition.objects.filter(school=self)
+
+	def get_delegations(self):
+		delegations = {}
+		positions = self.get_delegate_positions()
+		current_country = Country()
+		
+		for position in positions:
+			if position.country.pk != current_country.pk:
+				current_country = position.country
+				delegations[current_country] = []
+			try:
+				delegations[current_country].append(position.delegate)
+			except ObjectDoesNotExist:
+				delegations[current_country].append(position)
+		return delegations
 
 class DelegatePosition(models.Model):
 	country = models.ForeignKey(Country)
