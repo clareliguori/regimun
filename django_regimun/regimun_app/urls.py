@@ -1,6 +1,7 @@
 from django.conf.urls.defaults import patterns
 from django.views.generic.list_detail import object_detail, object_list
-from regimun_app.views import *
+from regimun_app.views.school_admin import *
+from regimun_app.views.secretariat_admin import *
 
 conferences = Conference.objects.all()
 
@@ -30,14 +31,20 @@ urlpatterns = patterns('',   #'django_regimun.regimun_app.views',
         limited_object_detail,
         dict(queryset=conferences, slug_field='url_name', template_name='regimun_app/secretariat/index.html')),
 
-    # secretariat admin page
+    # secretariat admin page - downloads
     (r'^(?P<conference_slug>[-\w]+)/secretariat/downloads/', spreadsheet_downloads),
+
+    # invoices
+    (r'^(?P<conference_slug>[-\w]+)/secretariat/invoices$', generate_all_invoices),
 
     # register new school
     (r'^(?P<conference_slug>[-\w]+)/new-school/$', create_school),
 
     # school was created
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/created$', school_created),
+    
+    # school invoice
+    (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/invoice$', generate_invoice),
     
     # school admin page
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/$', school_admin),
