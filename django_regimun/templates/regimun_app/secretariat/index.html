@@ -14,6 +14,16 @@ Registered delegates: {{ object.delegates|length }}
 <a href="downloads/?school-country-assignments">School-Country Assignments</a><br/>
 <a href="downloads/?country-committee-assignments">Country-Committee Assignments</a><br/>
 
+<h2>School Information</h2>
+<form method="post" action="see-school">
+<select name="schoolslug">
+{% for school in object.school_set.all %}
+	<option value="{{ school.url_name }}">{{ school.name }}</option>
+{% endfor %}
+<input type="submit" name="submitschool" value="Go">
+</select>
+</form>
+
 <h2>Fees</h2>
 <a href="invoices">All Invoices</a>
 

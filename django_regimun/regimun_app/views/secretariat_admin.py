@@ -8,6 +8,7 @@ from regimun_app.forms import ConferenceForm, SecretariatUserForm
 from regimun_app.models import Conference, FacultySponsor, Delegate, Country, \
     Committee, Secretariat
 from regimun_app.views.general import render_response
+from regimun_app.views.school_admin import school_admin
 from reportlab.pdfgen import canvas
 from settings import MEDIA_ROOT
 import csv
@@ -80,6 +81,18 @@ def generate_all_invoices(request, conference_slug):
     else:
         raise Http404
 
+@login_required
+def redirect_to_school(request, conference_slug):
+    conference = get_object_or_404(Conference, url_name=conference_slug)
+    
+    if secretariat_authenticate(request, conference) and request.method == 'POST':
+        school_slug = request.POST.get('schoolslug')
+        if school_slug:
+            return HttpResponseRedirect(reverse(school_admin, 
+                                            args=(conference.url_name,school_slug)))
+
+    raise Http404
+
 def create_conference(request):
     if request.method == 'POST': 
         conference_form = ConferenceForm(request.POST)
@@ -117,7 +130,7 @@ def create_conference(request):
             secretariat_user.conference = new_conference
             secretariat_user.save()
             
-            return HttpResponseRedirect(reverse('django_regimun.regimun_app.views.conference_created', 
+            return HttpResponseRedirect(reverse(conference_created, 
                                                 args=(new_conference.url_name,)))
     else:
         conference_form = ConferenceForm()

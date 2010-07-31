@@ -9,7 +9,7 @@ conferences = Conference.objects.all()
 def limited_object_detail(*args, **kwargs):
     return object_detail(*args, **kwargs)
 
-urlpatterns = patterns('',   #'django_regimun.regimun_app.views',
+urlpatterns = patterns('',
     # conferences index
     (r'^$', object_list, dict(queryset=conferences)),
     
@@ -36,6 +36,9 @@ urlpatterns = patterns('',   #'django_regimun.regimun_app.views',
 
     # invoices
     (r'^(?P<conference_slug>[-\w]+)/secretariat/invoices$', generate_all_invoices),
+
+    # redirect to school page
+    (r'^(?P<conference_slug>[-\w]+)/secretariat/see-school$', redirect_to_school),
 
     # register new school
     (r'^(?P<conference_slug>[-\w]+)/new-school/$', create_school),

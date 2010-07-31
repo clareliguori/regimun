@@ -89,7 +89,7 @@ def create_school(request, conference_slug):
                 new_sponsor.phone = sponsor_form.cleaned_data['sponsor_phone']
                 new_sponsor.save()
     
-                return HttpResponseRedirect(reverse('django_regimun.regimun_app.views.school_created', 
+                return HttpResponseRedirect(reverse(school_created, 
                                                     args=(conference.url_name,new_school.url_name,)))
             else:
                 school_form._errors.setdefault("school_name", ErrorList()).append(captcha_response.error_code)
