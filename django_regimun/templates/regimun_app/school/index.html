@@ -78,16 +78,25 @@ Registration for <b>{{ school.name }}</b><br/>
 	{% for position in positions %}
 		{% if position.first_name %}
 			<!-- Delegate object -->
-			{{ position.position_assignment.committee.name }} ({{ position.position_assignment.title }}): {{ position.get_full_name }}<br/>
+			{{ position.position_assignment.committee.name }} ({{ position.position_assignment.title }}): {{ position.get_full_name }} 
+			<small><a href="javascript:fireEditDelegate()">Edit</a> / <a href="javascript:fireRemoveDelegate()">Remove</a></small>
 		{% else %}
 			<!-- DelegatePosition object -->
-			{{ position.committee.name }} ({{ position.title }}): No delegate registered<br/>
+			{{ position.committee.name }} ({{ position.title }}): No delegate registered
+			<small><a href="javascript:fireAddDelegate()">Register</a></small>
 		{% endif %}
+		<br/>
 	{% empty %}
 		No positions have been assigned to this country.<br/>
 	{% endfor %}
 {% empty %}
 	No countries have been assigned to your school.
 {% endfor %}
+
+<h2>School Invoice</h2>
+
+<p>If you need an invoice, click the following link. It will generate an invoice based on your delegate registration, which you can print from your web browser.</p>
+
+<p><a href="invoice/">Create Invoice</a></p>
 
 {% endblock %}

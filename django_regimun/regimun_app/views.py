@@ -1,8 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms.util import ErrorList
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template.context import RequestContext
 from django.template.defaultfilters import slugify
@@ -10,13 +11,62 @@ from recaptcha.client import captcha
 from regimun_app.forms import NewSchoolForm, NewFacultySponsorForm, \
     ConferenceForm, SecretariatUserForm
 from regimun_app.models import Conference, School, FacultySponsor, Country, \
-    Committee, Secretariat
+    Committee, Secretariat, Delegate
 from settings import MEDIA_ROOT
 import csv
 
 def render_response(req, *args, **kwargs):
     kwargs['context_instance'] = RequestContext(req)
     return render_to_response(*args, **kwargs)
+
+def secretariat_authenticate(request, conference):
+    if request.user.is_staff:
+        return True
+    try:
+        return request.user.secretariat_member.conference.pk == conference.pk
+    except ObjectDoesNotExist:
+        return False
+
+@login_required
+def spreadsheet_downloads(request, conference_slug):
+    conference = get_object_or_404(Conference, url_name=conference_slug)
+    if secretariat_authenticate(request, conference):
+        response = HttpResponse(mimetype='text/csv')
+        writer = csv.writer(response)
+        
+        if 'sponsor-contacts' in request.GET:
+            response['Content-Disposition'] = 'attachment; filename=sponsor-contacts-' + conference_slug + ".csv"            
+            writer.writerow(['School', 'First Name', 'Last Name', 'E-mail Address', 'Phone',
+                            'Street Address','Address 2','City','State / Province / Region','ZIP / Postal Code','Country'])
+            
+            sponsors = FacultySponsor.objects.select_related().filter(school__conference__url_name__exact=conference_slug)
+            
+            for sponsor in sponsors:
+                school = sponsor.school
+                writer.writerow([school.name,
+                                 sponsor.user.first_name, sponsor.user.last_name, sponsor.user.email, sponsor.phone,
+                                 school.address_line_1, school.address_line_2, school.city, school.state, school.zip, school.address_country])
+             
+        elif 'delegates' in request.GET:
+            response['Content-Disposition'] = 'attachment; filename=delegates-' + conference_slug + ".csv" 
+            writer.writerow(['School', 'Country', 'Committee', 'Title', 'First Name', 'Last Name'])
+            
+            delegates = Delegate.objects.select_related().filter(position_assignment__country__conference__url_name__exact=conference_slug)
+            
+            for delegate in delegates:
+                writer.writerow([delegate.position_assignment.school.name, delegate.position_assignment.country.name,
+                                 delegate.position_assignment.committee.name, delegate.position_assignment.title, 
+                                 delegate.first_name, delegate.last_name])
+            
+        elif 'school-country-assignments' in request.GET:
+            response['Content-Disposition'] = 'attachment; filename=school-country-assignments-' + conference_slug + ".csv" 
+        elif 'country-committee-assignments' in request.GET:
+            response['Content-Disposition'] = 'attachment; filename=country-committee-assignments-' + conference_slug + ".csv"             
+        else:
+            raise Http404
+    else:
+        raise Http404
+    return response
 
 @login_required
 def school_admin(request, conference_slug, school_slug):

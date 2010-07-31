@@ -19,9 +19,12 @@ class Conference(models.Model):
 	def __unicode__(self):
 		return self.name
 
+	def delegates(self):
+		Delegate.objects.filter(position_assignment__country__conference=self)
+	
 	class Meta:
 		ordering = ('name',)
-	
+		
 class Committee(models.Model):
 	conference = models.ForeignKey(Conference)
 	name = models.CharField(max_length=200)

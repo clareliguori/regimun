@@ -1,5 +1,17 @@
 {% extends "secretariat_base.html" %}
 
 {% block pagecontent %}
-You're looking at the secretariat admin page for {{ object.name }}
+<h1>{{ object.name }} Secretariat Dashboard</h1>
+
+<h2>Stats</h2>
+Registered delegates: {{ object.delegates|length }}
+
+<h2>Spreadsheets</h2>
+
+<a href="downloads/?sponsor-contacts">Sponsor Contact Info Spreadsheet</a><br/>
+<a href="downloads/?delegates">Delegates Spreadsheet</a><br/>
+<br/>
+<a href="downloads/?school-country-assignments">School-Country Assignments</a><br/>
+<a href="downloads/?country-committee-assignments">Country-Committee Assignments</a><br/>
+
 {% endblock %}
