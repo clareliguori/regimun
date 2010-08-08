@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.forms.models import ModelForm
 from django.forms.widgets import PasswordInput
-from regimun_app.models import Conference
+from regimun_app.models import Conference, School
 
 class NewSchoolForm(forms.Form):
     school_name = forms.CharField(label="Name", max_length=200)
@@ -33,3 +33,8 @@ class SecretariatUserForm(ModelForm):
         widgets = {
             'password' : PasswordInput,
         }
+
+class SchoolMailingAddressForm(ModelForm):
+    class Meta:
+        model = School
+        fields = ('address_line_1','address_line_2','city','state','zip','address_country')

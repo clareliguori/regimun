@@ -1,0 +1,8 @@
+RegiMUN uses the following open-source libraries:
+Django
+Dajax
+DajaxICE
+ReportLab
+Python Imaging Library
+
+http://github.com/cowboy/jquery-misc/blob/master/jquery.ba-serializeobject.js

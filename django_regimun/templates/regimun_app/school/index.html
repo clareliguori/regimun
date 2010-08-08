@@ -2,55 +2,73 @@
 
 {% block scriptblock %}
 
-function centeredPopup(elementName) {
-	var scrolledX, scrolledY;
-	if( self.pageYOffset ) {
-		scrolledX = self.pageXOffset;
- 		rolledY = self.pageYOffset;
-	} else if( document.documentElement && document.documentElement.scrollTop ) {
-		scrolledX = document.documentElement.scrollLeft;
-		scrolledY = document.documentElement.scrollTop;
-	} else if( document.body ) {
-		scrolledX = document.body.scrollLeft;
-		scrolledY = document.body.scrollTop;
-	}
-	
-	var centerX, centerY;
-	if( self.innerHeight ) {
-		centerX = self.innerWidth;
-		centerY = self.innerHeight;
-	} else if( document.documentElement && document.documentElement.clientHeight ) {
-		centerX = document.documentElement.clientWidth;
-		centerY = document.documentElement.clientHeight;
-	} else if( document.body ) {
-		centerX = document.body.clientWidth;
-		centerY = document.body.clientHeight;
-	}
-	
-	var leftOffset = scrolledX + (centerX - 250) / 2;
-	var topOffset = scrolledY + (centerY - 200) / 2;
-	
-	document.getElementById(elementName).style.top = topOffset + "px";
-	document.getElementById(elementName).style.left = leftOffset + "px";
+function toggle_school_mailing_address_buttons() {
+	$('#edit_mailing_address').toggle();
+	$('#save_mailing_address').toggle();
+	$('#cancel_mailing_address').toggle();
 }
 
-function fireEditSponsor() {
-  centeredPopup("mypopup");
-  document.getElementById("mypopup").style.display = "block";
-  document.body.onscroll = centeredPopup("mypopup");
-  window.onscroll = centeredPopup("mypopup");
+function switch_to_school_mailing_address_form(data) {
+	if(data!=Dajaxice.EXCEPTION){
+		output = "<div id=\"mailing_address\"><form action=\"\" method=\"post\" id=\"school_mailing_address_form\">";
+		output += data.form;
+		output += "</form></div>";
+		$('#mailing_address').replaceWith(output);
+		toggle_school_mailing_address_buttons();
+	}
+	else{
+		alert('Error');
+	}
 }
+
+function send_school_mailing_address_form() {
+	data = $('#school_mailing_address_form').serializeObject(true);
+	Dajaxice.django_regimun.regimun_app.save_school_mailing_address_form('Dajax.process', {'form':data,'school_pk':{{ school.pk }}});
+}
+
+function new_school_mailing_address(data) {
+	if(data!=Dajaxice.EXCEPTION){
+		output = "<div id=\"mailing_address\">";
+		output += data;
+		output += "</div>";
+		$('#mailing_address').replaceWith(output);
+		toggle_school_mailing_address_buttons();
+	}
+	else{
+		alert('Error');
+	}
+}
+
+$(function(){
+	// Tabs
+	$('#tabs').tabs();
+});
 
 {% endblock %}
 
 {% block pagecontent %}
 <h1>{{ conference.name }} Conference Registration</h1>
 Registration for <b>{{ school.name }}</b><br/>
-{% autoescape off %}{{ school.get_html_mailing_address }}{% endautoescape %}
-<br/>
-<small><a href="javascript:fireEditSchool()">Edit</a></small>
 
-<h2>Faculty Sponsors</h2>
+<div id="tabs">
+	<ul>
+		<li><a href="#contacts">Contacts</a></li>
+		<li><a href="#delegations">Delegations</a></li>
+		<li><a href="#fees">Fees</a></li>
+	</ul>
+
+<div id="contacts">
+
+<h3>School Mailing Address</h3>
+<div id="mailing_address">
+<p>{% autoescape off %}{{ school.get_html_mailing_address }}{% endautoescape %}</p>
+</div>
+<p>
+<button id="edit_mailing_address" class="button" onclick="Dajaxice.django_regimun.regimun_app.get_school_mailing_address_form('switch_to_school_mailing_address_form',{'school_pk':{{ school.pk }}})">Edit</button>
+<button id="save_mailing_address" class="button" style="display: none" onclick="send_school_mailing_address_form()">Save</button>
+</p>
+
+<h3>Faculty Sponsors</h3>
 {% for sponsor in school.facultysponsor_set.all %}
 	<b>{{ sponsor.user.get_full_name }} </b>
 	{% if sponsor.user.username == user.username %}
@@ -70,8 +88,8 @@ Registration for <b>{{ school.name }}</b><br/>
 <br/><br/>
 
 <a href="javascript:fireAddSponsor()">Add Sponsor</a>
-
-<h2>Delegations</h2>
+</div>
+<div id="delegations">
 
 {% for country,positions in school.get_delegations.items %}
 	<p><b>{{ country.name }}</b></p>
@@ -92,9 +110,11 @@ Registration for <b>{{ school.name }}</b><br/>
 {% empty %}
 	No countries have been assigned to your school.
 {% endfor %}
-
-<h2>Fees</h2>
+</div>
+<div id="fees">
 
 <p><a href="invoice">Download Invoice</a></p>
+</div>
+</div>
 
 {% endblock %}
