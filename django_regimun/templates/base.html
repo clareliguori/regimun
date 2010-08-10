@@ -11,7 +11,7 @@
 
 	{% dajaxice_js_import %}
 	<script type="text/javascript">
-	(function($,undefined){
+		(function($,undefined){
 		  '$:nomunge'; // Used by YUI compressor.
 		  
 		  $.fn.serializeObject = function(){
@@ -32,8 +32,9 @@
 		})(jQuery);
 
 		$(function() {
-		$( ".button" ).button();
-	});
+			$( ".button" ).button();
+			$('#tabs').tabs();
+		});
 	</script>
 	
 	<script type="text/javascript">

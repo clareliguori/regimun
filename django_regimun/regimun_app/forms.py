@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.forms.models import ModelForm
 from django.forms.widgets import PasswordInput
-from regimun_app.models import Conference, School
+from regimun_app.models import Conference, School, FacultySponsor
 
 class NewSchoolForm(forms.Form):
     school_name = forms.CharField(label="Name", max_length=200)
@@ -16,6 +16,12 @@ class NewSchoolForm(forms.Form):
 class NewFacultySponsorForm(forms.Form):
     sponsor_username = forms.RegexField("\w+", label="Username", max_length=30, help_text="Alphanumeric characters only (letters, digits and underscores).")
     sponsor_password = forms.CharField(label="Password", max_length=128, widget=forms.PasswordInput)
+    sponsor_first_name = forms.CharField(label="First name", max_length=30)
+    sponsor_last_name = forms.CharField(label="Last name", max_length=30)
+    sponsor_email = forms.EmailField(label="E-mail address", max_length=200)
+    sponsor_phone = forms.CharField(label="Phone number", max_length=30)
+    
+class EditFacultySponsorForm(forms.Form):
     sponsor_first_name = forms.CharField(label="First name", max_length=30)
     sponsor_last_name = forms.CharField(label="Last name", max_length=30)
     sponsor_email = forms.EmailField(label="E-mail address", max_length=200)

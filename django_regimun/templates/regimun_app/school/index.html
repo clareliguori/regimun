@@ -2,14 +2,32 @@
 
 {% block scriptblock %}
 
+$(function(){
+        $('.remove-sponsor-dialog').dialog({
+            autoOpen: false,
+            width: 400,
+            modal: true,
+            resizable: false,
+            buttons: {
+                "Remove Sponsor": function() {
+                   	Dajaxice.django_regimun.regimun_app.remove_sponsor('Dajax.process', {'sponsor_pk': $(this).attr("sponsor")})
+                   	$(this).dialog("close");
+                },
+                "Cancel": function() {
+                    $(this).dialog("close");
+                }
+            }
+        });
+});
+
+
 function toggle_school_mailing_address_buttons() {
 	$('#edit_mailing_address').toggle();
 	$('#save_mailing_address').toggle();
-	$('#cancel_mailing_address').toggle();
 }
 
 function switch_to_school_mailing_address_form(data) {
-	if(data!=Dajaxice.EXCEPTION){
+	if(data != Dajaxice.EXCEPTION) {
 		output = "<div id=\"mailing_address\"><form action=\"\" method=\"post\" id=\"school_mailing_address_form\">";
 		output += data.form;
 		output += "</form></div>";
@@ -39,10 +57,47 @@ function new_school_mailing_address(data) {
 	}
 }
 
-$(function(){
-	// Tabs
-	$('#tabs').tabs();
-});
+
+function toggle_sponsor_buttons(sponsor_pk) {
+	$('#edit_sponsor_'+sponsor_pk).toggle();
+	$('#save_sponsor_'+sponsor_pk).toggle();
+}
+
+function switch_to_edit_sponsor_form(data) {
+	if(data != Dajaxice.EXCEPTION) {
+		output = "<div id=\"sponsor_" + data.sponsor_pk + "\"><form action=\"\" method=\"post\" id=\"sponsor_form_" + data.sponsor_pk + "\">";
+		output += data.form;
+		output += "</form></div>";
+		$('#sponsor_'+data.sponsor_pk).replaceWith(output);
+		toggle_sponsor_buttons(data.sponsor_pk);
+	}
+	else{
+		alert('Error');
+	}
+}
+
+function send_edit_sponsor_form(sponsor_pk) {
+	data = $('#sponsor_form_' + sponsor_pk).serializeObject(true);
+	Dajaxice.django_regimun.regimun_app.save_edit_sponsor_form('Dajax.process', {'form':data,'sponsor_pk': sponsor_pk});
+}
+
+function updated_sponsor_data(data) {
+	if(data!=Dajaxice.EXCEPTION){
+		output = "<div id=\"sponsor_" + data.sponsor_id + "\">";
+		output += "<b>" + data.full_name + "</b>";
+		if("{{ user.username }}" == data.username) {
+			output += "<small><i>(This is you)</i></small>";
+		}
+		output += "<br/>E-mail Address: <a href=\"mailto:" + data.email + "\">" + data.email + "</a><br/>";
+		output += "Phone Number: " + data.phone + "<br/>";
+		output += "</div>";
+		$('#sponsor_'+data.sponsor_id).replaceWith(output);
+		toggle_sponsor_buttons(data.sponsor_id);
+	}
+	else{
+		alert('Error');
+	}
+}
 
 {% endblock %}
 
@@ -57,64 +112,68 @@ Registration for <b>{{ school.name }}</b><br/>
 		<li><a href="#fees">Fees</a></li>
 	</ul>
 
-<div id="contacts">
+	<div id="contacts">
+		<h3>School Mailing Address</h3>
+			<div id="mailing_address"><p>{% autoescape off %}{{ school.get_html_mailing_address }}{% endautoescape %}</p></div>
+			<p>
+				<button id="edit_mailing_address" class="button" onclick="Dajaxice.django_regimun.regimun_app.get_school_mailing_address_form('switch_to_school_mailing_address_form',{'school_pk':{{ school.pk }}})">Edit</button>
+				<button id="save_mailing_address" class="button" style="display: none" onclick="send_school_mailing_address_form()">Save</button>
+			</p>
+	
+		<h3>Faculty Sponsors</h3>
+			{% for sponsor in school.facultysponsor_set.all %}
+				<div id="sponsor_{{sponsor.pk}}">
+					<b>{{ sponsor.user.get_full_name }} </b>
+					{% if sponsor.user.username == user.username %}
+						<small><i>(This is you)</i></small>
+					{% endif %}
+					<br/>
+					E-mail Address: <a href="mailto:{{sponsor.user.email}}">{{ sponsor.user.email }}</a><br/>
+					Phone Number: {{ sponsor.phone }}<br/>
+				</div>
+				<p id="buttons_sponsor_{{sponsor.pk}}">
+					<button id="edit_sponsor_{{sponsor.pk}}" class="button" onclick="Dajaxice.django_regimun.regimun_app.get_edit_sponsor_form('switch_to_edit_sponsor_form',{'sponsor_pk':{{ sponsor.pk }}})">Edit</button>
+					<button id="save_sponsor_{{sponsor.pk}}" class="button" style="display: none" onclick="send_edit_sponsor_form({{sponsor.pk}})">Save</button>
+					{% if sponsor.user.username != user.username %}
+						<button id="remove_sponsor_{{sponsor.pk}}" class="button" onclick="$('#remove_sponsor_confirm_{{sponsor.pk}}').dialog('open')">Remove</button>
+						
+						<div id="remove_sponsor_confirm_{{sponsor.pk}}" class="remove-sponsor-dialog" title="Remove Faculty Sponsor" sponsor="{{sponsor.pk}}">
+							<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 0 0;"></span> Please confirm that you want to remove {{sponsor.user.get_full_name}} from this school. Removing this sponsor will revoke their access to {{school.name}}, and they will not be notified.</p>
+						</div>
+					{% endif %}
+				</p>
+			{% endfor %}
 
-<h3>School Mailing Address</h3>
-<div id="mailing_address">
-<p>{% autoescape off %}{{ school.get_html_mailing_address }}{% endautoescape %}</p>
-</div>
-<p>
-<button id="edit_mailing_address" class="button" onclick="Dajaxice.django_regimun.regimun_app.get_school_mailing_address_form('switch_to_school_mailing_address_form',{'school_pk':{{ school.pk }}})">Edit</button>
-<button id="save_mailing_address" class="button" style="display: none" onclick="send_school_mailing_address_form()">Save</button>
-</p>
-
-<h3>Faculty Sponsors</h3>
-{% for sponsor in school.facultysponsor_set.all %}
-	<b>{{ sponsor.user.get_full_name }} </b>
-	{% if sponsor.user.username == user.username %}
-		<small><i>(This is you)</i></small>
-	{% endif %}
-	<br/>
-	E-mail Address: <a href="mailto:{{sponsor.user.email}}">{{ sponsor.user.email }}</a><br/>
-	Phone Number: {{ sponsor.phone }}<br/>
-
-	<!-- edit sponsor popup -->
-	<div id='mypopup' name='mypopup' style='position: absolute; width: 250px; height: 200px; display: none; background: #ddd; border: 1px solid #000;'>
-	<p>My content that will be displayed in the popup</p>
-	<input type='submit' value=' Close me! ' onClick='document.getElementById("mypopup").style.display="none"'>
+			<br/><br/>	
+			<button id="add_sponsor" class="button" onclick="add_sponsor()">Add Sponsor</button>
 	</div>
-	<small><a href="javascript:fireEditSponsor()">Edit</a> / <a href="javascript:fireRemoveSponsor()">Remove</a></small>
-{% endfor %}
-<br/><br/>
 
-<a href="javascript:fireAddSponsor()">Add Sponsor</a>
-</div>
-<div id="delegations">
+	<div id="delegations">
 
-{% for country,positions in school.get_delegations.items %}
-	<p><b>{{ country.name }}</b></p>
-	{% for position in positions %}
-		{% if position.first_name %}
-			<!-- Delegate object -->
-			{{ position.position_assignment.committee.name }} ({{ position.position_assignment.title }}): {{ position.get_full_name }} 
-			<small><a href="javascript:fireEditDelegate()">Edit</a> / <a href="javascript:fireRemoveDelegate()">Remove</a></small>
-		{% else %}
-			<!-- DelegatePosition object -->
-			{{ position.committee.name }} ({{ position.title }}): No delegate registered
-			<small><a href="javascript:fireAddDelegate()">Register</a></small>
-		{% endif %}
-		<br/>
-	{% empty %}
-		No positions have been assigned to this country.<br/>
-	{% endfor %}
-{% empty %}
-	No countries have been assigned to your school.
-{% endfor %}
-</div>
-<div id="fees">
+		{% for country,positions in school.get_delegations.items %}
+			<p><b>{{ country.name }}</b></p>
+			{% for position in positions %}
+				{% if position.first_name %}
+					<!-- Delegate object -->
+					{{ position.position_assignment.committee.name }} ({{ position.position_assignment.title }}): {{ position.get_full_name }} 
+					<small><a href="javascript:fireEditDelegate()">Edit</a> / <a href="javascript:fireRemoveDelegate()">Remove</a></small>
+				{% else %}
+					<!-- DelegatePosition object -->
+					{{ position.committee.name }} ({{ position.title }}): No delegate registered
+					<small><a href="javascript:fireAddDelegate()">Register</a></small>
+				{% endif %}
+				<br/>
+			{% empty %}
+				No positions have been assigned to this country.<br/>
+			{% endfor %}
+		{% empty %}
+			No countries have been assigned to your school.
+		{% endfor %}
+	</div>
 
-<p><a href="invoice">Download Invoice</a></p>
-</div>
+	<div id="fees">
+		<p><a href="invoice">Download Invoice</a></p>
+	</div>
 </div>
 
 {% endblock %}
