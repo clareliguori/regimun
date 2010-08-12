@@ -32,6 +32,16 @@ class ConferenceForm(ModelForm):
         model = Conference
         exclude = ('url_name',)
 
+class BasicConferenceInfoForm(ModelForm):
+    class Meta:
+        model = Conference
+        fields = ('date','location','logo','website_url',)
+
+class OrganizationInfoForm(ModelForm):
+    class Meta:
+        model = Conference
+        fields = ('organization_name','address_line_1','address_line_2','city','state','zip','address_country')
+
 class SecretariatUserForm(ModelForm):
     class Meta:
         model = User

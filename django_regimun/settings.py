@@ -4,15 +4,15 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
+    ('Clare Liguori', 'clare.liguori@gmail.com'),
 )
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = ''           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = ''             # Or path to database file if using sqlite3.
-DATABASE_USER = ''             # Not used with sqlite3.
-DATABASE_PASSWORD = ''         # Not used with sqlite3.
+DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+DATABASE_NAME = 'regimundb'             # Or path to database file if using sqlite3.
+DATABASE_USER = 'regimunuser'             # Not used with sqlite3.
+DATABASE_PASSWORD = 'kof1UN12#'         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
@@ -35,12 +35,12 @@ USE_I18N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/home/clare/Programming/regimun/media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = ''
+MEDIA_URL = '/site_media'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -54,7 +54,7 @@ SECRET_KEY = 'sw27fxjh!y!6%o1deue6m_=6u%-0(pqblrum$$5d(6z_i(d^dr'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.load_template_source',
     'django.template.loaders.app_directories.load_template_source',
-#     'django.template.loaders.eggs.load_template_source',
+    'django.template.loaders.eggs.load_template_source',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -76,4 +76,26 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
+    'django.contrib.admin',
+    'dajaxice',
+    'dajax',
+    'regimun_app',
 )
+
+AUTH_PROFILE_MODULE = ''
+
+LOGIN_REDIRECT_URL = '/registration/'
+
+DAJAXICE_MEDIA_PREFIX="dajaxice"
+DAJAXICE_FUNCTIONS = (
+    'regimun_app.ajax.get_school_mailing_address_form',
+    'regimun_app.ajax.save_school_mailing_address_form',
+    'regimun_app.ajax.get_edit_sponsor_form',
+    'regimun_app.ajax.save_edit_sponsor_form',
+    'regimun_app.ajax.remove_sponsor',
+    'regimun_app.ajax.get_basic_conference_form',
+    'regimun_app.ajax.save_basic_conference_form',
+)
+
+import logging
+logging.basicConfig(level=logging.DEBUG)

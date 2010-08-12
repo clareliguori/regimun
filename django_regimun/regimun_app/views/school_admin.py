@@ -29,7 +29,7 @@ def school_authenticate(request, conference, school):
 def school_admin(request, conference_slug, school_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     school = get_object_or_404(School, url_name=school_slug)
-    return render_response(request, 'regimun_app/school/index.html', {'conference' : conference, 'school' : school})
+    return render_response(request, 'school/index.html', {'conference' : conference, 'school' : school})
 
 def validate_newsponsor_form(sponsor_form):
     if sponsor_form.is_valid():
@@ -98,14 +98,14 @@ def create_school(request, conference_slug):
         school_form = NewSchoolForm()
         sponsor_form = NewFacultySponsorForm()
 
-    return render_response(request, 'regimun_app/register-new-school.html', {
+    return render_response(request, 'register-new-school.html', {
         'school_form': school_form, 'sponsor_form': sponsor_form, 'conference' : conference
     })
 
 def school_created(request, conference_slug, school_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     school = get_object_or_404(School, url_name=school_slug)
-    return render_response(request, 'regimun_app/school/school-created.html', {'conference' : conference, 'school' : school})
+    return render_response(request, 'school/school-created.html', {'conference' : conference, 'school' : school})
 
 @login_required
 def generate_invoice(request, conference_slug, school_slug):

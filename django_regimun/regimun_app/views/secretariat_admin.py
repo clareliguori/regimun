@@ -136,11 +136,11 @@ def create_conference(request):
         conference_form = ConferenceForm()
         user_form = SecretariatUserForm()
 
-    return render_response(request, 'regimun_app/conference/create-conference.html', {
+    return render_response(request, 'conference/create-conference.html', {
         'conference_form': conference_form, 'secretariat_form' : user_form
     })
 
 def conference_created(request, conference_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
-    return render_response(request, 'regimun_app/conference/conference-created.html', {'conference' : conference,})
+    return render_response(request, 'conference/conference-created.html', {'conference' : conference,})
     

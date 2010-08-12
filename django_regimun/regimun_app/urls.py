@@ -19,17 +19,13 @@ urlpatterns = patterns('',
     # school was created
     (r'^(?P<conference_slug>[-\w]+)/created$', conference_created),
     
-    # check school and username availability
-    #(r'^check_schoolname/', 'django_regimun.regimun_app.views.check_schoolname'),
-    #(r'^check_username/', 'django_regimun.regimun_app.views.check_username'),
-
     # schools index
     (r'^(?P<slug>[-\w]+)/$', object_detail, dict(queryset=conferences, slug_field='url_name')),
 
     # secretariat admin page
     (r'^(?P<slug>[-\w]+)/secretariat/$',
         limited_object_detail,
-        dict(queryset=conferences, slug_field='url_name', template_name='regimun_app/secretariat/index.html')),
+        dict(queryset=conferences, slug_field='url_name', template_name='secretariat/index.html')),
 
     # secretariat admin page - downloads
     (r'^(?P<conference_slug>[-\w]+)/secretariat/downloads/', spreadsheet_downloads),

@@ -10,7 +10,7 @@ $(function(){
             resizable: false,
             buttons: {
                 "Remove Sponsor": function() {
-                   	Dajaxice.django_regimun.regimun_app.remove_sponsor('Dajax.process', {'sponsor_pk': $(this).attr("sponsor")})
+                   	Dajaxice.regimun_app.remove_sponsor('Dajax.process', {'sponsor_pk': $(this).attr("sponsor")})
                    	$(this).dialog("close");
                 },
                 "Cancel": function() {
@@ -41,7 +41,7 @@ function switch_to_school_mailing_address_form(data) {
 
 function send_school_mailing_address_form() {
 	data = $('#school_mailing_address_form').serializeObject(true);
-	Dajaxice.django_regimun.regimun_app.save_school_mailing_address_form('Dajax.process', {'form':data,'school_pk':{{ school.pk }}});
+	Dajaxice.regimun_app.save_school_mailing_address_form('Dajax.process', {'form':data,'school_pk':{{ school.pk }}});
 }
 
 function new_school_mailing_address(data) {
@@ -78,7 +78,7 @@ function switch_to_edit_sponsor_form(data) {
 
 function send_edit_sponsor_form(sponsor_pk) {
 	data = $('#sponsor_form_' + sponsor_pk).serializeObject(true);
-	Dajaxice.django_regimun.regimun_app.save_edit_sponsor_form('Dajax.process', {'form':data,'sponsor_pk': sponsor_pk});
+	Dajaxice.regimun_app.save_edit_sponsor_form('Dajax.process', {'form':data,'sponsor_pk': sponsor_pk});
 }
 
 function updated_sponsor_data(data) {
@@ -116,7 +116,7 @@ Registration for <b>{{ school.name }}</b><br/>
 		<h3>School Mailing Address</h3>
 			<div id="mailing_address"><p>{% autoescape off %}{{ school.get_html_mailing_address }}{% endautoescape %}</p></div>
 			<p>
-				<button id="edit_mailing_address" class="button" onclick="Dajaxice.django_regimun.regimun_app.get_school_mailing_address_form('switch_to_school_mailing_address_form',{'school_pk':{{ school.pk }}})">Edit</button>
+				<button id="edit_mailing_address" class="button" onclick="Dajaxice.regimun_app.get_school_mailing_address_form('switch_to_school_mailing_address_form',{'school_pk':{{ school.pk }}})">Edit</button>
 				<button id="save_mailing_address" class="button" style="display: none" onclick="send_school_mailing_address_form()">Save</button>
 			</p>
 	
@@ -132,7 +132,9 @@ Registration for <b>{{ school.name }}</b><br/>
 					Phone Number: {{ sponsor.phone }}<br/>
 				</div>
 				<p id="buttons_sponsor_{{sponsor.pk}}">
-					<button id="edit_sponsor_{{sponsor.pk}}" class="button" onclick="Dajaxice.django_regimun.regimun_app.get_edit_sponsor_form('switch_to_edit_sponsor_form',{'sponsor_pk':{{ sponsor.pk }}})">Edit</button>
+					{% if user.is_staff or user.secretariat_member or sponsor.user.username == user.username %}
+						<button id="edit_sponsor_{{sponsor.pk}}" class="button" onclick="Dajaxice.regimun_app.get_edit_sponsor_form('switch_to_edit_sponsor_form',{'sponsor_pk':{{ sponsor.pk }}})">Edit</button>
+					{% endif %}
 					<button id="save_sponsor_{{sponsor.pk}}" class="button" style="display: none" onclick="send_edit_sponsor_form({{sponsor.pk}})">Save</button>
 					{% if sponsor.user.username != user.username %}
 						<button id="remove_sponsor_{{sponsor.pk}}" class="button" onclick="$('#remove_sponsor_confirm_{{sponsor.pk}}').dialog('open')">Remove</button>
