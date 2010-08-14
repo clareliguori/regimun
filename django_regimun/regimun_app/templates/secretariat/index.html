@@ -2,98 +2,44 @@
 
 {% block scriptblock %}
 
+function form_dialog(dialog_element, dialog_link_element, form_element, dajax_get_func, dajax_save_func, dialog_width) {
+	$(dialog_element).dialog({
+		autoOpen: false,
+		width: dialog_width,
+		modal: true,
+		resizable: false,
+		buttons: {
+			"Save": function() {
+				data = $(form_element).serializeObject(true);
+				dajax_save_func('Dajax.process', {'form':data,'conference_pk': {{object.pk}}});
+				$(this).dialog("close");
+			},
+			"Cancel": function() {
+				$(this).dialog("close");
+			}
+		}
+	});
+		  
+	$(dialog_link_element).click(function(){
+		dajax_get_func('Dajax.process', {'conference_pk': {{object.pk}}});
+		$(dialog_element).dialog('open');
+		return false;
+	});
+}
+
 $(function(){
-        $('#basic-conference-form-dialog').dialog({
-            autoOpen: false,
-            width: 400,
-            modal: true,
-            resizable: false,
-            buttons: {
-                "Save": function() {
-                	data = $('#basic_conference_info_form').serializeObject(true);
-                   	Dajaxice.regimun_app.save_basic_conference_form('Dajax.process', {'form':data,'conference_pk': {{object.pk}}});
-                   	$(this).dialog("close");
-                },
-                "Cancel": function() {
-                    $(this).dialog("close");
-                }
-            }
-        });
-        
-        $('#basic-conference-form-dialog-link').click(function(){
-			Dajaxice.regimun_app.get_basic_conference_form('Dajax.process', {'conference_pk': {{object.pk}}});
-			$('#basic-conference-form-dialog').dialog('open');
-			return false;
-		});
 
-        $('#fee-form-dialog').dialog({
-            autoOpen: false,
-            width: 400,
-            modal: true,
-            resizable: false,
-            buttons: {
-                "Save": function() {
-                	data = $('#conference_fees_form').serializeObject(true);
-                   	Dajaxice.regimun_app.save_conference_fees_form('Dajax.process', {'form':data,'conference_pk': {{object.pk}}});
-                   	$(this).dialog("close");
-                },
-                "Cancel": function() {
-                    $(this).dialog("close");
-                }
-            }
-        });
-        
-        $('#fee-form-dialog-link').click(function(){
-			Dajaxice.regimun_app.get_conference_fees_form('Dajax.process', {'conference_pk': {{object.pk}}});
-			$('#fee-form-dialog').dialog('open');
-			return false;
-		});
+	form_dialog('#basic-conference-form-dialog', '#basic-conference-form-dialog-link', '#basic_conference_info_form',
+		Dajaxice.regimun_app.get_basic_conference_form, Dajaxice.regimun_app.save_basic_conference_form, 400);
 
-        $('#countries-form-dialog').dialog({
-            autoOpen: false,
-            width: 400,
-            modal: true,
-            resizable: false,
-            buttons: {
-                "Save": function() {
-                	data = $('#conference_countries_form').serializeObject(true);
-                   	Dajaxice.regimun_app.save_conference_countries_formset('Dajax.process', {'form':data,'conference_pk': {{object.pk}}});
-                   	$(this).dialog("close");
-                },
-                "Cancel": function() {
-                    $(this).dialog("close");
-                }
-            }
-        });
-        
-        $('#countries-form-dialog-link').click(function(){
-			Dajaxice.regimun_app.get_conference_countries_formset('Dajax.process', {'conference_pk': {{object.pk}}});
-			$('#countries-form-dialog').dialog('open');
-			return false;
-		});
+	form_dialog('#fee-form-dialog', '#fee-form-dialog-link', '#conference_fees_form',
+		Dajaxice.regimun_app.get_conference_fees_form, Dajaxice.regimun_app.save_conference_fees_form, 400);
 
-        $('#committees-form-dialog').dialog({
-            autoOpen: false,
-            width: 400,
-            modal: true,
-            resizable: false,
-            buttons: {
-                "Save": function() {
-                	data = $('#conference_committees_form').serializeObject(true);
-                   	Dajaxice.regimun_app.save_conference_committees_formset('Dajax.process', {'form':data,'conference_pk': {{object.pk}}});
-                   	$(this).dialog("close");
-                },
-                "Cancel": function() {
-                    $(this).dialog("close");
-                }
-            }
-        });
-        
-        $('#committees-form-dialog-link').click(function(){
-			Dajaxice.regimun_app.get_conference_committees_formset('Dajax.process', {'conference_pk': {{object.pk}}});
-			$('#committees-form-dialog').dialog('open');
-			return false;
-		});
+	form_dialog('#countries-form-dialog', '#countries-form-dialog-link', '#conference_countries_form',
+		Dajaxice.regimun_app.get_conference_countries_formset, Dajaxice.regimun_app.save_conference_countries_formset, 400);
+
+	form_dialog('#committees-form-dialog', '#committees-form-dialog-link', '#conference_committees_form',
+		Dajaxice.regimun_app.get_conference_committees_formset, Dajaxice.regimun_app.save_conference_committees_formset, 400);
 
         $('#committees-to-countries-form-dialog').dialog({
             autoOpen: false,
@@ -140,6 +86,7 @@ $(function(){
 			$('#countries-to-schools-form-dialog').dialog('open');
 			return false;
 		});
+				
 });
 
 {% endblock %}
