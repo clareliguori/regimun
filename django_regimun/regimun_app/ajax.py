@@ -1,4 +1,5 @@
 from dajax.core.Dajax import Dajax
+from django.template.defaultfilters import slugify
 from django.utils import simplejson
 
 def get_school_mailing_address_form(request, school_pk):
@@ -100,4 +101,78 @@ def save_basic_conference_form(request, conference_pk, form):
         for error in form.errors:
             print error
             dajax.add_css_class('#basic_conference_info_form #id_%s' % error,'error')
+    return dajax.json()
+
+def get_conference_countries_formset(request, conference_pk):
+    from regimun_app.models import Conference, Country
+    from regimun_app.forms import CountryFormSet
+
+    conference = Conference.objects.get(pk=conference_pk)
+    formset = CountryFormSet(queryset=Country.objects.filter(conference=conference))
+
+    dajax = Dajax()
+    output = "<form action=\"\" method=\"post\" id=\"conference_countries_form\"><table>";
+    output += formset.as_table()
+    output += "</table></form>"
+    dajax.assign('#countries-form-dialog','innerHTML',output)
+    return dajax.json()
+
+def save_conference_countries_formset(request, conference_pk, form):
+    from regimun_app.models import Conference
+    from regimun_app.forms import CountryFormSet
+    
+    dajax = Dajax()
+    conference = Conference.objects.get(pk=conference_pk)
+    formset = CountryFormSet(form)
+    
+    if formset.is_valid():
+        countries = formset.save(commit=False)
+        for country in countries:
+            if country.name and not country.url_name:   # new country
+                country.url_name = slugify(country.name)
+                country.conference = conference
+            if country.name:
+                country.save()
+    else:
+        dajax.remove_css_class('#conference_countries_form input','error')
+        for error in formset.errors:
+            print error
+            dajax.add_css_class('#conference_countries_form #id_%s' % error,'error')
+    return dajax.json()
+
+def get_conference_committees_formset(request, conference_pk):
+    from regimun_app.models import Conference, Committee
+    from regimun_app.forms import CommitteeFormSet
+
+    conference = Conference.objects.get(pk=conference_pk)
+    formset = CommitteeFormSet(queryset=Committee.objects.filter(conference=conference))
+
+    dajax = Dajax()
+    output = "<form action=\"\" method=\"post\" id=\"conference_committees_form\"><table>";
+    output += formset.as_table()
+    output += "</table></form>"
+    dajax.assign('#committees-form-dialog','innerHTML',output)
+    return dajax.json()
+
+def save_conference_committees_formset(request, conference_pk, form):
+    from regimun_app.models import Conference
+    from regimun_app.forms import CommitteeFormSet
+    
+    dajax = Dajax()
+    conference = Conference.objects.get(pk=conference_pk)
+    formset = CommitteeFormSet(form)
+    
+    if formset.is_valid():
+        committees = formset.save(commit=False)
+        for committee in committees:
+            if committee.name and not committee.url_name:   # new committee
+                committee.url_name = slugify(committee.name)
+                committee.conference = conference
+            if committee.name:
+                committee.save()
+    else:
+        dajax.remove_css_class('#conference_committees_form input','error')
+        for error in formset.errors:
+            print error
+            dajax.add_css_class('#conference_committees_form #id_%s' % error,'error')
     return dajax.json()

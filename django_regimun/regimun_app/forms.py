@@ -1,8 +1,9 @@
 from django import forms
 from django.contrib.auth.models import User
-from django.forms.models import ModelForm
+from django.forms.models import ModelForm, modelformset_factory
 from django.forms.widgets import PasswordInput
-from regimun_app.models import Conference, School, FacultySponsor
+from regimun_app.models import Conference, School, FacultySponsor, Committee, \
+    Country
 
 class NewSchoolForm(forms.Form):
     school_name = forms.CharField(label="Name", max_length=200)
@@ -54,3 +55,7 @@ class SchoolMailingAddressForm(ModelForm):
     class Meta:
         model = School
         fields = ('address_line_1','address_line_2','city','state','zip','address_country')
+
+CommitteeFormSet = modelformset_factory(Committee, can_delete=True, fields=('name',))
+
+CountryFormSet = modelformset_factory(Country, can_delete=True, fields=('name','flag_icon',))
