@@ -86,11 +86,12 @@ def generate_all_invoices(request, conference_slug):
 def redirect_to_school(request, conference_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     if secretariat_authenticate(request, conference) and request.method == 'POST':
-        print request.POST
         form = SchoolNameForm(request.POST)
         if form.is_valid():
             school = get_object_or_404(School, name=form.cleaned_data['name'])
-            return HttpResponseRedirect(reverse(school_admin, 
+            return HttpResponseRedirect(reverse(school_admin,
+                                             args=(conference.url_name,school.url_name)))
+
     raise Http404
 
 def create_conference(request):
