@@ -2,6 +2,10 @@
 
 {% block scriptblock %}
 
+function get_form_callback(data) {
+	$("input#id_date").datepicker();
+}
+
 function form_dialog(dialog_element, dialog_link_element, form_element, dajax_get_func, dajax_save_func, dialog_width) {
 	$(dialog_element).dialog({
 		autoOpen: false,
@@ -29,6 +33,12 @@ function form_dialog(dialog_element, dialog_link_element, form_element, dajax_ge
 
 $(function(){
 
+	$('#tab-links a').click(function() {
+		$('.secretariat-pane').hide();
+		$('#' + $(this).attr("href")).show();
+		return false;
+	});
+
 	form_dialog('#basic-conference-form-dialog', '#basic-conference-form-dialog-link', '#basic_conference_info_form',
 		Dajaxice.regimun_app.get_basic_conference_form, Dajaxice.regimun_app.save_basic_conference_form, 400);
 
@@ -40,6 +50,13 @@ $(function(){
 
 	form_dialog('#committees-form-dialog', '#committees-form-dialog-link', '#conference_committees_form',
 		Dajaxice.regimun_app.get_conference_committees_formset, Dajaxice.regimun_app.save_conference_committees_formset, 400);
+
+	var availableSchools = [{% for school in object.school_set.all %}
+				"{{ school.name }}", 
+			{% endfor %}];
+	$(".search-schools input#id_name").autocomplete({
+		source: availableSchools
+	});
 
         $('#committees-to-countries-form-dialog').dialog({
             autoOpen: false,
@@ -101,50 +118,67 @@ Registered delegates: {{ object.delegates|length }}
 No registered delegates.
 {% endif %}
 
-<h2>Spreadsheets</h2>
+<div id="tab-links">
+	<a href="spreadsheets">Spreadsheets</a> / 
+	<a href="schools">Schools</a> / 
+	<a href="fees">Fees</a> / 
+	<a href="settings">Settings</a> 
+</div>
+	
+<div id="spreadsheets" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
+	<a href="downloads/?sponsor-contacts">Sponsor Contact Info Spreadsheet</a><br/>
+	<a href="downloads/?delegates">Delegates Spreadsheet</a><br/>
+	<br/>
+	<a href="downloads/?school-country-assignments">School-Country Assignments</a><br/>
+	<a href="downloads/?country-committee-assignments">Country-Committee Assignments</a><br/>
+</div>
 
-<a href="downloads/?sponsor-contacts">Sponsor Contact Info Spreadsheet</a><br/>
-<a href="downloads/?delegates">Delegates Spreadsheet</a><br/>
-<br/>
-<a href="downloads/?school-country-assignments">School-Country Assignments</a><br/>
-<a href="downloads/?country-committee-assignments">Country-Committee Assignments</a><br/>
+<div id="schools" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
+Search:
+	<form method="post" action="see-school" class="search-schools">
+		<input id="id_name" name="name"/>
+		<input type="submit" name="submitschool" value="Go">
+	</form>
 
-<h2>School Information</h2>
-<form method="post" action="see-school">
-<select name="schoolslug">
-{% for school in object.school_set.all %}
-	<option value="{{ school.url_name }}">{{ school.name }}</option>
-{% endfor %}
-<input type="submit" name="submitschool" value="Go">
-</select>
-</form>
+Select from list:
+	<form method="post" action="see-school">
+		<select id="id_name" name="name">
+			{% for school in object.school_set.all %}
+				<option value="{{ school.name }}">{{ school.name }}</option>
+			{% endfor %}
+		</select>
+		<input type="submit" name="submitschool" value="Go">
+	</form>
+</div>
 
-<h2>Fees</h2>
-<p>
-Total Revenue: <br/>
-Total Due: <br/>
-</p>
-<p>
-<a href="invoices">All Invoices</a>
-</p>
+<div id="fees" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
+	<p>
+	Total Revenue: <br/>
+	Total Due: <br/>
+	</p>
+	<p>
+	<a href="invoices">All Invoices</a>
+	</p>
+</div>
 
-<h2>Conference Settings</h2>
-<p><a href="#" id="basic-conference-form-dialog-link">Basic Conference Information</a></p>
-<div id="basic-conference-form-dialog" title="Basic Conference Information"></div>
-
-<p><a href="#" id="fee-form-dialog-link">Fee Structure</a></p>
-<div id="fee-form-dialog" title="Conference Fee Structure"></div>
-
-<p><a href="#" id="countries-form-dialog-link">Countries</a></p>
-<div id="countries-form-dialog" title="Conference Countries"></div>
-
-<p><a href="#" id="committees-form-dialog-link">Committees</a></p>
-<div id="committees-form-dialog" title="Conference Committees"></div>
-
-<p><a href="#" id="committees-to-countries-form-dialog-link">Assign committees to countries</a></p>
-<div id="committees-to-countries-form-dialog" title="Assign committees to countries"></div>
-
-<p><a href="#" id="countries-to-schools-form-dialog-link">Assign countries to schools</a></p>
-<div id="countries-to-schools-form-dialog" title="Assign countries to schools"></div>
+<div id="settings" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
+	<p><a href="#" id="basic-conference-form-dialog-link">Basic Conference Information</a></p>
+	<div id="basic-conference-form-dialog" title="Basic Conference Information"></div>
+	
+	<p><a href="#" id="fee-form-dialog-link">Fee Structure</a></p>
+	<div id="fee-form-dialog" title="Conference Fee Structure"></div>
+	
+	<p><a href="#" id="countries-form-dialog-link">Countries</a></p>
+	<div id="countries-form-dialog" title="Conference Countries"></div>
+	
+	<p><a href="#" id="committees-form-dialog-link">Committees</a></p>
+	<div id="committees-form-dialog" title="Conference Committees"></div>
+	
+	<p><a href="#" id="committees-to-countries-form-dialog-link">Assign committees to countries</a></p>
+	<div id="committees-to-countries-form-dialog" title="Assign committees to countries"></div>
+	
+	<p><a href="#" id="countries-to-schools-form-dialog-link">Assign countries to schools</a></p>
+	<div id="countries-to-schools-form-dialog" title="Assign countries to schools"></div>
+</div>
 
 {% endblock %}

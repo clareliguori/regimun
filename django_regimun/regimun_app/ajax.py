@@ -80,10 +80,11 @@ def get_basic_conference_form(request, conference_pk):
     form = BasicConferenceInfoForm(instance=conference)
     
     dajax = Dajax()
-    output = "<form action=\"\" method=\"post\" id=\"basic_conference_info_form\">";
+    output = "<form action=\"\" method=\"post\" id=\"basic_conference_info_form\">"
     output += form.as_p()
     output += "</form>"
     dajax.assign('#basic-conference-form-dialog','innerHTML',output)
+    dajax.add_data('0','get_form_callback')
     return dajax.json()
 
 def save_basic_conference_form(request, conference_pk, form):

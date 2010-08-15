@@ -4,9 +4,10 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import slugify
-from regimun_app.forms import ConferenceForm, SecretariatUserForm
+from regimun_app.forms import ConferenceForm, SecretariatUserForm, \
+    SchoolNameForm
 from regimun_app.models import Conference, FacultySponsor, Delegate, Country, \
-    Committee, Secretariat
+    Committee, Secretariat, School
 from regimun_app.views.general import render_response
 from regimun_app.views.school_admin import school_admin
 from reportlab.pdfgen import canvas
@@ -84,13 +85,12 @@ def generate_all_invoices(request, conference_slug):
 @login_required
 def redirect_to_school(request, conference_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
-    
     if secretariat_authenticate(request, conference) and request.method == 'POST':
-        school_slug = request.POST.get('schoolslug')
-        if school_slug:
+        print request.POST
+        form = SchoolNameForm(request.POST)
+        if form.is_valid():
+            school = get_object_or_404(School, name=form.cleaned_data['name'])
             return HttpResponseRedirect(reverse(school_admin, 
-                                            args=(conference.url_name,school_slug)))
-
     raise Http404
 
 def create_conference(request):

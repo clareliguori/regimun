@@ -14,6 +14,11 @@ class NewSchoolForm(forms.Form):
     school_zip = forms.CharField(label="ZIP / Postal Code", max_length=200, required=False)
     school_address_country = forms.CharField(label="Country", max_length=200, required=False)
 
+class SchoolNameForm(ModelForm):
+    class Meta:
+        model = School
+        fields = ('name',)
+
 class NewFacultySponsorForm(forms.Form):
     sponsor_username = forms.RegexField("\w+", label="Username", max_length=30, help_text="Alphanumeric characters only (letters, digits and underscores).")
     sponsor_password = forms.CharField(label="Password", max_length=128, widget=forms.PasswordInput)
