@@ -4,6 +4,7 @@
 	<title>{% block title %}{% endblock %}</title>
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"></script>
+	<script src="{{ MEDIA_URL }}/jquery.form.js" type="text/javascript" charset="utf-8"></script>
 	<link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/redmond/jquery-ui.css">
 
 	<script type="text/javascript">
@@ -11,26 +12,6 @@
 			$( ".button" ).button();
 			$('#tabs').tabs();
 		});
-
-		// adapted from http://www.learningjquery.com/2007/08/clearing-form-data
-		$.fn.clearForm = function() {
-			// iterate each matching form
-			return this.each(function() {
-				// iterate the elements within the form
-				$(':input', this).each(function() {
-					var type = this.type, tag = this.tagName.toLowerCase();
-			   		if (type == 'text' || type == 'password' || tag == 'textarea')
-			  			this.value = '';
-			   		else if (type == 'checkbox' || type == 'radio')
-			  			this.checked = false;
-			   		else if (tag == 'select')
-			  			this.selectedIndex = -1;
-			 	});
-
-				// remove form errors
-			 	$('li').remove();
-			});
-		};
 	</script>
 	
 	<script type="text/javascript">

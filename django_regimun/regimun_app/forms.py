@@ -1,8 +1,9 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.forms.models import ModelForm, modelformset_factory
-from django.forms.widgets import PasswordInput, HiddenInput
-from regimun_app.models import Conference, School, Committee, Country
+from django.forms.widgets import PasswordInput, HiddenInput, TextInput
+from regimun_app.models import Conference, School, Committee, Country, \
+    FeeStructure
 
 class jEditableForm(forms.Form):
     id = forms.CharField(max_length=200)
@@ -45,7 +46,18 @@ class ConferenceForm(ModelForm):
 class BasicConferenceInfoForm(ModelForm):
     class Meta:
         model = Conference
-        fields = ('date','location','website_url',)
+        fields = ('date','location','website_url','logo')
+
+class FeeStructureForm(ModelForm):
+    class Meta:
+        model = FeeStructure
+        exclude = ('conference')
+        widgets = {
+            'per_school': TextInput(attrs={'class': "auto {aSign: '$'}"}),
+            'per_country': TextInput(attrs={'class': "auto {aSign: '$'}"}),
+            'per_sponsor': TextInput(attrs={'class': "auto {aSign: '$'}"}),
+            'per_delegate': TextInput(attrs={'class': "auto {aSign: '$'}"}),            
+        }
 
 class OrganizationInfoForm(ModelForm):
     class Meta:

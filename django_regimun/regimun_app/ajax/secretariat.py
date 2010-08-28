@@ -4,8 +4,9 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import slugify
 from django.utils import simplejson
+from django_regimun.settings import MEDIA_URL
 from regimun_app.forms import jEditableForm, BasicConferenceInfoForm, \
-    NewCommitteeForm, NewCountryForm
+    NewCommitteeForm, NewCountryForm, FeeStructureForm
 from regimun_app.models import Conference, Committee, Country
 from regimun_app.views.secretariat_admin import secretariat_authenticate
 import inspect
@@ -31,18 +32,35 @@ def get_basic_conference_form(request, conference):
     
     output = ""
     if conference.logo:
-        output += "<img src=\"" + conference.logo.url + "\" border=\"0\" width=\"200\""
-    output += "<form action=\"\" method=\"post\" id=\"basic_conference_info_form\"><table>"
+        output += "<img src=\"" + MEDIA_URL + "/" + conference.logo.url + "\" border=\"0\" width=\"100\""
+    output += "<form action=\"ajax/save-basic-conference-form\" enctype=\"multipart/form-data\" method=\"post\" id=\"basic_conference_info_form\"><table>"
     output += form.as_table()
     output += "</table></form>"
     return simplejson.dumps({'form':output})
 
 def save_basic_conference_form(request, conference):
-    form = BasicConferenceInfoForm(data=request.POST, instance=conference)
+    form = BasicConferenceInfoForm(request.POST, request.FILES, instance=conference)
     
     if form.is_valid():
         conference = form.save()
-        return HttpResponse()
+        return simplejson.dumps({'conference':conference.pk})
+    else:
+        return simplejson.dumps({'form':form.as_p()})
+
+def get_fee_structure_form(request, conference):
+    form = FeeStructureForm(instance=conference.feestructure)
+    
+    output = "<form action=\"ajax/save-fee-structure-form\" method=\"post\" id=\"fee_structure_info_form\"><table>"
+    output += form.as_table()
+    output += "</table></form>"
+    return simplejson.dumps({'form':output})
+
+def save_fee_structure_form(request, conference):
+    form = FeeStructureForm(request.POST, instance=conference.feestructure)
+    
+    if form.is_valid():
+        fee_structure = form.save()
+        return simplejson.dumps({'fee_structure':fee_structure.pk})
     else:
         return simplejson.dumps({'form':form.as_p()})
 
@@ -118,12 +136,12 @@ def remove_country(request, conference):
 
 def add_country(request, conference):
     if request.method == 'POST':
-        form = NewCountryForm(data=request.POST)
+        form = NewCountryForm(request.POST, request.FILES)
         if(form.is_valid()):
             country = form.save(commit=False)
             country.conference = conference
             country.url_name = slugify(country.name)
             country.save()
-            return simplejson.dumps({'pk':country.pk, 'name':country.name})
+            return serializers.serialize('json', [country], fields=('name','flag_icon'))[1:-1]
         else:
             return simplejson.dumps({'form':form.as_p()})

@@ -25,6 +25,16 @@ class Conference(models.Model):
 	class Meta:
 		ordering = ('name',)
 		
+class FeeStructure(models.Model):
+	conference = models.OneToOneField(Conference)
+	per_school = models.DecimalField(max_digits=11, decimal_places=2, default=0)
+	per_country = models.DecimalField(max_digits=11, decimal_places=2, default=0)
+	per_sponsor = models.DecimalField(max_digits=11, decimal_places=2, default=0)
+	per_delegate = models.DecimalField(max_digits=11, decimal_places=2, default=0)
+
+	def __unicode__(self):
+		return self.conference.name
+
 class Committee(models.Model):
 	conference = models.ForeignKey(Conference)
 	name = models.CharField(max_length=200)
@@ -39,7 +49,7 @@ class Country(models.Model):
 	conference = models.ForeignKey(Conference)
 	name = models.CharField(max_length=200)
 	url_name = models.SlugField("Short Name", max_length=200, help_text="You will use this name in unique registration URLs. Only alphanumeric characters, underscores, and hyphens are allowed.")
-	flag_icon = models.ImageField(upload_to="flag_icons")
+	flag_icon = models.ImageField(upload_to="flag_icons", blank=True)
 	def __unicode__(self):
 		return self.name
 

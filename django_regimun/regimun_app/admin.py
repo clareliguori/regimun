@@ -1,6 +1,6 @@
 from django.contrib import admin
-from regimun_app.models import Conference, Committee, Country, \
-    School, DelegatePosition, Delegate, FacultySponsor
+from regimun_app.models import Conference, Committee, Country, School, \
+    DelegatePosition, Delegate, FacultySponsor, FeeStructure
 
 class ConferenceAdmin(admin.ModelAdmin):
     fieldsets = [
@@ -26,3 +26,4 @@ admin.site.register(School, SchoolAdmin)
 admin.site.register(DelegatePosition)
 admin.site.register(Delegate)
 admin.site.register(FacultySponsor)
+admin.site.register(FeeStructure)

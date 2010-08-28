@@ -7,7 +7,7 @@ from django.template.defaultfilters import slugify
 from regimun_app.forms import ConferenceForm, SecretariatUserForm, \
     SchoolNameForm
 from regimun_app.models import Conference, FacultySponsor, Delegate, Country, \
-    Committee, Secretariat, School
+    Committee, Secretariat, School, FeeStructure
 from regimun_app.views.general import render_response
 from regimun_app.views.school_admin import school_admin
 from reportlab.pdfgen import canvas
@@ -124,6 +124,11 @@ def create_conference(request):
                 new_committee.name = row[0]
                 new_committee.url_name = slugify(new_committee.name)
                 new_committee.save()
+            
+            # default fee structure (free conference)
+            feeStructure = FeeStructure()
+            feeStructure.conference = new_conference
+            feeStructure.save()
             
             user = user_form.save()
             secretariat_user = Secretariat()

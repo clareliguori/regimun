@@ -4,11 +4,21 @@
 	<script src="{{ MEDIA_URL }}/jquery.dataTables.min.js" type="text/javascript" charset="utf-8"></script>	
 	<script type="text/javascript" src="{{ MEDIA_URL }}/dataTables.fnAddTr.js"></script>
 	<script src="{{ MEDIA_URL }}/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ MEDIA_URL }}/jquery.metadata.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ MEDIA_URL }}/autoNumeric-1.5.4.js" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 
 {% block scriptblock %}
 var committeeTable;
 var countryTable;
+
+function form_cleanup() {
+	$('input#id_date').datepicker();
+	$('input.auto').each(function() {
+		$(this).autoNumeric();
+		$(this).val($.fn.autoNumeric.Format($(this).attr("id"), $(this).val()));
+	});
+}
 
 function form_committee_row(committee) {
 	var name;
@@ -24,23 +34,19 @@ function form_committee_row(committee) {
 }
 
 function form_country_row(country) {
-	var name, icon;
-	if(typeof( country.fields ) != "undefined") {
-		name = country.fields.name;
-		icon = country.fields.flag_icon;
-	} else {
-		name = country.name;
-		icon = country.flag_icon;
-	}
+	name = country.fields.name;
+	icon = country.fields.flag_icon;
 
 	row_html = "<tr pk=\"" + country.pk + "\">";
-	row_html += "<td class=\"icon\" id=\"icon_" + country.pk + "\"><img src=\"{{ MEDIA_URL }}/" + icon + "\"/></td>";
-	row_html += "<td class=\"name\" id=\"name_" + country.pk + "\">" + name + "</td>";
+	row_html += "<td class=\"icon\" id=\"icon_" + country.pk + "\">";
+	if(icon.length > 0)
+		row_html += "<img src=\"{{ MEDIA_URL }}/" + icon + "\" height=\"22\"/>";
+	row_html += "</td><td class=\"name\" id=\"name_" + country.pk + "\">" + name + "</td>";
 	row_html += "<td class=\"delete\" id=\"" + country.pk + "\"><a href=\"delete\" id=\"delete_country\" class=\"ui-state-default ui-corner-all\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
 	return row_html;
 }
 
-function get_formset_callback(data, table_headers, column_settings, data_table, object_name, dialog_element, form_element, row_renderer) {
+function get_formset_callback(data, table_headers, column_settings, column_sorting, data_table, object_name, dialog_element, form_element, row_renderer) {
     output = "<p>Click on any " + object_name + " name to edit it; press Enter to save your changes.</p>";
     output += "<table id=\"existing_" + object_name + "\"><thead><tr>";
     for(i = 0; i < table_headers.length; i++) {
@@ -55,32 +61,30 @@ function get_formset_callback(data, table_headers, column_settings, data_table, 
     output += "</tbody></table>";
     
     output += "<p>Add " + object_name + ":</p>";
-    output += "<form action=\"\" method=\"post\" id=\"" + form_element.replace('#','') + "\">";
+    output += "<form enctype=\"multipart/form-data\" action=\"ajax/add-"+object_name+"\" method=\"post\" id=\"" + form_element.replace('#','') + "\">";
     output += data.form;
+    output += "<input value=\"Add\" type=\"submit\" id=\"add_" + object_name + "\">";
     output += "</form>";
-    output += "<a id=\"add_" + object_name + "\" href=\"\">Add</a>";
 	
     $(dialog_element).html(output);
-    $('a#add_'+object_name).click(function(event) {
-		form_data = $(form_element).find(":input").serializeArray();
-		$.post(
-			'ajax/add-'+object_name,
-			form_data,
-			function(data) {
-				if(data != null && data.form != null) {
-		  			// re-load form with errors
-		  			$('form' + form_element).html(data.form);
-				} else {
-					// add the new object to the table
-					$('form' + form_element).clearForm();
-					var row = row_renderer(data);
-					data_table.fnAddTr( $(row)[0] );
-				}
-			},
-			'json'
-		);
-
-    	return false;
+    $("input:submit").button();
+    
+    $(form_element).ajaxForm({ 
+    	dataType:	'json',
+        success:   function(return_data) {
+			if(return_data != null && return_data.form != null) {
+	  			// re-load form with errors
+				decoded = $('<textarea/>').html(return_data.form).val();
+		        $(form_element).html(decoded);
+	  			$(form_element).append("<input value=\"Add\" type=\"submit\" id=\"add_" + object_name + "\">");
+	  		    $("input:submit").button();
+			} else {
+				// add the new object to the table
+				$(form_element).resetForm();
+				var row = row_renderer(return_data);
+				data_table.fnAddTr( $(row)[0] );
+			}
+		}
     });
     
 	$('a#delete_'+object_name).click(function(event) {
@@ -106,7 +110,8 @@ function get_formset_callback(data, table_headers, column_settings, data_table, 
 	data_table = $('table#existing_'+object_name).dataTable({
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
-		"aoColumns": column_settings
+		"aoColumns": column_settings,
+		"aaSorting": column_sorting
 	});
 	
 	/* Apply the jEditable handlers to the table */
@@ -122,7 +127,7 @@ function get_formset_callback(data, table_headers, column_settings, data_table, 
 	} );	
 }
 
-function form_dialog(dialog_width, dialog_element, dialog_link_element, form_element, ajax_get_url, ajax_save_url, get_callback_function, save_callback_function) {
+function form_dialog(dialog_width, dialog_element, dialog_link_element, form_element, ajax_get_url) {
 	$(dialog_element).dialog({
 		autoOpen: false,
 		width: dialog_width,
@@ -130,24 +135,23 @@ function form_dialog(dialog_width, dialog_element, dialog_link_element, form_ele
 		resizable: false,
 		buttons: {
 			"Save": function() {
-				form_data = $(form_element).find(":input").serializeArray();
-				$.post(
-					'ajax/' + ajax_save_url,
-					form_data,
-					function(data) {
+				$('input.auto').each(function() {
+					$(this).val($.fn.autoNumeric.Strip($(this).attr("id"), $(this).val()));
+				});
+
+		 		$(form_element).ajaxSubmit({
+		 			dataType:	'json',
+		 			success:	function(data) {
 						if(data != null && data.form != null) {
 				  			// re-load form with errors
 				  			$(form_element).html(data.form);
-				  			$("input#id_date").datepicker();
+				  			form_cleanup();
 						} else {
-							if(save_callback_function != undefined)
-								save_callback_function(data);
 							$(dialog_element).dialog("close");
 							$(dialog_element).html("");
 						}
-					},
-					'json'
-				);
+					}
+		 		}); 
 			},
 			"Cancel": function() {
 				$(this).dialog("close");
@@ -161,9 +165,7 @@ function form_dialog(dialog_width, dialog_element, dialog_link_element, form_ele
 			"ajax/" + ajax_get_url,
 			function(data) {
 	  			$(dialog_element).html(data.form);
-				$("input#id_date").datepicker();
-				if(get_callback_function != undefined)
-					get_callback_function(data);
+	  			form_cleanup();
 			},
 			"json"
 		);
@@ -173,7 +175,7 @@ function form_dialog(dialog_width, dialog_element, dialog_link_element, form_ele
 	});
 }
 
-function formset_dialog(dialog_width, dialog_element, dialog_link_element, form_element, ajax_get_url, table_headers, column_settings, data_table, object_name, row_renderer) {
+function formset_dialog(dialog_width, dialog_element, dialog_link_element, form_element, ajax_get_url, table_headers, column_settings, column_sorting, data_table, object_name, row_renderer) {
 	$(dialog_element).dialog({
 		autoOpen: false,
 		width: dialog_width,
@@ -192,7 +194,7 @@ function formset_dialog(dialog_width, dialog_element, dialog_link_element, form_
 			"ajax/" + ajax_get_url,
 			function(data) {
 				if(get_formset_callback != undefined)
-					get_formset_callback(data, table_headers, column_settings, data_table, object_name, dialog_element, form_element, row_renderer);
+					get_formset_callback(data, table_headers, column_settings, column_sorting, data_table, object_name, dialog_element, form_element, row_renderer);
 			},
 			"json"
 		);
@@ -210,28 +212,28 @@ $(function(){
 		return false;
 	});
 
-	form_dialog(500, '#basic-conference-form-dialog', '#basic-conference-form-dialog-link', '#basic_conference_info_form',
-		"get-basic-conference-form", "save-basic-conference-form");
+	form_dialog(500, '#basic-conference-form-dialog', '#basic-conference-form-dialog-link', '#basic_conference_info_form', "get-basic-conference-form");
 
-	form_dialog(500, '#fee-form-dialog', '#fee-form-dialog-link', '#conference_fees_form',
-		"get-conference-fees-form", "save-conference-fees-form");
+	form_dialog(500, '#fee-form-dialog', '#fee-form-dialog-link', '#fee_structure_info_form', "get-fee-structure-form");
 
 	committeeHeaders = ['Name','Delete'];
 	committeeColumnSettings = [ 
 	               			/* Name */  	null,
-	            			/* Delete */ 	{ "bSearchable": false }
+	            			/* Delete */ 	{ "bSearchable": false, "bSortable": false }
 	            		];
+	committeeColumnSorting = [[ 0, "asc" ]]
 	formset_dialog(800, '#committees-form-dialog', '#committees-form-dialog-link', '#new_conference_committees_form',
-		"get-conference-committees", committeeHeaders, committeeColumnSettings, committeeTable, 'committee', form_committee_row);
+		"get-conference-committees", committeeHeaders, committeeColumnSettings, committeeColumnSorting, committeeTable, 'committee', form_committee_row);
 
 	countryHeaders = ['Flag','Name','Delete'];
 	countryColumnSettings = [ 
-	             			/* Icon */  	{ "bSearchable": false },
+	             			/* Icon */  	{ "bSearchable": false, "bSortable": false },
 	            			/* Name */  	null,
-	            			/* Delete */ 	{ "bSearchable": false }
+	            			/* Delete */ 	{ "bSearchable": false, "bSortable": false }
 	            		];
+	countryColumnSorting = [[ 1, "asc" ]]
 	formset_dialog(800, '#countries-form-dialog', '#countries-form-dialog-link', '#new_conference_countries_form',
-		"get-conference-countries", countryHeaders, countryColumnSettings, countryTable, 'country', form_country_row);
+		"get-conference-countries", countryHeaders, countryColumnSettings, countryColumnSorting, countryTable, 'country', form_country_row);
 
 	var availableSchools = [{% for school in object.school_set.all %}
 				"{{ school.name }}", 
