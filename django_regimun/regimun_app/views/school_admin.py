@@ -12,6 +12,9 @@ from regimun_app.views.general import render_response, get_recaptcha_response
 from reportlab.pdfgen import canvas
 
 def school_authenticate(request, conference, school):
+    if school.conference != conference:
+        return False
+    
     if request.user.is_staff:
         return True
     

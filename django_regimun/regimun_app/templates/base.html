@@ -1,40 +1,36 @@
-{% load dajaxice_templatetags %}
-
 <html>
 <head>
 	<script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAABx4pC_v2zAgMgV6nIHXvNBT2yXp_ZAY8_ufC3CFXhHIE1NvwkxT39I7fcTafaiZPC4--cQBkJ0CY0w"></script>
 	<title>{% block title %}{% endblock %}</title>
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"></script>
-	<script src="{{ MEDIA_URL }}/jquery.dajax.core.js" type="text/javascript" charset="utf-8"></script>	
 	<link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/redmond/jquery-ui.css">
 
-	{% dajaxice_js_import %}
 	<script type="text/javascript">
-		(function($,undefined){
-		  '$:nomunge'; // Used by YUI compressor.
-		  
-		  $.fn.serializeObject = function(){
-		    var obj = {};
-		    
-		    $.each( this.serializeArray(), function(i,o){
-		      var n = o.name,
-		        v = o.value;
-		        
-		        obj[n] = obj[n] === undefined ? v
-		          : $.isArray( obj[n] ) ? obj[n].concat( v )
-		          : [ obj[n], v ];
-		    });
-		    
-		    return obj;
-		  };
-		  
-		})(jQuery);
-
 		$(function() {
 			$( ".button" ).button();
 			$('#tabs').tabs();
 		});
+
+		// adapted from http://www.learningjquery.com/2007/08/clearing-form-data
+		$.fn.clearForm = function() {
+			// iterate each matching form
+			return this.each(function() {
+				// iterate the elements within the form
+				$(':input', this).each(function() {
+					var type = this.type, tag = this.tagName.toLowerCase();
+			   		if (type == 'text' || type == 'password' || tag == 'textarea')
+			  			this.value = '';
+			   		else if (type == 'checkbox' || type == 'radio')
+			  			this.checked = false;
+			   		else if (tag == 'select')
+			  			this.selectedIndex = -1;
+			 	});
+
+				// remove form errors
+			 	$('li').remove();
+			});
+		};
 	</script>
 	
 	<script type="text/javascript">
@@ -53,6 +49,8 @@
 		#tab-links {text-align:center;}
 		.secretariat-pane { padding: 20px; margin: 20px; text-align:center; }
 	</style>
+
+	{% block headblock %}{% endblock %}
 
 </head>
 <body>

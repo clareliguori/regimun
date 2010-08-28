@@ -10,7 +10,16 @@ $(function(){
             resizable: false,
             buttons: {
                 "Remove Sponsor": function() {
-                   	Dajaxice.regimun_app.remove_sponsor('Dajax.process', {'sponsor_pk': $(this).attr("sponsor")})
+					$.post(
+						"ajax/remove-sponsor",
+						{'sponsor_pk': $(this).attr("sponsor")},
+						function(data) {
+				  			// remove the sponsor from display
+				  			$('#sponsor_' + data.sponsor_pk).remove();
+				  			$('#buttons_sponsor_' + data.sponsor_pk).remove();
+						},
+						"json"
+					);
                    	$(this).dialog("close");
                 },
                 "Cancel": function() {
@@ -20,83 +29,93 @@ $(function(){
         });
 });
 
-
 function toggle_school_mailing_address_buttons() {
 	$('#edit_mailing_address').toggle();
 	$('#save_mailing_address').toggle();
 }
 
-function switch_to_school_mailing_address_form(data) {
-	if(data != Dajaxice.EXCEPTION) {
-		output = "<div id=\"mailing_address\"><form action=\"\" method=\"post\" id=\"school_mailing_address_form\">";
-		output += data.form;
-		output += "</form></div>";
-		$('#mailing_address').replaceWith(output);
-		toggle_school_mailing_address_buttons();
-	}
-	else{
-		alert('Error');
-	}
+function get_school_mailing_address_form() {
+	$.get(
+		"ajax/get-school-mailing-address-form",
+		function(data) {
+  			// switch to school mailing address form
+  			output = "<form action=\"\" method=\"post\" id=\"school_mailing_address_form\">";
+			output += data.form;
+			output += "</form>";
+			$('#mailing_address').html(output);
+			toggle_school_mailing_address_buttons();
+		},
+		"json"
+	);
 }
 
 function send_school_mailing_address_form() {
-	data = $('#school_mailing_address_form').serializeObject(true);
-	Dajaxice.regimun_app.save_school_mailing_address_form('Dajax.process', {'form':data,'school_pk':{{ school.pk }}});
+	form_data = $('#school_mailing_address_form').find(":input").serializeArray();
+	$.post(
+		'ajax/save-school-mailing-address-form',
+		form_data,
+		function(data) {
+			if(data.form != null) {
+	  			// re-load school mailing address form with errors
+	  			output = "<form action=\"\" method=\"post\" id=\"school_mailing_address_form\">";
+				output += data.form;
+				output += "</form>";
+				$('#mailing_address').html(output);
+			} else {
+				$('#mailing_address').html("<p>" + data.new_school_mailing_address + "</p>");
+				toggle_school_mailing_address_buttons();
+			}
+		},
+		'json'
+	);
 }
-
-function new_school_mailing_address(data) {
-	if(data!=Dajaxice.EXCEPTION){
-		output = "<div id=\"mailing_address\">";
-		output += data;
-		output += "</div>";
-		$('#mailing_address').replaceWith(output);
-		toggle_school_mailing_address_buttons();
-	}
-	else{
-		alert('Error');
-	}
-}
-
 
 function toggle_sponsor_buttons(sponsor_pk) {
 	$('#edit_sponsor_'+sponsor_pk).toggle();
 	$('#save_sponsor_'+sponsor_pk).toggle();
 }
 
-function switch_to_edit_sponsor_form(data) {
-	if(data != Dajaxice.EXCEPTION) {
-		output = "<div id=\"sponsor_" + data.sponsor_pk + "\"><form action=\"\" method=\"post\" id=\"sponsor_form_" + data.sponsor_pk + "\">";
-		output += data.form;
-		output += "</form></div>";
-		$('#sponsor_'+data.sponsor_pk).replaceWith(output);
-		toggle_sponsor_buttons(data.sponsor_pk);
-	}
-	else{
-		alert('Error');
-	}
+function get_edit_sponsor_form(sponsor_pk) {
+	$.post(
+		"ajax/get-edit-sponsor-form",
+		{'sponsor_pk':sponsor_pk},
+		function(data) {
+  			// switch to edit sponsor form
+  			output = "<form action=\"\" method=\"post\" id=\"sponsor_form_" + data.sponsor_pk + "\">";
+			output += data.form;
+			output += "</form>";
+			$('#sponsor_'+data.sponsor_pk).html(output);
+			toggle_sponsor_buttons(data.sponsor_pk);
+		},
+		"json"
+	);
 }
 
 function send_edit_sponsor_form(sponsor_pk) {
-	data = $('#sponsor_form_' + sponsor_pk).serializeObject(true);
-	Dajaxice.regimun_app.save_edit_sponsor_form('Dajax.process', {'form':data,'sponsor_pk': sponsor_pk});
-}
-
-function updated_sponsor_data(data) {
-	if(data!=Dajaxice.EXCEPTION){
-		output = "<div id=\"sponsor_" + data.sponsor_id + "\">";
-		output += "<b>" + data.full_name + "</b>";
-		if("{{ user.username }}" == data.username) {
-			output += "<small><i>(This is you)</i></small>";
-		}
-		output += "<br/>E-mail Address: <a href=\"mailto:" + data.email + "\">" + data.email + "</a><br/>";
-		output += "Phone Number: " + data.phone + "<br/>";
-		output += "</div>";
-		$('#sponsor_'+data.sponsor_id).replaceWith(output);
-		toggle_sponsor_buttons(data.sponsor_id);
-	}
-	else{
-		alert('Error');
-	}
+	form_data = $('#sponsor_form_' + sponsor_pk).find(":input").serializeArray();
+	$.post(
+		'ajax/save-edit-sponsor-form',
+		form_data,
+		function(data) {
+			if(data.form != null) {
+	  			// re-load sponsor form with errors
+	  			output = "<form action=\"\" method=\"post\" id=\"sponsor_form_" + data.sponsor_pk + "\">";
+				output += data.form;
+				output += "</form>";
+				$('#sponsor_'+data.sponsor_pk).html(output);
+			} else {
+				output = "<b>" + data.full_name + "</b>";
+				if("{{ user.username }}" == data.username) {
+					output += "<small><i>(This is you)</i></small>";
+				}
+				output += "<br/>E-mail Address: <a href=\"mailto:" + data.email + "\">" + data.email + "</a><br/>";
+				output += "Phone Number: " + data.phone + "<br/>";
+				$('#sponsor_'+data.sponsor_pk).html(output);
+				toggle_sponsor_buttons(data.sponsor_pk);
+			}
+		},
+		'json'
+	);
 }
 
 {% endblock %}
@@ -116,7 +135,7 @@ Registration for <b>{{ school.name }}</b><br/>
 		<h3>School Mailing Address</h3>
 			<div id="mailing_address"><p>{% autoescape off %}{{ school.get_html_mailing_address }}{% endautoescape %}</p></div>
 			<p>
-				<button id="edit_mailing_address" class="button" onclick="Dajaxice.regimun_app.get_school_mailing_address_form('switch_to_school_mailing_address_form',{'school_pk':{{ school.pk }}})">Edit</button>
+				<button id="edit_mailing_address" class="button" onclick="get_school_mailing_address_form()">Edit</button>
 				<button id="save_mailing_address" class="button" style="display: none" onclick="send_school_mailing_address_form()">Save</button>
 			</p>
 	
@@ -133,13 +152,13 @@ Registration for <b>{{ school.name }}</b><br/>
 				</div>
 				<p id="buttons_sponsor_{{sponsor.pk}}">
 					{% if user.is_staff or user.secretariat_member or sponsor.user.username == user.username %}
-						<button id="edit_sponsor_{{sponsor.pk}}" class="button" onclick="Dajaxice.regimun_app.get_edit_sponsor_form('switch_to_edit_sponsor_form',{'sponsor_pk':{{ sponsor.pk }}})">Edit</button>
+						<button id="edit_sponsor_{{sponsor.pk}}" class="button" onclick="get_edit_sponsor_form({{ sponsor.pk }})">Edit</button>
 					{% endif %}
 					<button id="save_sponsor_{{sponsor.pk}}" class="button" style="display: none" onclick="send_edit_sponsor_form({{sponsor.pk}})">Save</button>
 					{% if sponsor.user.username != user.username %}
 						<button id="remove_sponsor_{{sponsor.pk}}" class="button" onclick="$('#remove_sponsor_confirm_{{sponsor.pk}}').dialog('open')">Remove</button>
 						
-						<div id="remove_sponsor_confirm_{{sponsor.pk}}" class="remove-sponsor-dialog" title="Remove Faculty Sponsor" sponsor="{{sponsor.pk}}">
+						<div style="display: none" id="remove_sponsor_confirm_{{sponsor.pk}}" class="remove-sponsor-dialog" title="Remove Faculty Sponsor" sponsor="{{sponsor.pk}}">
 							<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 0 0;"></span> Please confirm that you want to remove {{sponsor.user.get_full_name}} from this school. Removing this sponsor will revoke their access to {{school.name}}, and they will not be notified.</p>
 						</div>
 					{% endif %}

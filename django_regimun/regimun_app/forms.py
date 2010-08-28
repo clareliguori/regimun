@@ -1,9 +1,12 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.forms.models import ModelForm, modelformset_factory
-from django.forms.widgets import PasswordInput
-from regimun_app.models import Conference, School, FacultySponsor, Committee, \
-    Country
+from django.forms.widgets import PasswordInput, HiddenInput
+from regimun_app.models import Conference, School, Committee, Country
+
+class jEditableForm(forms.Form):
+    id = forms.CharField(max_length=200)
+    value = forms.CharField(max_length=200)
 
 class NewSchoolForm(forms.Form):
     school_name = forms.CharField(label="Name", max_length=200)
@@ -28,6 +31,7 @@ class NewFacultySponsorForm(forms.Form):
     sponsor_phone = forms.CharField(label="Phone number", max_length=30)
     
 class EditFacultySponsorForm(forms.Form):
+    sponsor_pk = forms.DecimalField(widget=HiddenInput())
     sponsor_first_name = forms.CharField(label="First name", max_length=30)
     sponsor_last_name = forms.CharField(label="Last name", max_length=30)
     sponsor_email = forms.EmailField(label="E-mail address", max_length=200)
@@ -41,7 +45,7 @@ class ConferenceForm(ModelForm):
 class BasicConferenceInfoForm(ModelForm):
     class Meta:
         model = Conference
-        fields = ('date','location','logo','website_url',)
+        fields = ('date','location','website_url',)
 
 class OrganizationInfoForm(ModelForm):
     class Meta:
@@ -60,6 +64,30 @@ class SchoolMailingAddressForm(ModelForm):
     class Meta:
         model = School
         fields = ('address_line_1','address_line_2','city','state','zip','address_country')
+
+class NewCommitteeForm(ModelForm):
+    class Meta:
+        model = Committee
+        fields=('name',)
+
+    def clean_name(self):
+        data = self.cleaned_data['name']
+        if Committee.objects.filter(name=data).count() > 0:
+            raise forms.ValidationError("A committee already exists with this name.")
+
+        return data
+
+class NewCountryForm(ModelForm):
+    class Meta:
+        model = Country
+        fields=('name','flag_icon',)
+
+    def clean_name(self):
+        data = self.cleaned_data['name']
+        if Country.objects.filter(name=data).count() > 0:
+            raise forms.ValidationError("A country already exists with this name.")
+
+        return data
 
 CommitteeFormSet = modelformset_factory(Committee, can_delete=True, fields=('name',))
 

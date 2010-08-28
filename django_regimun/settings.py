@@ -77,25 +77,12 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
-    'dajaxice',
-    'dajax',
     'regimun_app',
 )
 
 AUTH_PROFILE_MODULE = ''
 
 LOGIN_REDIRECT_URL = '/registration/'
-
-DAJAXICE_MEDIA_PREFIX="dajaxice"
-DAJAXICE_FUNCTIONS = (
-    'regimun_app.ajax.get_school_mailing_address_form',
-    'regimun_app.ajax.save_school_mailing_address_form',
-    'regimun_app.ajax.get_edit_sponsor_form',
-    'regimun_app.ajax.save_edit_sponsor_form',
-    'regimun_app.ajax.remove_sponsor',
-    'regimun_app.ajax.get_basic_conference_form',
-    'regimun_app.ajax.save_basic_conference_form',
-)
 
 import logging
 logging.basicConfig(level=logging.DEBUG)

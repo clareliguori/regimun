@@ -1,12 +1,128 @@
 {% extends "secretariat_base.html" %}
 
-{% block scriptblock %}
+{% block headblock %}
+	<script src="{{ MEDIA_URL }}/jquery.dataTables.min.js" type="text/javascript" charset="utf-8"></script>	
+	<script type="text/javascript" src="{{ MEDIA_URL }}/dataTables.fnAddTr.js"></script>
+	<script src="{{ MEDIA_URL }}/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+{% endblock %}
 
-function get_form_callback(data) {
-	$("input#id_date").datepicker();
+{% block scriptblock %}
+var committeeTable;
+var countryTable;
+
+function form_committee_row(committee) {
+	var name;
+	if(typeof( committee.fields ) != "undefined")
+		name = committee.fields.name;
+	else
+		name = committee.name;
+
+	row_html = "<tr pk=\"" + committee.pk + "\">";
+	row_html += "<td class=\"name\" id=\"name_" + committee.pk + "\">" + name + "</td>";
+	row_html += "<td class=\"delete\" id=\"" + committee.pk + "\"><a href=\"delete\" id=\"delete_committee\" class=\"ui-state-default ui-corner-all\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
+	return row_html;
 }
 
-function form_dialog(dialog_element, dialog_link_element, form_element, dajax_get_func, dajax_save_func, dialog_width) {
+function form_country_row(country) {
+	var name, icon;
+	if(typeof( country.fields ) != "undefined") {
+		name = country.fields.name;
+		icon = country.fields.flag_icon;
+	} else {
+		name = country.name;
+		icon = country.flag_icon;
+	}
+
+	row_html = "<tr pk=\"" + country.pk + "\">";
+	row_html += "<td class=\"icon\" id=\"icon_" + country.pk + "\"><img src=\"{{ MEDIA_URL }}/" + icon + "\"/></td>";
+	row_html += "<td class=\"name\" id=\"name_" + country.pk + "\">" + name + "</td>";
+	row_html += "<td class=\"delete\" id=\"" + country.pk + "\"><a href=\"delete\" id=\"delete_country\" class=\"ui-state-default ui-corner-all\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
+	return row_html;
+}
+
+function get_formset_callback(data, table_headers, column_settings, data_table, object_name, dialog_element, form_element, row_renderer) {
+    output = "<p>Click on any " + object_name + " name to edit it; press Enter to save your changes.</p>";
+    output += "<table id=\"existing_" + object_name + "\"><thead><tr>";
+    for(i = 0; i < table_headers.length; i++) {
+    	output += "<th>" + table_headers[i] + "</th>";
+    }
+    output += "</tr></thead><tbody>";
+    
+    parsed_objects = jQuery.parseJSON(data.objects);
+    for (i = 0; i < parsed_objects.length; i++) {
+        output += row_renderer(parsed_objects[i]);
+    }
+    output += "</tbody></table>";
+    
+    output += "<p>Add " + object_name + ":</p>";
+    output += "<form action=\"\" method=\"post\" id=\"" + form_element.replace('#','') + "\">";
+    output += data.form;
+    output += "</form>";
+    output += "<a id=\"add_" + object_name + "\" href=\"\">Add</a>";
+	
+    $(dialog_element).html(output);
+    $('a#add_'+object_name).click(function(event) {
+		form_data = $(form_element).find(":input").serializeArray();
+		$.post(
+			'ajax/add-'+object_name,
+			form_data,
+			function(data) {
+				if(data != null && data.form != null) {
+		  			// re-load form with errors
+		  			$('form' + form_element).html(data.form);
+				} else {
+					// add the new object to the table
+					$('form' + form_element).clearForm();
+					var row = row_renderer(data);
+					data_table.fnAddTr( $(row)[0] );
+				}
+			},
+			'json'
+		);
+
+    	return false;
+    });
+    
+	$('a#delete_'+object_name).click(function(event) {
+		$.post(
+			'ajax/remove-'+object_name,
+			{'pk': $(event.target.parentNode.parentNode).attr("id")},
+			function(data) {
+				var aTrs = data_table.fnGetNodes();
+				for ( var i=0 ; i<aTrs.length ; i++ )
+				{
+					if ( $(aTrs[i]).attr('pk') == data.pk )
+					{
+						data_table.fnDeleteRow( aTrs[i] );
+						break;
+					}
+				}
+			},
+			'json'
+		);
+		return false;
+	});
+    
+	data_table = $('table#existing_'+object_name).dataTable({
+		"bJQueryUI": true,
+		"sPaginationType": "full_numbers",
+		"aoColumns": column_settings
+	});
+	
+	/* Apply the jEditable handlers to the table */
+	$('td.name', data_table.fnGetNodes()).editable( 'ajax/edit-'+object_name, {
+		"callback": function( sValue, y ) {
+			var aPos = data_table.fnGetPosition( this );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+		},
+		"submitdata": function ( value, settings ) {
+			return { "row_id": this.parentNode.getAttribute('id') };
+		},
+		"height": "20px"
+	} );	
+}
+
+function form_dialog(dialog_width, dialog_element, dialog_link_element, form_element, ajax_get_url, ajax_save_url, get_callback_function, save_callback_function) {
 	$(dialog_element).dialog({
 		autoOpen: false,
 		width: dialog_width,
@@ -14,18 +130,73 @@ function form_dialog(dialog_element, dialog_link_element, form_element, dajax_ge
 		resizable: false,
 		buttons: {
 			"Save": function() {
-				data = $(form_element).serializeObject(true);
-				dajax_save_func('Dajax.process', {'form':data,'conference_pk': {{object.pk}}});
-				$(this).dialog("close");
+				form_data = $(form_element).find(":input").serializeArray();
+				$.post(
+					'ajax/' + ajax_save_url,
+					form_data,
+					function(data) {
+						if(data != null && data.form != null) {
+				  			// re-load form with errors
+				  			$(form_element).html(data.form);
+				  			$("input#id_date").datepicker();
+						} else {
+							if(save_callback_function != undefined)
+								save_callback_function(data);
+							$(dialog_element).dialog("close");
+							$(dialog_element).html("");
+						}
+					},
+					'json'
+				);
 			},
 			"Cancel": function() {
 				$(this).dialog("close");
+				$(dialog_element).html("");
 			}
 		}
 	});
 		  
 	$(dialog_link_element).click(function(){
-		dajax_get_func('Dajax.process', {'conference_pk': {{object.pk}}});
+		$.get(
+			"ajax/" + ajax_get_url,
+			function(data) {
+	  			$(dialog_element).html(data.form);
+				$("input#id_date").datepicker();
+				if(get_callback_function != undefined)
+					get_callback_function(data);
+			},
+			"json"
+		);
+	
+		$(dialog_element).dialog('open');
+		return false;
+	});
+}
+
+function formset_dialog(dialog_width, dialog_element, dialog_link_element, form_element, ajax_get_url, table_headers, column_settings, data_table, object_name, row_renderer) {
+	$(dialog_element).dialog({
+		autoOpen: false,
+		width: dialog_width,
+		modal: true,
+		resizable: false,
+		buttons: {
+			"Close": function() {
+				$(this).dialog("close");
+				$(dialog_element).html("");
+			}
+		}
+	});
+		  
+	$(dialog_link_element).click(function(){
+		$.get(
+			"ajax/" + ajax_get_url,
+			function(data) {
+				if(get_formset_callback != undefined)
+					get_formset_callback(data, table_headers, column_settings, data_table, object_name, dialog_element, form_element, row_renderer);
+			},
+			"json"
+		);
+	
 		$(dialog_element).dialog('open');
 		return false;
 	});
@@ -39,17 +210,28 @@ $(function(){
 		return false;
 	});
 
-	form_dialog('#basic-conference-form-dialog', '#basic-conference-form-dialog-link', '#basic_conference_info_form',
-		Dajaxice.regimun_app.get_basic_conference_form, Dajaxice.regimun_app.save_basic_conference_form, 400);
+	form_dialog(500, '#basic-conference-form-dialog', '#basic-conference-form-dialog-link', '#basic_conference_info_form',
+		"get-basic-conference-form", "save-basic-conference-form");
 
-	form_dialog('#fee-form-dialog', '#fee-form-dialog-link', '#conference_fees_form',
-		Dajaxice.regimun_app.get_conference_fees_form, Dajaxice.regimun_app.save_conference_fees_form, 400);
+	form_dialog(500, '#fee-form-dialog', '#fee-form-dialog-link', '#conference_fees_form',
+		"get-conference-fees-form", "save-conference-fees-form");
 
-	form_dialog('#countries-form-dialog', '#countries-form-dialog-link', '#conference_countries_form',
-		Dajaxice.regimun_app.get_conference_countries_formset, Dajaxice.regimun_app.save_conference_countries_formset, 400);
+	committeeHeaders = ['Name','Delete'];
+	committeeColumnSettings = [ 
+	               			/* Name */  	null,
+	            			/* Delete */ 	{ "bSearchable": false }
+	            		];
+	formset_dialog(800, '#committees-form-dialog', '#committees-form-dialog-link', '#new_conference_committees_form',
+		"get-conference-committees", committeeHeaders, committeeColumnSettings, committeeTable, 'committee', form_committee_row);
 
-	form_dialog('#committees-form-dialog', '#committees-form-dialog-link', '#conference_committees_form',
-		Dajaxice.regimun_app.get_conference_committees_formset, Dajaxice.regimun_app.save_conference_committees_formset, 400);
+	countryHeaders = ['Flag','Name','Delete'];
+	countryColumnSettings = [ 
+	             			/* Icon */  	{ "bSearchable": false },
+	            			/* Name */  	null,
+	            			/* Delete */ 	{ "bSearchable": false }
+	            		];
+	formset_dialog(800, '#countries-form-dialog', '#countries-form-dialog-link', '#new_conference_countries_form',
+		"get-conference-countries", countryHeaders, countryColumnSettings, countryTable, 'country', form_country_row);
 
 	var availableSchools = [{% for school in object.school_set.all %}
 				"{{ school.name }}", 

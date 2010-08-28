@@ -1,5 +1,7 @@
 from django.conf.urls.defaults import patterns
 from django.views.generic.list_detail import object_detail, object_list
+from regimun_app.ajax.school import school_ajax_functions
+from regimun_app.ajax.secretariat import conference_ajax_functions
 from regimun_app.views.school_admin import *
 from regimun_app.views.secretariat_admin import *
 
@@ -16,12 +18,15 @@ urlpatterns = patterns('',
     # register new cconference
     (r'^new-conference/$', create_conference),
 
-    # school was created
+    # conference was created
     (r'^(?P<conference_slug>[-\w]+)/created$', conference_created),
     
     # schools index
     (r'^(?P<slug>[-\w]+)/$', object_detail, dict(queryset=conferences, slug_field='url_name')),
 
+    # secretariat ajax calls
+    (r'^(?P<conference_slug>[-\w]+)/secretariat/ajax/(?P<func_name>[-\w]+)$', conference_ajax_functions),
+    
     # secretariat admin page
     (r'^(?P<slug>[-\w]+)/secretariat/$',
         limited_object_detail,
@@ -45,7 +50,9 @@ urlpatterns = patterns('',
     # school invoice
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/invoice$', generate_invoice),
     
+    # school ajax calls
+    (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/ajax/(?P<func_name>[-\w]+)$', school_ajax_functions),
+
     # school admin page
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/$', school_admin),
-
 )
