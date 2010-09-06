@@ -6,9 +6,12 @@ from django.template.defaultfilters import slugify
 from django.utils import simplejson
 from django_regimun.settings import MEDIA_URL
 from regimun_app.forms import jEditableForm, BasicConferenceInfoForm, \
-    NewCommitteeForm, NewCountryForm, FeeStructureForm
-from regimun_app.models import Conference, Committee, Country
+    NewCommitteeForm, NewCountryForm, FeeStructureForm, UploadFileForm
+from regimun_app.models import Conference, Committee, Country, DelegatePosition, \
+    Delegate, School
 from regimun_app.views.secretariat_admin import secretariat_authenticate
+import csv
+import exceptions
 import inspect
 import string
 
@@ -145,3 +148,213 @@ def add_country(request, conference):
             return serializers.serialize('json', [country], fields=('name','flag_icon'))[1:-1]
         else:
             return simplejson.dumps({'form':form.as_p()})
+
+def get_delegate_positions_table(committees, countries):
+    table_list = []
+    
+    table_list.append("<thead><tr><th>Country</th>")
+    for committee in committees:
+        table_list.append("<th>")
+        table_list.append(committee.name)
+        table_list.append("</th>")
+    table_list.append("</tr></thead><tbody>")
+    
+    for country in countries:
+        table_list.append("<tr><td>")
+        table_list.append(country.name)
+        table_list.append("</td>")
+        for committee in committees:
+            count = DelegatePosition.objects.filter(committee=committee,country=country).count()
+            table_list.append("<td class=\"position_count\" id=\"")
+            table_list.append(str(committee.pk))
+            table_list.append("_")
+            table_list.append(str(country.pk))
+            table_list.append("\">")
+            table_list.append(str(count))
+            table_list.append("</td>")
+        table_list.append("</tr>")
+    table_list.append("</tbody>")
+    
+    return ''.join(table_list)
+
+def get_delegate_positions(request, conference):
+    committees = Committee.objects.filter(conference=conference)
+    countries = Country.objects.filter(conference=conference)
+    return simplejson.dumps({'table':get_delegate_positions_table(committees, countries)})
+
+def dictify_queryset(set, field):
+    dict = {}
+    for obj in set:
+        dict[getattr(obj, field)] = object
+    return set
+
+def upload_delegate_positions(request, conference):
+    errors = set()
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if(form.is_valid()):
+            uploaded_file = request.FILES['file']
+            committees = Committee.objects.filter(conference=conference)
+            committees_dict = dictify_queryset(committees, 'name')
+            countries = Country.objects.filter(conference=conference)
+            countries_dict = dictify_queryset(countries, 'name')
+            
+            try:
+                positions_reader = csv.DictReader(uploaded_file)
+                for row in positions_reader:
+                    try:
+                        country_name = row["Country"]
+                    except KeyError:
+                        errors.add("Not a valid CSV file: No Country column.")
+                    else:
+                        try:
+                            country = countries_dict[country_name]
+                        except KeyError:
+                            errors.add("Could not find country " + country_name)
+                        else:
+                            for committee_name,value in row:
+                                if committee_name != "Country":
+                                    try:
+                                        committee = committees_dict[committee_name]
+                                    except KeyError:
+                                        errors.add("Could not find committee " + committee_name) 
+                                    else:
+                                        try:
+                                            new_count = int(value)
+                                        except exceptions.ValueError:
+                                            errors.add("Invalid value for " + country.name + "/" + committee.name + ": " + value)
+                                        else:
+                                            set_delegate_position_count(committee, country, new_count)
+            except csv.Error:
+                errors.add("Not a valid CSV file.")
+            if len(errors) > 0:
+                return simplejson.dumps({'errors':list(errors),'table':get_delegate_positions_table(committees, countries)})
+            return simplejson.dumps({'table':get_delegate_positions_table(committees, countries)})
+
+def set_delegate_position_count(committee, country, new_count):
+    current_positions = DelegatePosition.objects.filter(committee=committee,country=country)
+    current_count = len(current_positions)
+    if new_count > current_count:   # add new positions
+        for i in range(current_count, new_count):
+            new_position = DelegatePosition()
+            new_position.committee = committee
+            new_position.country = country
+            
+            # TODO assign school
+            
+            new_position.save()
+    elif new_count < current_count: # remove positions
+        for i in range(new_count, current_count):
+            current_positions[i].delete()
+
+def set_delegate_positions(request, conference):
+    if request.method == 'POST':
+        form = jEditableForm(data=request.POST)
+        if form.is_valid():
+            # get the committee and country PK
+            raw_id = request.POST.get('id', '')
+            committee_pk,country_pk = raw_id.rsplit("_")
+            if country_pk and committee_pk:
+                committee = get_object_or_404(Committee, pk=committee_pk)
+                country = get_object_or_404(Country, pk=country_pk)
+                value = form.cleaned_data['value']
+                if committee.conference == conference and country.conference == conference and value:
+                    try:
+                        new_count = int(value)
+                        set_delegate_position_count(committee, country, new_count)
+                        return HttpResponse(value)
+                    except exceptions.ValueError:
+                        print "Parsing error: " + value
+
+def get_country_school_assignment_table(countries):
+    table_list = []
+    
+    table_list.append("<thead><tr><th>Country</th><th>School</th></tr></thead><tbody>")
+    
+    for country in countries:
+        current_positions = DelegatePosition.objects.filter(country=country)
+        if len(current_positions) > 0:
+            table_list.append("<tr><td>")
+            table_list.append(country.name)
+            table_list.append("</td>")
+            school = current_positions[0].school
+            table_list.append("<td class=\"school_assignment\" id=\"")
+            table_list.append(str(country.pk))
+            table_list.append("\">")
+            if school:
+                table_list.append(school.name)
+            else:
+                table_list.append(" ")
+            table_list.append("</td></tr>")        
+    table_list.append("</tbody>")
+    
+    return ''.join(table_list)
+
+def get_country_school_assignments(request, conference):
+    countries = Country.objects.filter(conference=conference)
+    return simplejson.dumps({'table':get_country_school_assignment_table(countries)})
+
+def set_country_school_assignment(country, school):
+    current_positions = DelegatePosition.objects.filter(country=country)
+    for position in current_positions:
+        position.school = school
+        position.save()
+
+def set_country_school_assignments(request, conference):
+    if request.method == 'POST':
+        form = jEditableForm(data=request.POST)
+        if form.is_valid():
+            country_pk = request.POST.get('id', '')
+            country = get_object_or_404(Country, pk=country_pk)
+            if country.conference == conference:
+                school_pk = form.cleaned_data['value']
+                if school_pk == "-1":
+                    set_country_school_assignment(country, None)
+                    return HttpResponse(" ")
+                else:
+                    school = get_object_or_404(School, pk=school_pk)
+                    if school.conference == conference:
+                        set_country_school_assignment(country, school)
+                        return HttpResponse(school.name)
+
+def upload_school_country_assignments(request, conference):
+    errors = set()
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if(form.is_valid()):
+            uploaded_file = request.FILES['file']
+            countries = Country.objects.filter(conference=conference)
+            countries_dict = dictify_queryset(countries, 'name')
+            schools = School.objects.filter(conference=conference)
+            schools_dict = dictify_queryset(schools, 'name')
+            
+            try:
+                assignments_reader = csv.DictReader(uploaded_file)
+                for row in assignments_reader:
+                    try:
+                        country_name = row["Country"]
+                    except KeyError:
+                        errors.add("Not a valid CSV file: No Country column.")
+                    else:
+                        try:
+                            country = countries_dict[country_name]
+                        except KeyError:
+                            errors.add("Could not find country " + country_name)
+                        else:
+                            try:
+                                school_name = row["School"]
+                            except KeyError:
+                                errors.add("Not a valid CSV file: No School column.")
+                            else:
+                                school = None
+                                try:
+                                    school = schools_dict[school_name]
+                                except KeyError:
+                                    if len(school_name) > 1:
+                                        errors.add("Could not find school " + school_name)
+                                set_country_school_assignment(country, school)
+            except csv.Error:
+                errors.add("Not a valid CSV file.")
+            if len(errors) > 0:
+                return simplejson.dumps({'errors':list(errors),'table':get_country_school_assignment_table(countries)})
+            return simplejson.dumps({'table':get_country_school_assignment_table(countries)})

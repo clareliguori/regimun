@@ -1,11 +1,11 @@
 <html>
 <head>
-	<script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAABx4pC_v2zAgMgV6nIHXvNBT2yXp_ZAY8_ufC3CFXhHIE1NvwkxT39I7fcTafaiZPC4--cQBkJ0CY0w"></script>
 	<title>{% block title %}{% endblock %}</title>
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/jquery-ui.min.js"></script>
-	<script src="{{ MEDIA_URL }}/jquery.form.js" type="text/javascript" charset="utf-8"></script>
-	<link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/redmond/jquery-ui.css">
+	<script src="{{ MEDIA_URL }}/js/jquery-1.4.2.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ MEDIA_URL }}/js/jquery-ui-1.8.4.custom.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ MEDIA_URL }}/js/jquery.form.js" type="text/javascript" charset="utf-8"></script>
+	<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}/css/custom-theme/jquery-ui-1.8.4.custom.css">
+	<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}/css/base.css">
 
 	<script type="text/javascript">
 		$(function() {
@@ -18,27 +18,27 @@
 	{% block scriptblock %}{% endblock %}
 	</script>
 
-	<style type="text/css">
-		/*demo page css*/
-		body{ font: 75% "Trebuchet MS", sans-serif;}
-		.demoHeaders { margin-top: 2em; }
-		#dialog_link {padding: .4em 1em .4em 20px;text-decoration: none;position: relative;}
-		#dialog_link span.ui-icon {margin: 0 5px 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
-		ul#icons {margin: 0; padding: 0;}
-		ul#icons li {margin: 2px; position: relative; padding: 4px 0; cursor: pointer; float: left;  list-style: none;}
-		ul#icons span.ui-icon {float: left; margin: 0 4px;}
-		#tab-links {text-align:center;}
-		.secretariat-pane { padding: 20px; margin: 20px; text-align:center; }
-	</style>
-
 	{% block headblock %}{% endblock %}
 
 </head>
 <body>
-You are logged in as {{ user.username }}
+<div class="wrapper">
+	<div class="ui-widget ui-widget-header ui-state-active ui-corner-all top-user-bar">
+		{% if user.username %}
+			You are logged in as <span style="font-weight: bold">{{ user.username }}</span> (<a href="/accounts/logout">Logout</a> / <a href="/accounts/change-password">Change Password</a>)
+		{% else %}
+			<a href="/accounts/login">Login</a>
+		{% endif %}
+	</div>
+	
+	<div class="container">
+		{% block content %}{% endblock %}
+	</div>
+	<div class="push"></div>
+</div>
 
-<div class="container">
-{% block content %}{% endblock %}
+<div class="footnote">
+	<h5>Powered by <a href="http://www.munsoftware.com">MUN Software</a></h5> 
 </div>
 </body>
 </html>

@@ -121,9 +121,10 @@ function send_edit_sponsor_form(sponsor_pk) {
 {% endblock %}
 
 {% block pagecontent %}
-<h1>{{ conference.name }} Conference Registration</h1>
-Registration for <b>{{ school.name }}</b><br/>
+<h1>{{ conference.name }} Registration</h1>
+<h3>{{ school.name }}</h3>
 
+<div class="school-content">
 <div id="tabs">
 	<ul>
 		<li><a href="#contacts">Contacts</a></li>
@@ -196,5 +197,5 @@ Registration for <b>{{ school.name }}</b><br/>
 		<p><a href="invoice">Download Invoice</a></p>
 	</div>
 </div>
-
+</div>
 {% endblock %}

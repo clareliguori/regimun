@@ -2,6 +2,7 @@ from django.conf.urls.defaults import patterns
 from django.views.generic.list_detail import object_detail, object_list
 from regimun_app.ajax.school import school_ajax_functions
 from regimun_app.ajax.secretariat import conference_ajax_functions
+from regimun_app.views.general import upload_progress
 from regimun_app.views.school_admin import *
 from regimun_app.views.secretariat_admin import *
 
@@ -18,7 +19,10 @@ urlpatterns = patterns('',
     # register new cconference
     (r'^new-conference/$', create_conference),
 
-    # conference was created
+     # upload progress
+    (r'^upload-progress/$', upload_progress),
+
+   # conference was created
     (r'^(?P<conference_slug>[-\w]+)/created$', conference_created),
     
     # schools index

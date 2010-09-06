@@ -101,7 +101,7 @@ class School(models.Model):
 class DelegatePosition(models.Model):
 	country = models.ForeignKey(Country)
 	committee = models.ForeignKey(Committee)
-	school = models.ForeignKey(School)
+	school = models.ForeignKey(School, null=True)
 	title = models.CharField(max_length=200, default="Delegate", help_text="Ambassador, Judge, etc")
 	def __unicode__(self):
 		return self.country.name + ", " + self.committee.name + ", " + self.school.name

@@ -1,0 +1,77 @@
+html {
+	height: 100%;	
+}
+
+body { 
+	margin: 0;
+	padding: 10px 10px 10px 10px;
+	height: 100%;
+	font-size: 12px;
+	font-family: Lucida Grande, Lucida Sans, Arial, sans-serif;
+	text-align:center;
+}
+
+.wrapper {
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+	margin: 0 auto -50px; /* the bottom margin is the negative value of the footer's height */
+}
+
+#container {
+	width: 800px;
+	margin: 20px auto;
+}
+
+#tab-links {
+	text-align:center;
+}
+
+.secretariat-pane { 
+	clear:both;
+	padding: 20px; 
+	width: 800px;
+	height:300px;
+	text-align:center; 
+	margin: 20px auto 20px;
+	position: relative;
+}
+
+.school-content {
+	text-align:left;	
+	width: 800px;
+	margin: 0 auto;
+	position: relative;
+}
+
+#tab-links {
+	width: 720px;
+	margin-bottom:20px; 
+	margin: 0 auto;
+	position: relative;
+}
+
+div.tab-link {
+	position: relative;
+	float:left;
+	margin: 10px;
+}
+
+img.tab-link {
+	border: 0;	
+}
+
+.top-user-bar {
+	font-weight: normal;
+	padding: 10px; 
+	text-align:left;
+}
+
+.footer, .push {
+	height: 40px; /* .push must be the same height as .footer */
+	clear: both;
+}
+
+.footer {
+	padding-bottom: 10px;
+}

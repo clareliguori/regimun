@@ -9,6 +9,9 @@ class jEditableForm(forms.Form):
     id = forms.CharField(max_length=200)
     value = forms.CharField(max_length=200)
 
+class UploadFileForm(forms.Form):
+    file = forms.FileField()
+
 class NewSchoolForm(forms.Form):
     school_name = forms.CharField(label="Name", max_length=200)
     school_address_line_1 = forms.CharField(label="Mailing Address Line 1", max_length=200)

@@ -71,3 +71,4 @@ def remove_sponsor(request, school):
         if sponsor.school == school:
             sponsor.delete()
             return simplejson.dumps({'success':'true', 'sponsor_pk':sponsor_pk})
+    

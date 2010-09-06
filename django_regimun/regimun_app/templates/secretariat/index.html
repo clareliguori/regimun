@@ -1,11 +1,11 @@
 {% extends "secretariat_base.html" %}
 
 {% block headblock %}
-	<script src="{{ MEDIA_URL }}/jquery.dataTables.min.js" type="text/javascript" charset="utf-8"></script>	
-	<script type="text/javascript" src="{{ MEDIA_URL }}/dataTables.fnAddTr.js"></script>
-	<script src="{{ MEDIA_URL }}/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
-	<script src="{{ MEDIA_URL }}/jquery.metadata.js" type="text/javascript" charset="utf-8"></script>
-	<script src="{{ MEDIA_URL }}/autoNumeric-1.5.4.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ MEDIA_URL }}/js/jquery.dataTables.min.js" type="text/javascript" charset="utf-8"></script>	
+	<script src="{{ MEDIA_URL }}/js/dataTables.fnAddTr.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ MEDIA_URL }}/js/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ MEDIA_URL }}/js/jquery.metadata.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ MEDIA_URL }}/js/autoNumeric-1.5.4.js" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 
 {% block scriptblock %}
@@ -127,12 +127,97 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
 	} );	
 }
 
+function isNumeric(value) {
+	if (value == null || !value.toString().match(/^[-]?\d*\.?\d*$/)) return false;
+	return true;
+}
+
+function gen_uuid() {
+    var uuid = ""
+    for (var i=0; i < 32; i++) {
+        uuid += Math.floor(Math.random() * 16).toString(16); 
+    }
+    return uuid
+}
+
+function get_delegate_positions_callback(data, dialog_element) {
+    output = "<p>Click on any number to edit the number of delegates represented by that country on that committee. Press Enter to save your changes.</p>";
+    
+    // table headers
+    output += "<table id=\"delegate_positions\">";
+    output += data.table;
+    output += "</table>";
+    
+    $('#positions-assignment-table').html(output);
+    
+	data_table = $('table#delegate_positions').dataTable({
+		"bJQueryUI": true,
+		"sPaginationType": "full_numbers",
+	});
+	
+	/* Apply the jEditable handlers to the table */
+	$('td.position_count', data_table.fnGetNodes()).editable( 'ajax/set-delegate-positions', {
+		"onsubmit": function(settings, td) {
+	    	var input = $(td).find('input');
+	        var original = input.val();
+	        if (isNumeric(original)) {
+	            return true;
+	        } else {
+	            input.css('background-color','#c00').css('color','#fff');
+	            return false;
+	        }
+	    },
+		"callback": function( sValue, y ) {
+			var aPos = data_table.fnGetPosition( this );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+		},
+		"submitdata": function ( value, settings ) {
+			return { "row_id": this.parentNode.getAttribute('id') };
+		},
+		"height": "20px"
+	} );
+}
+
+function get_school_country_assignments_callback(data, selectSource, dialog_element) {
+    output = "<p>Click in the School column to change the school assigned to that country.</p>";
+    
+    // table headers
+    output += "<table id=\"school_country_assignments\">";
+    output += data.table;
+    output += "</table>";
+    
+    $('#school-country-assignment-table').html(output);
+    
+	data_table = $('table#school_country_assignments').dataTable({
+		"bJQueryUI": true,
+		"sPaginationType": "full_numbers",
+	});
+	
+	/* Apply the jEditable handlers to the table */
+	$('td.school_assignment', data_table.fnGetNodes()).editable( 'ajax/set-country-school-assignments', {
+		data   : selectSource,
+	    type   : 'select',
+	    submit : 'OK',
+		"callback": function( sValue, y ) {
+			var aPos = data_table.fnGetPosition( this );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+		},
+		"submitdata": function ( value, settings ) {
+			return { "row_id": this.parentNode.getAttribute('id') };
+		},
+		"height": "20px"
+	} );
+}
+
 function form_dialog(dialog_width, dialog_element, dialog_link_element, form_element, ajax_get_url) {
 	$(dialog_element).dialog({
 		autoOpen: false,
 		width: dialog_width,
 		modal: true,
 		resizable: false,
+		close: function(event, ui) {
+			$(dialog_element).html("");
+		},
 		buttons: {
 			"Save": function() {
 				$('input.auto').each(function() {
@@ -148,14 +233,12 @@ function form_dialog(dialog_width, dialog_element, dialog_link_element, form_ele
 				  			form_cleanup();
 						} else {
 							$(dialog_element).dialog("close");
-							$(dialog_element).html("");
 						}
 					}
 		 		}); 
 			},
 			"Cancel": function() {
 				$(this).dialog("close");
-				$(dialog_element).html("");
 			}
 		}
 	});
@@ -181,10 +264,12 @@ function formset_dialog(dialog_width, dialog_element, dialog_link_element, form_
 		width: dialog_width,
 		modal: true,
 		resizable: false,
+		close: function(event, ui) {
+			$(dialog_element).html("");
+		},
 		buttons: {
 			"Close": function() {
 				$(this).dialog("close");
-				$(dialog_element).html("");
 			}
 		}
 	});
@@ -204,8 +289,9 @@ function formset_dialog(dialog_width, dialog_element, dialog_link_element, form_
 	});
 }
 
+var progressTimer;
 $(function(){
-
+	$( '#tab-links a' ).button();
 	$('#tab-links a').click(function() {
 		$('.secretariat-pane').hide();
 		$('#' + $(this).attr("href")).show();
@@ -235,80 +321,208 @@ $(function(){
 	formset_dialog(800, '#countries-form-dialog', '#countries-form-dialog-link', '#new_conference_countries_form',
 		"get-conference-countries", countryHeaders, countryColumnSettings, countryColumnSorting, countryTable, 'country', form_country_row);
 
+	var schoolSelectSource = "{ '-1':' ', {% for school in object.school_set.all %} \
+		'{{ school.pk }}':'{{ school.name }}', \
+	{% endfor %} }";
+ 	
 	var availableSchools = [{% for school in object.school_set.all %}
 				"{{ school.name }}", 
 			{% endfor %}];
 	$(".search-schools input#id_name").autocomplete({
 		source: availableSchools
 	});
+	
+	$('#committees-to-countries-form-dialog').dialog({
+		autoOpen: false,
+		width: 800,
+		modal: true,
+		resizable: false,
+		close: function(event, ui) {
+			$('#positions-assignment-table').html("");
+		},
+		buttons: {
+			"Close": function() {
+				$(this).dialog("close");
+			}
+		}
+	});
+	
+	$('#committees-to-countries-form-dialog-link').click(function(){
+		$.get(
+			"ajax/get-delegate-positions",
+			function(data) {
+				get_delegate_positions_callback(data, '#committees-to-countries-form-dialog', '#committees-to-countries-form');
+			},
+			"json"
+		);
+	
+		$('#committees-to-countries-form-dialog').dialog('open');
+		return false;
+	});
+	
+    $('form#upload-delegate-positions-form').ajaxForm({ 
+    	dataType:	'json',
+    	beforeSubmit: function(formData, form, options) {
+    		if ($.data(form, 'submitted')) return false;
+	
+	        var freq = 1000; // freqency of update in ms
+	        var uuid = gen_uuid(); // id for this upload so we can fetch progress info.
+	        var progress_url = '/registration/upload-progress/'; // ajax view serving progress info
+	
+	        // Append X-Progress-ID uuid to form data
+	        formData.push({ "name": "X-Progress-ID", "value": uuid });
+	        
+	        $('#upload-delegate-positions-progress').progressbar({ value: 0 });
+	        
+	        // Update progress bar
+	        function update_progress_info() {
+	            $.getJSON(progress_url, {'X-Progress-ID': uuid}, function(data, status){
+	                if (data) {
+	                    var progressPercent = parseInt(100*parseInt(data.uploaded) / parseInt(data.length));
+	        	        $("#upload-delegate-positions-progress").progressbar("option", "value", progressPercent);
 
-        $('#committees-to-countries-form-dialog').dialog({
-            autoOpen: false,
-            width: 400,
-            modal: true,
-            resizable: false,
-            buttons: {
-                "Save": function() {
-                	data = $('#conference_committees_to_countries_form').serializeObject(true);
-                   	Dajaxice.regimun_app.save_conference_committees_to_countries_form('Dajax.process', {'form':data,'conference_pk': {{object.pk}}});
-                   	$(this).dialog("close");
-                },
-                "Cancel": function() {
-                    $(this).dialog("close");
-                }
-            }
-        });
-        
-        $('#committees-to-countries-form-dialog-link').click(function(){
-			Dajaxice.regimun_app.get_conference_committees_to_countries_form('Dajax.process', {'conference_pk': {{object.pk}}});
-			$('#committees-to-countries-form-dialog').dialog('open');
-			return false;
-		});
+	                    if(progressPercent < 100)
+	                    	progressTimer = window.setTimeout(update_progress_info, freq);
+	                }
+	            });
+	        };
+	        progressTimer = window.setTimeout(update_progress_info, freq);
+	
+	        $.data(form, 'submitted', true); // mark form as submitted.
+	        return true;
+    	},
+        success:   function(return_data) {
+    		window.clearTimeout(progressTimer);
+    		$('#upload-delegate-positions-progress').progressbar("destroy");
+    		$('div#upload-delegate-positions-form .ui-state-error').remove();
+			if(return_data != null) {
+				if(return_data.errors != null) {
+		  			// show errors
+					output = "<div style=\"padding: 0pt 0.7em;\" class=\"ui-state-error ui-corner-all\"> <p><span style=\"float: left; margin-right: 0.3em;\" class=\"ui-icon ui-icon-alert\"></span> ";
+					for(i = 0; i < return_data.errors.length; i++) {
+						output += return_data.errors[i] + "<br/>";
+					}
+					output += "</p></div>";
+					
+					$('div#upload-delegate-positions-form').append(output);
+				}
+				if(return_data.table != null) {
+					// refresh the delegate positions table
+					return_data.table = $('<textarea/>').html(return_data.table).val();
+					get_delegate_positions_callback(return_data, '#committees-to-countries-form-dialog', '#committees-to-countries-form');
+				}
+			}
+		}
+    });
 
-        $('#countries-to-schools-form-dialog').dialog({
-            autoOpen: false,
-            width: 400,
-            modal: true,
-            resizable: false,
-            buttons: {
-                "Save": function() {
-                	data = $('#conference_countries_to_schools_form').serializeObject(true);
-                   	Dajaxice.regimun_app.save_conference_countries_to_schools_form('Dajax.process', {'form':data,'conference_pk': {{object.pk}}});
-                   	$(this).dialog("close");
-                },
-                "Cancel": function() {
-                    $(this).dialog("close");
-                }
-            }
-        });
-        
-        $('#countries-to-schools-form-dialog-link').click(function(){
-			Dajaxice.regimun_app.get_conference_countries_to_schools_form('Dajax.process', {'conference_pk': {{object.pk}}});
-			$('#countries-to-schools-form-dialog').dialog('open');
-			return false;
-		});
-				
+	$('#countries-to-schools-form-dialog').dialog({
+		autoOpen: false,
+		width: 800,
+		modal: true,
+		resizable: false,
+		close: function(event, ui) {
+			$('#school-country-assignment-table').html("");
+		},
+		buttons: {
+			"Close": function() {
+				$(this).dialog("close");
+			}
+		}
+	});
+	
+	$('#countries-to-schools-form-dialog-link').click(function(){
+		$.get(
+			"ajax/get-country-school-assignments",
+			function(data) {
+				get_school_country_assignments_callback(data, schoolSelectSource, '#countries-to-schools-form-dialog');
+			},
+			"json"
+		);
+	
+		$('#countries-to-schools-form-dialog').dialog('open');
+		return false;
+	});
+					
+    $('form#upload-school-country-assignments-form').ajaxForm({ 
+    	dataType:	'json',
+    	beforeSubmit: function(formData, form, options) {
+    		if ($.data(form, 'submitted')) return false;
+	
+	        var freq = 1000; // freqency of update in ms
+	        var uuid = gen_uuid(); // id for this upload so we can fetch progress info.
+	        var progress_url = '/registration/upload-progress/'; // ajax view serving progress info
+	
+	        // Append X-Progress-ID uuid to form data
+	        formData.push({ "name": "X-Progress-ID", "value": uuid });
+	        
+	        $('#upload-school-country-assignments-progress').progressbar({ value: 0 });
+	        
+	        // Update progress bar
+	        function update_progress_info() {
+	            $.getJSON(progress_url, {'X-Progress-ID': uuid}, function(data, status){
+	                if (data) {
+	                    var progressPercent = parseInt(100*parseInt(data.uploaded) / parseInt(data.length));
+	        	        $("#upload-school-country-assignments-progress").progressbar("option", "value", progressPercent);
+
+	                    if(progressPercent < 100)
+	                    	progressTimer = window.setTimeout(update_progress_info, freq);
+	                }
+	            });
+	        };
+	        progressTimer = window.setTimeout(update_progress_info, freq);
+	
+	        $.data(form, 'submitted', true); // mark form as submitted.
+	        return true;
+    	},
+        success:   function(return_data) {
+    		window.clearTimeout(progressTimer);
+    		$('#upload-school-country-assignments-progress').progressbar("destroy");
+    		$('div#upload-school-country-assignments-form .ui-state-error').remove();
+			if(return_data != null) {
+				if(return_data.errors != null) {
+		  			// show errors
+					output = "<div style=\"padding: 0pt 0.7em;\" class=\"ui-state-error ui-corner-all\"> <p><span style=\"float: left; margin-right: 0.3em;\" class=\"ui-icon ui-icon-alert\"></span> ";
+					for(i = 0; i < return_data.errors.length; i++) {
+						output += return_data.errors[i] + "<br/>";
+					}
+					output += "</p></div>";
+					
+					$('div#upload-school-country-assignments-form').append(output);
+				}
+				if(return_data.table != null) {
+					// refresh the delegate positions table
+					return_data.table = $('<textarea/>').html(return_data.table).val();
+					get_school_country_assignments_callback(return_data, schoolSelectSource, '#countries-to-schools-form-dialog');
+				}
+			}
+		}
+    });
+
 });
 
 {% endblock %}
 
 {% block pagecontent %}
-<h1>{{ object.name }} Secretariat Dashboard</h1>
-
-<h2>Stats</h2>
-{% if object.delegates %}
-Registered delegates: {{ object.delegates|length }}
-{% else %}
-No registered delegates.
-{% endif %}
+<h1>{{ object.name }} Registration</h1>
+<h3>Secretariat Access</h3>
 
 <div id="tab-links">
-	<a href="spreadsheets">Spreadsheets</a> / 
-	<a href="schools">Schools</a> / 
-	<a href="fees">Fees</a> / 
-	<a href="settings">Settings</a> 
+	<div class="tab-link"><a href="stats"><img class="tab-link" src="{{MEDIA_URL}}/icons/kpercentage.png" /><br/>Statistics</a></div>
+	<div class="tab-link"><a href="spreadsheets"><img class="tab-link" src="{{MEDIA_URL}}/icons/kchart.png" /><br/>Spreadsheets</a></div>
+	<div class="tab-link"><a href="schools"><img class="tab-link" src="{{MEDIA_URL}}/icons/kdmconfig.png" /><br/>Schools</a></div>
+	<div class="tab-link"><a href="fees"><img class="tab-link" src="{{MEDIA_URL}}/icons/emblems-money.png" /><br/>Fees</a></div>
+	<div class="tab-link"><a href="store"><img class="tab-link" src="{{MEDIA_URL}}/icons/shopping_trolley.png" /><br/>Store</a></div>
+	<div class="tab-link"><a href="settings"><img class="tab-link" src="{{MEDIA_URL}}/icons/kcmsystem.png" /><br/>Settings</a></div> 
 </div>
 	
+<div id="stats" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
+	{% if object.delegates %}
+	Registered delegates: {{ object.delegates|length }}
+	{% else %}
+	No registered delegates.
+	{% endif %}
+</div>
+
 <div id="spreadsheets" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
 	<a href="downloads/?sponsor-contacts">Sponsor Contact Info Spreadsheet</a><br/>
 	<a href="downloads/?delegates">Delegates Spreadsheet</a><br/>
@@ -345,6 +559,16 @@ Select from list:
 	</p>
 </div>
 
+<div id="store" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
+<p>
+Total Revenue: <br/>
+Total Due: <br/>
+</p>
+<p>
+<a href="purchases">All Purchases</a>
+</p>
+</div>
+
 <div id="settings" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
 	<p><a href="#" id="basic-conference-form-dialog-link">Basic Conference Information</a></p>
 	<div id="basic-conference-form-dialog" title="Basic Conference Information"></div>
@@ -358,11 +582,31 @@ Select from list:
 	<p><a href="#" id="committees-form-dialog-link">Committees</a></p>
 	<div id="committees-form-dialog" title="Conference Committees"></div>
 	
-	<p><a href="#" id="committees-to-countries-form-dialog-link">Assign committees to countries</a></p>
-	<div id="committees-to-countries-form-dialog" title="Assign committees to countries"></div>
+	<p><a href="#" id="committees-to-countries-form-dialog-link">Assign Committees to Countries</a></p>
+	<div id="committees-to-countries-form-dialog" title="Assign committees to countries">
+		<div id="upload-delegate-positions-form">
+			<p>Import a spreadsheet containing the country-committee assignments.  The formatting must be the same as the downloaded spreadsheet (available <a href="downloads/?country-committee-assignments">here</a>). Only CSV files are accepted.</p>
+			<form enctype="multipart/form-data" action="ajax/upload-delegate-positions" method="post" id="upload-delegate-positions-form">
+				<label for="id_file">Upload:</label> <input type="file" name="file" id="id_file" accept="text/csv" />
+			<input type="submit" value="Submit" />
+			</form>
+			<div id="upload-delegate-positions-progress" class="upload-progress"></div>
+		</div>
+		<div id="positions-assignment-table"></div>
+	</div>
 	
-	<p><a href="#" id="countries-to-schools-form-dialog-link">Assign countries to schools</a></p>
-	<div id="countries-to-schools-form-dialog" title="Assign countries to schools"></div>
+	<p><a href="#" id="countries-to-schools-form-dialog-link">Assign Countries to Schools</a></p>
+	<div id="countries-to-schools-form-dialog" title="Assign countries to schools">
+	<div id="upload-school-country-assignments-form">
+		<p>Import a spreadsheet containing the country-school assignments.  The formatting must be the same as the downloaded spreadsheet (available <a href="downloads/?school-country-assignments">here</a>). Only CSV files are accepted.</p>
+		<form enctype="multipart/form-data" action="ajax/upload-school-country-assignments" method="post" id="upload-school-country-assignments-form">
+			<label for="id_file">Upload:</label> <input type="file" name="file" id="id_file" accept="text/csv" />
+		<input type="submit" value="Submit" />
+		</form>
+		<div id="upload-school-country-assignments-progress" class="upload-progress"></div>
+	</div>
+	<div id="school-country-assignment-table"></div>
+</div>
 </div>
 
 {% endblock %}

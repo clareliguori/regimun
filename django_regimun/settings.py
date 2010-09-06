@@ -1,4 +1,6 @@
 # Django settings for django_regimun project.
+from django.conf import global_settings
+import logging
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -80,9 +82,11 @@ INSTALLED_APPS = (
     'regimun_app',
 )
 
+FILE_UPLOAD_HANDLERS = ('regimun_app.utils.UploadProgressCachedHandler', ) + \
+    global_settings.FILE_UPLOAD_HANDLERS
+
 AUTH_PROFILE_MODULE = ''
 
 LOGIN_REDIRECT_URL = '/registration/'
 
-import logging
 logging.basicConfig(level=logging.DEBUG)
