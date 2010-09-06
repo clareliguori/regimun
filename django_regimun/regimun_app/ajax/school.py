@@ -2,8 +2,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import simplejson
-from regimun_app.forms import SchoolMailingAddressForm, EditFacultySponsorForm
-from regimun_app.models import Conference, School, FacultySponsor
+from regimun_app.forms import SchoolMailingAddressForm, EditFacultySponsorForm, \
+    DelegateNameForm
+from regimun_app.models import Conference, School, FacultySponsor, \
+    DelegatePosition, Delegate
 from regimun_app.views.school_admin import school_authenticate
 import inspect
 import string
@@ -72,3 +74,44 @@ def remove_sponsor(request, school):
             sponsor.delete()
             return simplejson.dumps({'success':'true', 'sponsor_pk':sponsor_pk})
     
+def edit_delegate(request, school):
+    if request.method == 'POST':
+        position_pk = request.POST.get('position_pk','')
+        delegate_position = DelegatePosition.objects.get(pk=position_pk)
+        if delegate_position.school == school:
+            try:
+                delegate = Delegate.objects.get(position_assignment=delegate_position)
+            except Delegate.DoesNotExist:
+                delegate = Delegate()
+                delegate.position_assignment = delegate_position
+            form = DelegateNameForm(data=request.POST, instance=delegate)
+            if form.is_valid():
+                delegate = form.save(commit=False)
+                delegate.save()
+                return simplejson.dumps({'name':delegate.first_name + " " + delegate.last_name, 'position_pk':position_pk})
+            else:
+                return simplejson.dumps({'form':form.as_p(), 'position_pk':position_pk})
+
+def get_edit_delegate_form(request, school):
+    if request.method == 'POST':
+        position_pk = request.POST.get('position_pk','')
+        delegate_position = DelegatePosition.objects.get(pk=position_pk)
+        if delegate_position.school == school:
+            try:
+                delegate = Delegate.objects.get(position_assignment=delegate_position)
+                form = DelegateNameForm(instance=delegate)
+            except Delegate.DoesNotExist:
+                form = DelegateNameForm()
+            return simplejson.dumps({'form':form.as_p(), 'position_pk':position_pk})
+
+def remove_delegate(request, school):
+    if request.method == 'POST':
+        position_pk = request.POST.get('position_pk','')
+        delegate_position = DelegatePosition.objects.get(pk=position_pk)
+        if delegate_position.school == school:
+            try:
+                delegate = Delegate.objects.get(position_assignment=delegate_position)
+                delegate.delete()
+            except Delegate.DoesNotExist:
+                pass
+            return simplejson.dumps({'position_pk':position_pk})

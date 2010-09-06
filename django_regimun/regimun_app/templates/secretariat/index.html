@@ -198,6 +198,7 @@ function get_school_country_assignments_callback(data, selectSource, dialog_elem
 		data   : selectSource,
 	    type   : 'select',
 	    submit : 'OK',
+	    placeholder: "Click to assign school", 
 		"callback": function( sValue, y ) {
 			var aPos = data_table.fnGetPosition( this );
 			data_table.fnUpdate( sValue, aPos[0], aPos[1] );

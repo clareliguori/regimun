@@ -7,7 +7,7 @@ from django.template.defaultfilters import slugify
 from regimun_app.forms import ConferenceForm, SecretariatUserForm, \
     SchoolNameForm
 from regimun_app.models import Conference, FacultySponsor, Delegate, Country, \
-    Committee, Secretariat, School, FeeStructure
+    Committee, Secretariat, School, FeeStructure, DelegatePosition
 from regimun_app.views.general import render_response
 from regimun_app.views.school_admin import school_admin
 from reportlab.pdfgen import canvas
@@ -55,8 +55,34 @@ def spreadsheet_downloads(request, conference_slug):
             
         elif 'school-country-assignments' in request.GET:
             response['Content-Disposition'] = 'attachment; filename=school-country-assignments-' + conference_slug + ".csv" 
+            writer.writerow(['Country', 'School'])
+            
+            countries = Country.objects.filter(conference=conference)
+            
+            for country in countries:
+                current_positions = DelegatePosition.objects.select_related().filter(country=country)
+                if len(current_positions) > 0:
+                    school = current_positions[0].school
+                    if school:
+                        writer.writerow([country.name, school.name])
+                    else:
+                        writer.writerow([country.name, " "])            
+
         elif 'country-committee-assignments' in request.GET:
             response['Content-Disposition'] = 'attachment; filename=country-committee-assignments-' + conference_slug + ".csv"             
+            committees = Committee.objects.filter(conference=conference)
+            countries = Country.objects.filter(conference=conference)
+    
+            headers = ['Country']
+            for committee in committees:
+                headers.append(committee.name)
+            writer.writerow(headers)
+
+            for country in countries:
+                row = [country.name]
+                for committee in committees:
+                    row.append(str(DelegatePosition.objects.filter(committee=committee,country=country).count()))
+                writer.writerow(row)
         else:
             raise Http404
     else:

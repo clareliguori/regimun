@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.forms.models import ModelForm, modelformset_factory
 from django.forms.widgets import PasswordInput, HiddenInput, TextInput
 from regimun_app.models import Conference, School, Committee, Country, \
-    FeeStructure
+    FeeStructure, Delegate
 
 class jEditableForm(forms.Form):
     id = forms.CharField(max_length=200)
@@ -103,6 +103,11 @@ class NewCountryForm(ModelForm):
             raise forms.ValidationError("A country already exists with this name.")
 
         return data
+
+class DelegateNameForm(ModelForm):
+    class Meta:
+        model = Delegate
+        fields=('first_name','last_name')
 
 CommitteeFormSet = modelformset_factory(Committee, can_delete=True, fields=('name',))
 

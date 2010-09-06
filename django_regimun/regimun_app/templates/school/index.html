@@ -118,6 +118,76 @@ function send_edit_sponsor_form(sponsor_pk) {
 	);
 }
 
+function get_edit_delegate_form(position_pk) {
+	$.post(
+		"ajax/get-edit-delegate-form",
+		{'position_pk':position_pk},
+		function(data) {
+  			// switch to edit delegate form
+  			output = "<form action=\"\" method=\"post\" id=\"delegate_form_" + data.position_pk + "\">";
+			output += data.form;
+			output += "</form>";
+			$('#delegate-info-'+data.position_pk).html(output);
+			
+			$('#edit-delegate-'+position_pk).hide();
+			$('#remove-delegate-'+position_pk).hide();
+			$('#save-delegate-'+position_pk).show();
+			$('#add-delegate-'+position_pk).hide();
+		},
+		"json"
+	);
+	return false;
+}
+
+function send_edit_delegate_form(position_pk) {
+	form_data = $('#delegate_form_' + position_pk).find(":input").serializeArray();
+	form_data.push({name:"position_pk",value:position_pk});
+	$.post(
+		'ajax/edit-delegate',
+		form_data,
+		function(data) {
+			if(data.form != null) {
+	  			// re-load delegate form with errors
+	  			output = "<form action=\"\" method=\"post\" id=\"delegate_form_" + data.position_pk + "\">";
+				output += data.form;
+				output += "</form>";
+				$('#delegate-info-'+data.position_pk).html(output);
+				
+				$('#edit-delegate-'+position_pk).hide();
+				$('#remove-delegate-'+position_pk).hide();
+				$('#save-delegate-'+position_pk).show();
+				$('#add-delegate-'+position_pk).hide();
+			} else {
+				$('#delegate-info-'+data.position_pk).html(data.name);
+				
+				$('#edit-delegate-'+position_pk).show();
+				$('#remove-delegate-'+position_pk).show();
+				$('#save-delegate-'+position_pk).hide();
+				$('#add-delegate-'+position_pk).hide();
+			}
+		},
+		'json'
+	);
+	return false;
+}
+
+function remove_delegate(position_pk) {
+	$.post(
+		"ajax/remove-delegate",
+		{'position_pk':position_pk},
+		function(data) {
+			$('#delegate-info-'+data.position_pk).html("No delegate registered");
+
+			$('#edit-delegate-'+position_pk).hide();
+			$('#remove-delegate-'+position_pk).hide();
+			$('#save-delegate-'+position_pk).hide();
+			$('#add-delegate-'+position_pk).show();
+		},
+		"json"
+	);
+	return false;
+}
+
 {% endblock %}
 
 {% block pagecontent %}
@@ -177,12 +247,22 @@ function send_edit_sponsor_form(sponsor_pk) {
 			{% for position in positions %}
 				{% if position.first_name %}
 					<!-- Delegate object -->
-					{{ position.position_assignment.committee.name }} ({{ position.position_assignment.title }}): {{ position.get_full_name }} 
-					<small><a href="javascript:fireEditDelegate()">Edit</a> / <a href="javascript:fireRemoveDelegate()">Remove</a></small>
+					{{ position.position_assignment.committee.name }}: <span id="delegate-info-{{ position.position_assignment.pk }}">{{ position.get_full_name }}</span> 
+					<small>
+						<a onclick="get_edit_delegate_form({{ position.position_assignment.pk }})" id="edit-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Edit</a>  
+						<a onclick="remove_delegate({{ position.position_assignment.pk }})" id="remove-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Remove</a>
+						<a style="display: none" onclick="send_edit_delegate_form({{ position.position_assignment.pk }})" id="save-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Save</a>
+						<a style="display: none" onclick="get_edit_delegate_form({{ position.position_assignment.pk }})" id="add-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Register</a>
+					</small>
 				{% else %}
 					<!-- DelegatePosition object -->
-					{{ position.committee.name }} ({{ position.title }}): No delegate registered
-					<small><a href="javascript:fireAddDelegate()">Register</a></small>
+					{{ position.committee.name }}: <span id="delegate-info-{{ position.pk }}">No delegate registered</span>
+					<small>
+						<a style="display: none" onclick="get_edit_delegate_form({{ position.pk }})" id="edit-delegate-{{ position.pk }}" href="javascript:void(0);">Edit</a>  
+						<a style="display: none" onclick="remove_delegate({{ position.pk }})" id="remove-delegate-{{ position.pk }}" href="javascript:void(0);">Remove</a>
+						<a style="display: none" onclick="send_edit_delegate_form({{ position.pk }})" id="save-delegate-{{ position.pk }}" href="javascript:void(0);">Save</a>
+						<a onclick="get_edit_delegate_form({{ position.pk }})" id="add-delegate-{{ position.pk }}" href="javascript:void(0);">Register</a>
+					</small>
 				{% endif %}
 				<br/>
 			{% empty %}
