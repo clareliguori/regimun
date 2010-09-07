@@ -27,7 +27,48 @@ $(function(){
                 }
             }
         });
+        
+        $('#country-preferences-dialog').dialog({
+            autoOpen: false,
+            width: 400,
+            modal: true,
+            resizable: false,
+            buttons: {
+                "Save": function() {
+        			$('#country-preferences-form').ajaxSubmit();
+                 	$(this).dialog("close");
+                },
+                "Cancel": function() {
+                    $(this).dialog("close");
+                }
+            }
+        });
+
 });
+
+function open_country_preferences_dialog() {
+	$.post(
+		"ajax/get-country-preferences",
+		function(data) {
+  			// build the form
+			output = "<table>";
+			for(i = 1; i <= 10; i++) {
+				output += "<tr><td>" + i + "</td><td><select id=\"id_pref_" + (i-1) + "\" name=\"pref_" + (i-1) + "\"><option value=\"-1\"> </option>";
+				output += data.available_countries;
+				output += "</select></td></tr>";
+			}
+			output += "</table>";
+			
+			$('#country-preferences-form').html(output);
+			
+			for(i = 0; i < data.preferences.length; i++) {
+				$('#id_pref_'+i+' option[value='+data.preferences[i]+']').attr('selected','selected');
+			}
+		},
+		"json"
+	);
+	$('#country-preferences-dialog').dialog('open');
+}
 
 function toggle_school_mailing_address_buttons() {
 	$('#edit_mailing_address').toggle();
@@ -271,6 +312,15 @@ function remove_delegate(position_pk) {
 		{% empty %}
 			No countries have been assigned to your school.
 		{% endfor %}
+			
+		<p>
+		<button id="country-preferences" class="button" onclick="open_country_preferences_dialog()">Set Country Preferences</button>
+		<div id="country-preferences-dialog" title="Country Preferences">
+			<p>Update country preferences for your school. All countries listed have not yet been assigned to any school.</p>
+			<form action="ajax/set-country-preferences" method="post" id="country-preferences-form">
+			</form>
+		</div>
+		</p>
 	</div>
 
 	<div id="fees">

@@ -340,6 +340,7 @@ $(function(){
 		resizable: false,
 		close: function(event, ui) {
 			$('#positions-assignment-table').html("");
+			$.post('ajax/cleanup-country-preferences');
 		},
 		buttons: {
 			"Close": function() {
@@ -423,6 +424,7 @@ $(function(){
 		resizable: false,
 		close: function(event, ui) {
 			$('#school-country-assignment-table').html("");
+			$.post('ajax/cleanup-country-preferences');
 		},
 		buttons: {
 			"Close": function() {
@@ -530,6 +532,8 @@ $(function(){
 	<br/>
 	<a href="downloads/?school-country-assignments">School-Country Assignments</a><br/>
 	<a href="downloads/?country-committee-assignments">Country-Committee Assignments</a><br/>
+	<br/>
+	<a href="downloads/?country-preferences">Country Preferences</a><br/>
 </div>
 
 <div id="schools" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">

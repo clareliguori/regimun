@@ -8,6 +8,7 @@ class Conference(models.Model):
 	date = models.DateField()
 	location = models.CharField(max_length=200)
 	logo = models.ImageField(upload_to="conference_logos", blank=True)
+	email_address = models.EmailField()
 	website_url = models.URLField("Website URL", blank=True)
 	organization_name = models.CharField("Organization / Company / School", max_length=200, help_text="Who checks should be written to; Who issues invoices")
 	address_line_1 = models.CharField("Street Address", max_length=200)
@@ -116,7 +117,7 @@ class Delegate(models.Model):
 	created = models.DateField(auto_now_add=True)
 	last_modified = models.DateField(auto_now=True)
 	def get_full_name(self):
-		self.first_name + " " + self.last_name
+		return self.first_name + " " + self.last_name
 	def __unicode__(self):
 		return self.get_full_name()
 
@@ -142,3 +143,12 @@ class Secretariat(models.Model):
 	class Meta:
 		ordering = ('user',)	
 	
+class CountryPreference(models.Model):
+	country = models.ForeignKey(Country)
+	school = models.ForeignKey(School)
+	last_modified = models.DateTimeField(auto_now=True)
+	def __unicode__(self):
+		return self.country + "/" + self.school
+	
+	class Meta:
+		ordering = ('last_modified',)

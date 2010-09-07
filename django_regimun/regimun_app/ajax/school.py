@@ -2,12 +2,15 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import simplejson
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from regimun_app.forms import SchoolMailingAddressForm, EditFacultySponsorForm, \
     DelegateNameForm
 from regimun_app.models import Conference, School, FacultySponsor, \
-    DelegatePosition, Delegate
+    DelegatePosition, Delegate, CountryPreference, Country
 from regimun_app.views.school_admin import school_authenticate
 import inspect
+import smtplib
 import string
 
 @login_required
@@ -115,3 +118,95 @@ def remove_delegate(request, school):
             except Delegate.DoesNotExist:
                 pass
             return simplejson.dumps({'position_pk':position_pk})
+
+def get_country_preferences(request, school):
+    preferences = CountryPreference.objects.select_related().filter(school=school)
+    current_preferences = []
+    for preference in preferences:
+        current_preferences.append(preference.country.pk)
+    
+    available_positions = DelegatePosition.objects.select_related().filter(school=None).order_by('country__name')
+    available_countries = {}
+    for position in available_positions:
+        available_countries[position.country.pk] = position.country.name
+    
+    options = []
+    for pk, name in available_countries.items():
+        options.append("<option value=\"")
+        options.append(str(pk))
+        options.append("\">")
+        options.append(name)
+        options.append("</option>")
+    
+    return simplejson.dumps({'preferences':current_preferences, 'available_countries':''.join(options)})
+
+def set_country_preferences(request, school):
+    if request.method == 'POST':
+        # remove current preferences
+        CountryPreference.objects.filter(school=school).delete()
+        country_names = []
+        
+        for pref_num, country_pk in request.POST.items():
+            try:
+                country = Country.objects.get(pk=country_pk)
+            except Country.DoesNotExist:
+                pass
+            else:
+                if country.conference == school.conference:
+                    # make sure this preference doesnt already exist
+                    if CountryPreference.objects.filter(school=school, country=country).count() == 0:                        
+                        pref = CountryPreference()
+                        pref.country = country
+                        pref.school = school
+                        pref.save()
+                        country_names.append(country.name)
+
+        if len(country_names) > 0:
+            # send notification email
+            sender = "info@munsoftware.com"
+            to = school.conference.email_address
+            
+            # Create message container - the correct MIME type is multipart/alternative.
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = "Country Preferences Submission: " + school.name
+            msg['From'] = sender
+            msg['To'] = to
+            
+            # Body of the message (a plain-text and an HTML version).
+            text = "Country preferences submitted for " + school.name + "\n"
+            for i in range(len(country_names)):
+                text += str(i+1) + ": " + country_names[i] + "\n"
+            
+            html = """\
+            <html>
+              <head></head>
+              <body>
+                <p>Country preferences submitted for <b>
+            """
+            html += school.name + "</b>:<ol>"
+            for name in country_names:
+                html += "<li>" + name + "</li>"
+            
+            html += """\
+                </ol></p>
+              </body>
+            </html>
+            """
+
+            # Record the MIME types of both parts - text/plain and text/html.
+            part1 = MIMEText(text, 'plain')
+            part2 = MIMEText(html, 'html')
+            
+            # Attach parts into message container.
+            # According to RFC 2046, the last part of a multipart message, in this case
+            # the HTML message, is best and preferred.
+            msg.attach(part1)
+            msg.attach(part2)
+            
+            # Send the message via local SMTP server.
+            s = smtplib.SMTP('localhost')
+            s.sendmail(sender, to, msg.as_string())
+            s.quit()
+        
+        return simplejson.dumps({'success':True})
+        
