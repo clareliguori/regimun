@@ -3,12 +3,11 @@ html {
 }
 
 body { 
-	margin: 0;
-	padding: 10px 10px 10px 10px;
-	height: 100%;
 	font-size: 12px;
 	font-family: Lucida Grande, Lucida Sans, Arial, sans-serif;
 	text-align: left;
+	padding: 0;
+	margin: 10;
 }
 
 .ui-state-error {
@@ -25,11 +24,8 @@ tr,td {
 	text-align:left;
 }
 
-.wrapper {
-	min-height: 100%;
-	height: auto !important;
-	height: 100%;
-	margin: 0 auto -50px; /* the bottom margin is the negative value of the footer's height */
+.no-javascript, .container {
+	clear:both;
 }
 
 .header {
@@ -86,12 +82,10 @@ img.tab-link {
 	font-size: 14px;	
 }
 
-.footer, .push {
-	height: 40px; /* .push must be the same height as .footer */
-	clear: both;
+.ui-widget-content {
+	font-size: 14px;
 }
 
-.footer {
-	padding-bottom: 10px;
-	text-align: center;
+.datatablerowhighlight {
+	background-color: #ECFFB3 !important;
 }

@@ -30,7 +30,7 @@ function form_committee_row(committee) {
 
 	row_html = "<tr pk=\"" + committee.pk + "\">";
 	row_html += "<td class=\"name\" id=\"name_" + committee.pk + "\">" + name + "</td>";
-	row_html += "<td class=\"delete\" id=\"" + committee.pk + "\"><a href=\"delete\" id=\"delete_committee\" class=\"ui-state-default ui-corner-all\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
+	row_html += "<td class=\"delete\" id=\"" + committee.pk + "\"><a href=\"delete\" id=\"delete_committee\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
 	return row_html;
 }
 
@@ -43,7 +43,7 @@ function form_country_row(country) {
 	if(icon.length > 0)
 		row_html += "<img src=\"{{ MEDIA_URL }}/" + icon + "\" height=\"22\"/>";
 	row_html += "</td><td class=\"name\" id=\"name_" + country.pk + "\">" + name + "</td>";
-	row_html += "<td class=\"delete\" id=\"" + country.pk + "\"><a href=\"delete\" id=\"delete_country\" class=\"ui-state-default ui-corner-all\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
+	row_html += "<td class=\"delete\" id=\"" + country.pk + "\"><a href=\"delete\" id=\"delete_country\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
 	return row_html;
 }
 
@@ -113,7 +113,11 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
 		"aoColumns": column_settings,
-		"aaSorting": column_sorting
+		"aaSorting": column_sorting,
+		"fnDrawCallback": function(){
+	     	$('td').bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
+	     	$('td').bind('mouseleave', function () { $(this).parent().children().each(function(){$(this).removeClass('datatablerowhighlight');}); });
+		}
 	});
 	
 	/* Apply the jEditable handlers to the table */
@@ -125,8 +129,10 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
 		"submitdata": function ( value, settings ) {
 			return { "row_id": this.parentNode.getAttribute('id') };
 		},
-		"height": "20px"
-	} );	
+		"height": "25px"
+	} );
+	
+	data_table.fnAdjustColumnSizing();
 }
 
 function isNumeric(value) {
@@ -156,6 +162,10 @@ function get_delegate_positions_callback(data, dialog_element) {
 	data_table = $('table#delegate_positions').dataTable({
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
+		"fnDrawCallback": function(){
+	     	$('td').bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
+	     	$('td').bind('mouseleave', function () { $(this).parent().children().each(function(){$(this).removeClass('datatablerowhighlight');}); });
+		}
 	});
 	
 	/* Apply the jEditable handlers to the table */
@@ -177,8 +187,10 @@ function get_delegate_positions_callback(data, dialog_element) {
 		"submitdata": function ( value, settings ) {
 			return { "row_id": this.parentNode.getAttribute('id') };
 		},
-		"height": "20px"
+		"height": "25px"
 	} );
+	
+	data_table.fnAdjustColumnSizing();
 }
 
 function get_school_country_assignments_callback(data, selectSource, dialog_element) {
@@ -195,6 +207,10 @@ function get_school_country_assignments_callback(data, selectSource, dialog_elem
 	data_table = $('table#school_country_assignments').dataTable({
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
+		"fnDrawCallback": function(){
+	     	$('td').bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
+	     	$('td').bind('mouseleave', function () { $(this).parent().children().each(function(){$(this).removeClass('datatablerowhighlight');}); });
+		}
 	});
 	
 	/* Apply the jEditable handlers to the table */
@@ -210,8 +226,10 @@ function get_school_country_assignments_callback(data, selectSource, dialog_elem
 		"submitdata": function ( value, settings ) {
 			return { "row_id": this.parentNode.getAttribute('id') };
 		},
-		"height": "20px"
+		"height": "25px"
 	} );
+	
+	data_table.fnAdjustColumnSizing();
 }
 
 function form_dialog(dialog_width, dialog_element, dialog_link_element, form_element, ajax_get_url) {
