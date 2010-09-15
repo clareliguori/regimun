@@ -14,7 +14,7 @@ def limited_object_detail(*args, **kwargs):
 
 urlpatterns = patterns('',
     # conferences index
-    (r'^$', object_list, dict(queryset=conferences)),
+    (r'^$', object_list, dict(queryset=conferences,template_name='conference_list.html')),
     
     # register new cconference
     (r'^new-conference/$', create_conference),
@@ -26,7 +26,7 @@ urlpatterns = patterns('',
     (r'^(?P<conference_slug>[-\w]+)/created$', conference_created),
     
     # schools index
-    (r'^(?P<slug>[-\w]+)/$', object_detail, dict(queryset=conferences, slug_field='url_name')),
+    (r'^(?P<slug>[-\w]+)/$', object_detail, dict(queryset=conferences, slug_field='url_name', template_name='conference_detail.html')),
 
     # secretariat ajax calls
     (r'^(?P<conference_slug>[-\w]+)/secretariat/ajax/(?P<func_name>[-\w]+)$', conference_ajax_functions),

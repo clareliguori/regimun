@@ -32,6 +32,9 @@ class FeeStructure(models.Model):
 	per_country = models.DecimalField(max_digits=11, decimal_places=2, default=0)
 	per_sponsor = models.DecimalField(max_digits=11, decimal_places=2, default=0)
 	per_delegate = models.DecimalField(max_digits=11, decimal_places=2, default=0)
+	late_registration_start_date = models.DateField()
+	per_school_late_fee = models.DecimalField(max_digits=11, decimal_places=2, default=0)
+	per_delegate_late_fee = models.DecimalField(max_digits=11, decimal_places=2, default=0)
 
 	def __unicode__(self):
 		return self.conference.name

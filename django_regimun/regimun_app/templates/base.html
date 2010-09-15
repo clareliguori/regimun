@@ -11,9 +11,12 @@
 		$(function() {
 			$( ".button" ).button();
 			$('#tabs').tabs();
+			$('.no-javascript').remove();			
+			$('li', '.errorlist').each(function() {
+				$(this).replaceWith('<div class="ui-widget"><div class="ui-state-error ui-corner-all" style="padding: 0pt 0.7em;"><p><span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>' + this.innerHTML + '</p></div></div>');
+			});
 		});
 	</script>
-	
 	<script type="text/javascript">
 	{% block scriptblock %}{% endblock %}
 	</script>
@@ -25,10 +28,17 @@
 <div class="wrapper">
 	<div class="ui-widget ui-widget-header ui-state-active ui-corner-all top-user-bar">
 		{% if user.username %}
-			You are logged in as <span style="font-weight: bold">{{ user.username }}</span> (<a href="/accounts/logout">Logout</a> / <a href="/accounts/change-password">Change Password</a>)
+			You are logged in as <span style="font-weight: bold">{{ user.username }}</span> (<a href="{% url django.contrib.auth.views.logout_then_login %}">Logout</a> / <a href="{% url django.contrib.auth.views.password_change %}">Change Password</a>)
 		{% else %}
-			<a href="/accounts/login">Login</a>
+			<a href="{% url django.contrib.auth.views.login %}?next={{ request.path }}">Login</a>
 		{% endif %}
+	</div>
+	
+	<div class="ui-widget ui-state-error ui-corner-all no-javascript">
+		<p>
+		<span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>
+		You do not have Javascript enabled in your web browser. Please enable Javascript before using this site.
+		</p>
 	</div>
 	
 	<div class="container">
@@ -37,8 +47,11 @@
 	<div class="push"></div>
 </div>
 
-<div class="footnote">
-	<h5>Powered by <a href="http://www.munsoftware.com">MUN Software</a></h5> 
+<div class="footer">
+	<h5>
+		Powered by <a href="http://www.munsoftware.com">MUN Software</a><br/>
+		Please be patient - we are still developing this site! If you experience issues, email <a href="mailto:bugs@munsoftware.com">bugs@munsoftware.com</a>
+	</h5> 
 </div>
 </body>
 </html>

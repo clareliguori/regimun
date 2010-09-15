@@ -8,6 +8,7 @@ $(function(){
             width: 400,
             modal: true,
             resizable: false,
+            position: 'center',
             buttons: {
                 "Remove Sponsor": function() {
 					$.post(
@@ -33,6 +34,7 @@ $(function(){
             width: 400,
             modal: true,
             resizable: false,
+            position: 'top',
             buttons: {
                 "Save": function() {
         			$('#country-preferences-form').ajaxSubmit();
@@ -59,6 +61,7 @@ function open_country_preferences_dialog() {
 			}
 			output += "</table>";
 			
+			$('.loading').remove();
 			$('#country-preferences-form').html(output);
 			
 			for(i = 0; i < data.preferences.length; i++) {
@@ -67,6 +70,7 @@ function open_country_preferences_dialog() {
 		},
 		"json"
 	);
+	$('#country-preferences-dialog').append('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 	$('#country-preferences-dialog').dialog('open');
 }
 
@@ -232,8 +236,10 @@ function remove_delegate(position_pk) {
 {% endblock %}
 
 {% block pagecontent %}
+<div class="header">
 <h1>{{ conference.name }} Registration</h1>
 <h3>{{ school.name }}</h3>
+</div>
 
 <div class="school-content">
 <div id="tabs">
@@ -283,35 +289,41 @@ function remove_delegate(position_pk) {
 
 	<div id="delegations">
 
+		<table>
 		{% for country,positions in school.get_delegations.items %}
-			<p><b>{{ country.name }}</b></p>
+			<tr>
+				<td style="padding-right:10px">{% if country.flag_icon %}<img src="{{ MEDIA_URL }}/{{ country.flag_icon }}"/>{% endif %}</td>
+				<td><b>{{ country.name }}</b></td>
+			</tr>
 			{% for position in positions %}
+				<tr><td></td><td>
 				{% if position.first_name %}
 					<!-- Delegate object -->
 					{{ position.position_assignment.committee.name }}: <span id="delegate-info-{{ position.position_assignment.pk }}">{{ position.get_full_name }}</span> 
 					<small>
-						<a onclick="get_edit_delegate_form({{ position.position_assignment.pk }})" id="edit-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Edit</a>  
-						<a onclick="remove_delegate({{ position.position_assignment.pk }})" id="remove-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Remove</a>
-						<a style="display: none" onclick="send_edit_delegate_form({{ position.position_assignment.pk }})" id="save-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Save</a>
-						<a style="display: none" onclick="get_edit_delegate_form({{ position.position_assignment.pk }})" id="add-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Register</a>
+						&nbsp; &nbsp;<a onclick="get_edit_delegate_form({{ position.position_assignment.pk }})" id="edit-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Edit</a>  
+						&nbsp; &nbsp;<a onclick="remove_delegate({{ position.position_assignment.pk }})" id="remove-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Remove</a>
+						&nbsp; &nbsp;<a style="display: none" onclick="send_edit_delegate_form({{ position.position_assignment.pk }})" id="save-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Save</a>
+						&nbsp; &nbsp;<a style="display: none" onclick="get_edit_delegate_form({{ position.position_assignment.pk }})" id="add-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Register</a>
 					</small>
 				{% else %}
 					<!-- DelegatePosition object -->
 					{{ position.committee.name }}: <span id="delegate-info-{{ position.pk }}">No delegate registered</span>
 					<small>
-						<a style="display: none" onclick="get_edit_delegate_form({{ position.pk }})" id="edit-delegate-{{ position.pk }}" href="javascript:void(0);">Edit</a>  
-						<a style="display: none" onclick="remove_delegate({{ position.pk }})" id="remove-delegate-{{ position.pk }}" href="javascript:void(0);">Remove</a>
-						<a style="display: none" onclick="send_edit_delegate_form({{ position.pk }})" id="save-delegate-{{ position.pk }}" href="javascript:void(0);">Save</a>
-						<a onclick="get_edit_delegate_form({{ position.pk }})" id="add-delegate-{{ position.pk }}" href="javascript:void(0);">Register</a>
+						&nbsp; &nbsp;<a style="display: none" onclick="get_edit_delegate_form({{ position.pk }})" id="edit-delegate-{{ position.pk }}" href="javascript:void(0);">Edit</a>  
+						&nbsp; &nbsp;<a style="display: none" onclick="remove_delegate({{ position.pk }})" id="remove-delegate-{{ position.pk }}" href="javascript:void(0);">Remove</a>
+						&nbsp; &nbsp;<a style="display: none" onclick="send_edit_delegate_form({{ position.pk }})" id="save-delegate-{{ position.pk }}" href="javascript:void(0);">Save</a>
+						&nbsp; &nbsp;<a onclick="get_edit_delegate_form({{ position.pk }})" id="add-delegate-{{ position.pk }}" href="javascript:void(0);">Register</a>
 					</small>
 				{% endif %}
-				<br/>
+				</td></tr>
 			{% empty %}
-				No positions have been assigned to this country.<br/>
+				No positions have been assigned to this country.
 			{% endfor %}
 		{% empty %}
 			No countries have been assigned to your school.
 		{% endfor %}
+		</table>
 			
 		<p>
 		<button id="country-preferences" class="button" onclick="open_country_preferences_dialog()">Set Country Preferences</button>
@@ -324,7 +336,8 @@ function remove_delegate(position_pk) {
 	</div>
 
 	<div id="fees">
-		<p><a href="invoice">Download Invoice</a></p>
+		<p>Coming soon!</p>
+		<!-- <p><a href="invoice">Download Invoice</a></p> -->
 	</div>
 </div>
 </div>

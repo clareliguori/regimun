@@ -59,7 +59,9 @@ class FeeStructureForm(ModelForm):
             'per_school': TextInput(attrs={'class': "auto {aSign: '$'}"}),
             'per_country': TextInput(attrs={'class': "auto {aSign: '$'}"}),
             'per_sponsor': TextInput(attrs={'class': "auto {aSign: '$'}"}),
-            'per_delegate': TextInput(attrs={'class': "auto {aSign: '$'}"}),            
+            'per_delegate': TextInput(attrs={'class': "auto {aSign: '$'}"}),
+            'per_school_late_fee': TextInput(attrs={'class': "auto {aSign: '$'}"}),
+            'per_delegate_late_fee': TextInput(attrs={'class': "auto {aSign: '$'}"}),            
         }
 
 class OrganizationInfoForm(ModelForm):

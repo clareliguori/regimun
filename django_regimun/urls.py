@@ -1,14 +1,27 @@
 from django.conf import settings
 from django.conf.urls.defaults import patterns, include
 from django.contrib import admin
+from django.contrib.auth import views
 
 admin.autodiscover()
 
 urlpatterns = patterns('',
     (r'^registration/', include('regimun_app.urls')),
     (r'^admin/', include(admin.site.urls)),
-    (r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'regimun_app/login.html'}),
-    (r'^accounts/logout/$', 'django.contrib.auth.views.logout', {'template_name': 'regimun_app/logout.html'}),
+    
+    # account management
+    (r'^accounts/login/$', views.login, {'template_name': 'accounts/login.html', 'redirect_field_name' : 'next'}),
+    (r'^accounts/logout/$', views.logout_then_login, {}),
+    (r'^accounts/change_password/$', views.password_change, {'template_name': 'accounts/password_change_form.html', 'post_change_redirect' : '../password_changed/'}),
+    (r'^accounts/password_changed/$', views.password_change_done, {'template_name': 'accounts/password_change_done.html'}),
+    (r'^accounts/request_password_reset/$', views.password_reset, {
+                                                           'template_name': 'accounts/password_reset_form.html',
+                                                           'email_template_name' : 'accounts/password_reset_email.html',
+                                                           'post_reset_redirect' : '../password_reset_requested/'}),
+    (r'^accounts/password_reset_requested/$', views.password_reset_done, {'template_name': 'accounts/password_reset_done.html'}),
+    (r'^accounts/password_reset/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$', views.password_reset_confirm, {'template_name': 'accounts/password_reset_confirm.html', 'post_reset_redirect' : '../password_reset_complete/'}),
+    (r'^accounts/password_reset_complete/$', views.password_reset_complete, {'template_name': 'accounts/password_reset_complete.html'}),
+    
 )
 
 if settings.DEBUG:

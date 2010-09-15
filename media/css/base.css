@@ -8,7 +8,21 @@ body {
 	height: 100%;
 	font-size: 12px;
 	font-family: Lucida Grande, Lucida Sans, Arial, sans-serif;
-	text-align:center;
+	text-align: left;
+}
+
+.ui-state-error {
+	font-size: 12px;
+}
+
+.center {
+	margin-left:auto;
+	margin-right:auto;
+	text-align:center; 
+}
+
+tr,td {
+	text-align:left;
 }
 
 .wrapper {
@@ -16,6 +30,10 @@ body {
 	height: auto !important;
 	height: 100%;
 	margin: 0 auto -50px; /* the bottom margin is the negative value of the footer's height */
+}
+
+.header {
+	text-align: center;	
 }
 
 #container {
@@ -65,6 +83,7 @@ img.tab-link {
 	font-weight: normal;
 	padding: 10px; 
 	text-align:left;
+	font-size: 14px;	
 }
 
 .footer, .push {
@@ -74,4 +93,5 @@ img.tab-link {
 
 .footer {
 	padding-bottom: 10px;
+	text-align: center;
 }

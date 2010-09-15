@@ -14,6 +14,7 @@ var countryTable;
 
 function form_cleanup() {
 	$('input#id_date').datepicker();
+	$('input#id_late_registration_start_date').datepicker();
 	$('input.auto').each(function() {
 		$(this).autoNumeric();
 		$(this).val($.fn.autoNumeric.Format($(this).attr("id"), $(this).val()));
@@ -66,6 +67,7 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
     output += "<input value=\"Add\" type=\"submit\" id=\"add_" + object_name + "\">";
     output += "</form>";
 	
+    $('.loading').remove();
     $(dialog_element).html(output);
     $("input:submit").button();
     
@@ -148,6 +150,7 @@ function get_delegate_positions_callback(data, dialog_element) {
     output += data.table;
     output += "</table>";
     
+    $('.loading').remove();
     $('#positions-assignment-table').html(output);
     
 	data_table = $('table#delegate_positions').dataTable({
@@ -186,6 +189,7 @@ function get_school_country_assignments_callback(data, selectSource, dialog_elem
     output += data.table;
     output += "</table>";
     
+    $('.loading').remove();
     $('#school-country-assignment-table').html(output);
     
 	data_table = $('table#school_country_assignments').dataTable({
@@ -216,6 +220,7 @@ function form_dialog(dialog_width, dialog_element, dialog_link_element, form_ele
 		width: dialog_width,
 		modal: true,
 		resizable: false,
+		position: 'top',
 		close: function(event, ui) {
 			$(dialog_element).html("");
 		},
@@ -248,12 +253,14 @@ function form_dialog(dialog_width, dialog_element, dialog_link_element, form_ele
 		$.get(
 			"ajax/" + ajax_get_url,
 			function(data) {
+				$('.loading').remove();
 	  			$(dialog_element).html(data.form);
 	  			form_cleanup();
 			},
 			"json"
 		);
 	
+		$(dialog_element).append('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 		$(dialog_element).dialog('open');
 		return false;
 	});
@@ -265,6 +272,7 @@ function formset_dialog(dialog_width, dialog_element, dialog_link_element, form_
 		width: dialog_width,
 		modal: true,
 		resizable: false,
+		position: 'top',
 		close: function(event, ui) {
 			$(dialog_element).html("");
 		},
@@ -285,6 +293,7 @@ function formset_dialog(dialog_width, dialog_element, dialog_link_element, form_
 			"json"
 		);
 	
+		$(dialog_element).append('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 		$(dialog_element).dialog('open');
 		return false;
 	});
@@ -338,6 +347,7 @@ $(function(){
 		width: 800,
 		modal: true,
 		resizable: false,
+		position: 'top',
 		close: function(event, ui) {
 			$('#positions-assignment-table').html("");
 			$.post('ajax/cleanup-country-preferences');
@@ -358,6 +368,7 @@ $(function(){
 			"json"
 		);
 	
+		$('#committees-to-countries-form-dialog').append('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 		$('#committees-to-countries-form-dialog').dialog('open');
 		return false;
 	});
@@ -422,6 +433,7 @@ $(function(){
 		width: 800,
 		modal: true,
 		resizable: false,
+		position: 'top',
 		close: function(event, ui) {
 			$('#school-country-assignment-table').html("");
 			$.post('ajax/cleanup-country-preferences');
@@ -442,6 +454,7 @@ $(function(){
 			"json"
 		);
 	
+		$('#countries-to-schools-form-dialog').append('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 		$('#countries-to-schools-form-dialog').dialog('open');
 		return false;
 	});
@@ -506,8 +519,10 @@ $(function(){
 {% endblock %}
 
 {% block pagecontent %}
+<div class="header">
 <h1>{{ object.name }} Registration</h1>
 <h3>Secretariat Access</h3>
+</div>
 
 <div id="tab-links">
 	<div class="tab-link"><a href="stats"><img class="tab-link" src="{{MEDIA_URL}}/icons/kpercentage.png" /><br/>Statistics</a></div>

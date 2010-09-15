@@ -13,7 +13,7 @@
 		You do not have access to this page.
 	{% endif %}
 {% else %}
-    <p>Please <a href="/accounts/login/">log in</a>.</p>
+    <p>Please <a href="{% url django.contrib.auth.views.login %}?next={{ request.path }}">log in</a>.</p>
 {% endif %}
 
 {% endblock %}

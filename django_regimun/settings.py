@@ -87,6 +87,7 @@ FILE_UPLOAD_HANDLERS = ('regimun_app.utils.UploadProgressCachedHandler', ) + \
 
 AUTH_PROFILE_MODULE = ''
 
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/registration/'
 
 logging.basicConfig(level=logging.DEBUG)
