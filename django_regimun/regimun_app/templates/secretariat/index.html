@@ -115,8 +115,8 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
 		"aoColumns": column_settings,
 		"aaSorting": column_sorting,
 		"fnDrawCallback": function(){
-	     	$('td').bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
-	     	$('td').bind('mouseleave', function () { $(this).parent().children().each(function(){$(this).removeClass('datatablerowhighlight');}); });
+	     	$('td','table#existing_'+object_name).bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
+	     	$('td','table#existing_'+object_name).bind('mouseleave', function () { $(this).parent().children().each(function(){$(this).removeClass('datatablerowhighlight');}); });
 		}
 	});
 	
@@ -163,8 +163,8 @@ function get_delegate_positions_callback(data, dialog_element) {
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
 		"fnDrawCallback": function(){
-	     	$('td').bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
-	     	$('td').bind('mouseleave', function () { $(this).parent().children().each(function(){$(this).removeClass('datatablerowhighlight');}); });
+	     	$('td','table#delegate_positions').bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
+	     	$('td','table#delegate_positions').bind('mouseleave', function () { $(this).parent().children().each(function(){$(this).removeClass('datatablerowhighlight');}); });
 		}
 	});
 	
@@ -208,8 +208,8 @@ function get_school_country_assignments_callback(data, selectSource, dialog_elem
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
 		"fnDrawCallback": function(){
-	     	$('td').bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
-	     	$('td').bind('mouseleave', function () { $(this).parent().children().each(function(){$(this).removeClass('datatablerowhighlight');}); });
+	     	$('td','table#school_country_assignments').bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
+	     	$('td','table#school_country_assignments').bind('mouseleave', function () { $(this).parent().children().each(function(){$(this).removeClass('datatablerowhighlight');}); });
 		}
 	});
 	
