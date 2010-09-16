@@ -1,8 +1,14 @@
+from django.contrib.auth import REDIRECT_FIELD_NAME, login, views
+from django.core.cache import cache
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, HttpResponseServerError, \
+    HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
-from django.core.cache import cache
-from django.http import HttpResponse, HttpResponseServerError 
 from recaptcha.client import captcha
+from regimun_app.forms import DetailedUserCreationForm
+import re
+import settings
 
 def render_response(req, *args, **kwargs):
     kwargs['context_instance'] = RequestContext(req)
@@ -16,6 +22,25 @@ def get_recaptcha_response(request):
                    request.META.get("REMOTE_ADDR", None))
         
     return captcha_response
+
+def register_user(request, template_name='accounts/register.html',
+          redirect_field_name=REDIRECT_FIELD_NAME):
+
+    redirect_to = request.REQUEST.get(redirect_field_name, '')
+
+    if request.method == 'POST':
+        form = DetailedUserCreationForm(data=request.POST)
+        if form.is_valid():
+            if not redirect_to or ' ' in redirect_to:
+                redirect_to = settings.LOGIN_REDIRECT_URL
+            elif '//' in redirect_to and re.match(r'[^\?]*//', redirect_to):
+                redirect_to = settings.LOGIN_REDIRECT_URL
+            new_user = form.save()
+            return HttpResponseRedirect(reverse(views.login))
+    else:
+        form = DetailedUserCreationForm()
+
+    return render_response(request, template_name, {'form': form, redirect_field_name: redirect_to})
 
 def upload_progress(request):
     """

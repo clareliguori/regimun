@@ -573,7 +573,7 @@ $(function(){
 Search:
 	<form method="post" action="see-school" class="search-schools">
 		<input id="id_name" name="name"/>
-		<input type="submit" name="submitschool" value="Go">
+		<input type="submit" class="button" name="submitschool" value="Go">
 	</form>
 
 Select from list:
@@ -583,7 +583,7 @@ Select from list:
 				<option value="{{ school.name }}">{{ school.name }}</option>
 			{% endfor %}
 		</select>
-		<input type="submit" name="submitschool" value="Go">
+		<input type="submit" class="button" name="submitschool" value="Go">
 	</form>
 </div>
 
@@ -626,7 +626,7 @@ Total Due: <br/>
 			<p>Import a spreadsheet containing the country-committee assignments.  The formatting must be the same as the downloaded spreadsheet (available <a href="downloads/?country-committee-assignments">here</a>). Only CSV files are accepted.</p>
 			<form enctype="multipart/form-data" action="ajax/upload-delegate-positions" method="post" id="upload-delegate-positions-form">
 				<label for="id_file">Upload:</label> <input type="file" name="file" id="id_file" accept="text/csv" />
-			<input type="submit" value="Submit" />
+			<input type="submit" class="button" value="Submit" />
 			</form>
 			<div id="upload-delegate-positions-progress" class="upload-progress"></div>
 		</div>
@@ -639,7 +639,7 @@ Total Due: <br/>
 		<p>Import a spreadsheet containing the country-school assignments.  The formatting must be the same as the downloaded spreadsheet (available <a href="downloads/?school-country-assignments">here</a>). Only CSV files are accepted.</p>
 		<form enctype="multipart/form-data" action="ajax/upload-school-country-assignments" method="post" id="upload-school-country-assignments-form">
 			<label for="id_file">Upload:</label> <input type="file" name="file" id="id_file" accept="text/csv" />
-		<input type="submit" value="Submit" />
+		<input type="submit" class="button" value="Submit" />
 		</form>
 		<div id="upload-school-country-assignments-progress" class="upload-progress"></div>
 	</div>

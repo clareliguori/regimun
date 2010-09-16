@@ -29,6 +29,19 @@ $(function(){
             }
         });
         
+        $('.add-sponsor-dialog').dialog({
+            autoOpen: false,
+            width: 400,
+            modal: true,
+            resizable: false,
+            position: 'center',
+            buttons: {
+                "Close": function() {
+                    $(this).dialog("close");
+                }
+            }
+        });
+
         $('#country-preferences-dialog').dialog({
             autoOpen: false,
             width: 400,
@@ -284,7 +297,11 @@ function remove_delegate(position_pk) {
 			{% endfor %}
 
 			<br/><br/>	
-			<button id="add_sponsor" class="button" onclick="add_sponsor()">Add Sponsor</button>
+			<button id="add_sponsor" class="button" onclick="$('.add-sponsor-dialog').dialog('open')">Add Sponsor</button>
+			<div style="display: none" id="add_sponsor_dialog" class="add-sponsor-dialog" title="Grant Access to Faculty Sponsor">
+				<p><span class="ui-icon ui-icon-info" style="float:left; margin:0 7px 0 0;"></span> All faculty sponsors must have a user account on this site. To grant school registration access to another sponsor, give them this access code. Once they create an account and go to this school's page, they will be asked for this code.</p>
+				<p><b>Access Code</b>: {{ school.access_code }}</p>
+			</div>
 	</div>
 
 	<div id="delegations">

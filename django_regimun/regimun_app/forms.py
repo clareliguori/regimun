@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.forms.models import ModelForm, modelformset_factory
 from django.forms.widgets import PasswordInput, HiddenInput, TextInput
@@ -11,6 +12,11 @@ class jEditableForm(forms.Form):
 
 class UploadFileForm(forms.Form):
     file = forms.FileField()
+
+class DetailedUserCreationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ("username",'first_name','last_name', 'email')
 
 class NewSchoolForm(forms.Form):
     school_name = forms.CharField(label="Name", max_length=200)

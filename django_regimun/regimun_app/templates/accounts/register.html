@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}
+Registration - Create Account
+{% endblock %}
+
+{% block content %}
+
+<div class="header">
+<h1>Create An Account</h1>
+</div>
+
+<div style="text-align:center">
+<form method="post" action="">
+<table class="center">
+{{ form.as_table }}
+<tr><td></td><td><input type="submit" class="button" value="Create Account" /></td></tr>
+</table>
+<input type="hidden" name="next" value="{{ next }}" />
+</form>
+
+</div>
+
+{% endblock %}

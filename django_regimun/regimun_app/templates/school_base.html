@@ -10,10 +10,27 @@
 	{% if user.is_staff or user.faculty_sponsor and user.faculty_sponsor.school.pk == school.pk or user.secretariat_member and user.secretariat_member.conference.pk == conference.pk %}
 		{% block pagecontent %}{% endblock %}
 	{% else %}
-		You do not have access to this page.
+		<div style="text-align:center; width:400px; padding-top:20px; margin: 0 auto">
+			<p>You do not have access to this page.</p> 
+			{% if not user.faculty_sponsor and not user.secretariat_member %}
+				<p>If you are a faculty sponsor for this school, enter the access code for this school. The access code can be retrieved from existing sponsors linked to this school or from the conference secretariat.</p>
+				<form action="grant-school-access" method="post">
+				<label for="access_code">Access Code:</label> <input type="text" name="access_code" />
+				<input type="hidden" name="next" value="{{ request.path }}" />
+				<input type="submit" class="button" value="Submit" />
+				</form>
+			{% else %}
+				<p>If you believe this is an error, please contact MUNSoftware to have access granted on your user account.</p>
+			{% endif %}
+			
+		</div>
 	{% endif %}
 {% else %}
-    <p>Please <a href="{% url django.contrib.auth.views.login %}?next={{ request.path }}">log in</a>.</p>
+<div style="text-align:center">
+    <p>You must be logged in to view this page.</p>
+    <p><a class="button" href="{% url django.contrib.auth.views.login %}?next={{ request.path }}">Login</a></p>
+    <p><a class="button" href="/accounts/register/?next={{ request.path }}">Register</a></p>
+</div>
 {% endif %}
 
 {% endblock %}

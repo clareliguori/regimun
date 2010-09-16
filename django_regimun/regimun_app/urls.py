@@ -48,9 +48,8 @@ urlpatterns = patterns('',
     # register new school
     (r'^(?P<conference_slug>[-\w]+)/new-school/$', create_school),
 
-    # school was created
-    (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/created$', school_created),
-    
+    (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/grant-school-access$', grant_school_access),
+
     # school invoice
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/invoice$', generate_invoice),
     

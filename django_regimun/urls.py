@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls.defaults import patterns, include
 from django.contrib import admin
 from django.contrib.auth import views
+from regimun_app.views.general import register_user
 
 admin.autodiscover()
 
@@ -21,7 +22,7 @@ urlpatterns = patterns('',
     (r'^accounts/password_reset_requested/$', views.password_reset_done, {'template_name': 'accounts/password_reset_done.html'}),
     (r'^accounts/password_reset/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$', views.password_reset_confirm, {'template_name': 'accounts/password_reset_confirm.html', 'post_reset_redirect' : '../password_reset_complete/'}),
     (r'^accounts/password_reset_complete/$', views.password_reset_complete, {'template_name': 'accounts/password_reset_complete.html'}),
-    
+    (r'^accounts/register/$', register_user, {'redirect_field_name' : 'next'}),
 )
 
 if settings.DEBUG:

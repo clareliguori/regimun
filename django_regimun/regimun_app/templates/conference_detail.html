@@ -13,7 +13,10 @@
         <p><a href="{{ school.url_name }}">{{ school.name }}</a></p>
     {% endfor %}
 {% else %}
-    <p>No schools are available for {{ object.name }}.</p>
+    <p>No schools are registered for {{ object.name }}.</p>
 {% endif %}
+
+<p><a class="button" href="new-school/">Register New School</a></p>
+
 </div>
 {% endblock %}

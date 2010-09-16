@@ -70,6 +70,7 @@ class School(models.Model):
 	state = models.CharField("State / Province / Region", max_length=200)
 	zip = models.CharField("ZIP / Postal Code", max_length=200,blank=True)
 	address_country = models.CharField("Country", max_length=200, blank=True)
+	access_code = models.CharField(max_length=128)
 	def __unicode__(self):
 		return self.name
 	
@@ -130,7 +131,7 @@ class Delegate(models.Model):
 class FacultySponsor(models.Model):
 	user = models.OneToOneField(User, related_name="faculty_sponsor")
 	school = models.ForeignKey(School)
-	phone = models.CharField(max_length=30)
+	phone = models.CharField(max_length=30, blank=True)
 	def __unicode__(self):
 		return self.user.get_full_name()
 
