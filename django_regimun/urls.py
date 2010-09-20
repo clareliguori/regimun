@@ -7,7 +7,6 @@ from regimun_app.views.general import register_user
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    (r'^registration/', include('regimun_app.urls')),
     (r'^admin/', include(admin.site.urls)),
     
     # account management
@@ -23,6 +22,8 @@ urlpatterns = patterns('',
     (r'^accounts/password_reset/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$', views.password_reset_confirm, {'template_name': 'accounts/password_reset_confirm.html', 'post_reset_redirect' : '../password_reset_complete/'}),
     (r'^accounts/password_reset_complete/$', views.password_reset_complete, {'template_name': 'accounts/password_reset_complete.html'}),
     (r'^accounts/register/$', register_user, {'redirect_field_name' : 'next'}),
+
+    (r'^', include('regimun_app.urls')),
 )
 
 if settings.DEBUG:

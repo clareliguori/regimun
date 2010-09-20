@@ -5,10 +5,11 @@ Create New Conference
 {% endblock %}
 
 {% block content %}
+{% if user.is_authenticated and user.is_active and user.is_staff %}
 
 <h1>Create New Conference</h1>
 
-<form action="/registration/new-conference/" method="post">
+<form action="/new-conference/" method="post">
 <table>
 {{ conference_form.as_table }}
 </table>
@@ -21,5 +22,7 @@ Secretariat Username
 
 <input type="submit" class="button" value="Submit" />
 </form>
-
+{% else %}
+You do not have access to this page.
+{% endif %}
 {% endblock %}

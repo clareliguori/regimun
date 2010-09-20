@@ -103,7 +103,7 @@ class NewCommitteeForm(ModelForm):
 class NewCountryForm(ModelForm):
     class Meta:
         model = Country
-        fields=('name','flag_icon',)
+        fields=('name','country_code',)
 
     def clean_name(self):
         data = self.cleaned_data['name']
@@ -119,4 +119,4 @@ class DelegateNameForm(ModelForm):
 
 CommitteeFormSet = modelformset_factory(Committee, can_delete=True, fields=('name',))
 
-CountryFormSet = modelformset_factory(Country, can_delete=True, fields=('name','flag_icon',))
+CountryFormSet = modelformset_factory(Country, can_delete=True, fields=('name','country_code',))

@@ -163,7 +163,7 @@ def set_country_preferences(request, school):
 
         if len(country_names) > 0:
             # send notification email
-            sender = "info@munsoftware.com"
+            sender = "webmaster@ctmun.org"
             to = school.conference.email_address
             
             # Create message container - the correct MIME type is multipart/alternative.

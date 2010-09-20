@@ -149,14 +149,14 @@ def create_conference(request):
             new_conference.save()
             
             # create default countries
-            defaultCountriesList = MEDIA_ROOT + "default_countries/default_countries.csv"
+            defaultCountriesList = MEDIA_ROOT + "default_countries.csv"
             countriesListReader = csv.reader(open(defaultCountriesList))
             for row in countriesListReader:
                 new_country = Country()
                 new_country.conference = new_conference
                 new_country.name = row[0]
                 new_country.url_name = slugify(new_country.name)
-                new_country.flag_icon = "default_countries/icons/" + row[1]
+                new_country.country_code = row[1]
                 new_country.save()
                 
             # create default committees and delegate positions
@@ -175,14 +175,15 @@ def create_conference(request):
             feeStructure.late_registration_start_date = new_conference.date
             feeStructure.save()
             
-            user = user_form.save()
+            user = user_form.save(commit=False)
+            user.email = new_conference.email_address
+            user.save()
             secretariat_user = Secretariat()
             secretariat_user.user = user
             secretariat_user.conference = new_conference
             secretariat_user.save()
             
-            return HttpResponseRedirect(reverse(conference_created, 
-                                                args=(new_conference.url_name,)))
+            return HttpResponseRedirect('/' + new_conference.url_name + '/secretariat/')
     else:
         conference_form = ConferenceForm()
         user_form = SecretariatUserForm()
@@ -190,8 +191,4 @@ def create_conference(request):
     return render_response(request, 'conference/create-conference.html', {
         'conference_form': conference_form, 'secretariat_form' : user_form
     })
-
-def conference_created(request, conference_slug):
-    conference = get_object_or_404(Conference, url_name=conference_slug)
-    return render_response(request, 'conference/conference-created.html', {'conference' : conference,})
     

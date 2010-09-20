@@ -53,10 +53,16 @@ class Country(models.Model):
 	conference = models.ForeignKey(Conference)
 	name = models.CharField(max_length=200)
 	url_name = models.SlugField("Short Name", max_length=200, help_text="You will use this name in unique registration URLs. Only alphanumeric characters, underscores, and hyphens are allowed.")
-	flag_icon = models.ImageField(upload_to="flag_icons", blank=True)
+	country_code = models.CharField("ISO 3166-1 alpha-2 Country Code", max_length=2, blank=True, help_text='See the <a href="http://www.iso.org/iso/english_country_names_and_code_elements">official ISO 3166-1 alpha-2 code list</a>.')
 	def __unicode__(self):
 		return self.name
 
+	def flag_icon(self):
+		if self.country_code:
+			return "icons/country_flags/flag-" + self.country_code.lower() + ".png"
+		else:
+			return ""
+	
 	class Meta:
 		ordering = ('name',)	
 	

@@ -74,7 +74,7 @@ def get_conference_committees(request, conference):
     return simplejson.dumps({'form':form.as_p(), 'objects':existing_committees})
 
 def get_conference_countries(request, conference):
-    existing_countries = serializers.serialize('json', Country.objects.filter(conference=conference), fields=('name','flag_icon'))
+    existing_countries = serializers.serialize('json', Country.objects.filter(conference=conference), fields=('name','country_code'))
     form = NewCountryForm()
     
     return simplejson.dumps({'form':form.as_p(), 'objects':existing_countries})
@@ -145,7 +145,7 @@ def add_country(request, conference):
             country.conference = conference
             country.url_name = slugify(country.name)
             country.save()
-            return serializers.serialize('json', [country], fields=('name','flag_icon'))[1:-1]
+            return serializers.serialize('json', [country], fields=('name','country_code'))[1:-1]
         else:
             return simplejson.dumps({'form':form.as_p()})
 
