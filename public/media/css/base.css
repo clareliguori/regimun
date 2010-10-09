@@ -41,19 +41,9 @@ tr,td {
 	margin: 20px auto;
 }
 
-#tab-links {
-	text-align:center;
-	font-size:12px;
-}
-
 .secretariat-pane { 
-	clear:both;
-	padding: 20px; 
-	width: 800px;
-	height:300px;
 	text-align:center; 
-	margin: 20px auto 20px;
-	position: relative;
+	padding: 20px auto 20px;
 }
 
 .school-content {
@@ -63,17 +53,15 @@ tr,td {
 	position: relative;
 }
 
-#tab-links {
-	width: 720px;
-	margin-bottom:20px; 
+.secretariat-content {
+	text-align:left;	
+	width: 800px;
 	margin: 0 auto;
 	position: relative;
 }
 
-div.tab-link {
-	position: relative;
-	float:left;
-	margin: 10px;
+ul.tab-link {
+	text-align:center;	
 }
 
 img.tab-link {

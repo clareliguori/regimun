@@ -318,13 +318,6 @@ function formset_dialog(dialog_width, dialog_element, dialog_link_element, form_
 
 var progressTimer;
 $(function(){
-	$( '#tab-links a' ).button();
-	$('#tab-links a').click(function() {
-		$('.secretariat-pane').hide();
-		$('#' + $(this).attr("href")).show();
-		return false;
-	});
-
 	form_dialog(500, '#basic-conference-form-dialog', '#basic-conference-form-dialog-link', '#basic_conference_info_form', "get-basic-conference-form");
 
 	form_dialog(500, '#fee-form-dialog', '#fee-form-dialog-link', '#fee_structure_info_form', "get-fee-structure-form");
@@ -541,110 +534,114 @@ $(function(){
 <h3>Secretariat Access</h3>
 </div>
 
-<div id="tab-links">
-	<div class="tab-link"><a href="stats"><img class="tab-link" src="{{MEDIA_URL}}/icons/kpercentage.png" /><br/>Statistics</a></div>
-	<div class="tab-link"><a href="spreadsheets"><img class="tab-link" src="{{MEDIA_URL}}/icons/kchart.png" /><br/>Spreadsheets</a></div>
-	<div class="tab-link"><a href="schools"><img class="tab-link" src="{{MEDIA_URL}}/icons/kdmconfig.png" /><br/>Schools</a></div>
-	<div class="tab-link"><a href="fees"><img class="tab-link" src="{{MEDIA_URL}}/icons/emblems-money.png" /><br/>Fees</a></div>
-	<div class="tab-link"><a href="store"><img class="tab-link" src="{{MEDIA_URL}}/icons/shopping_trolley.png" /><br/>Store</a></div>
-	<div class="tab-link"><a href="settings"><img class="tab-link" src="{{MEDIA_URL}}/icons/kcmsystem.png" /><br/>Settings</a></div> 
-</div>
+<div class="secretariat-content">
+<div id="tabs">
+	<ul class="tab-link">
+		<li><a href="#settings"><img class="tab-link" src="{{MEDIA_URL}}/icons/kcmsystem.png" /><br/>Settings</a></li> 
+		<li><a href="#stats"><img class="tab-link" src="{{MEDIA_URL}}/icons/kpercentage.png" /><br/>Statistics</a></li>
+		<li><a href="#spreadsheets"><img class="tab-link" src="{{MEDIA_URL}}/icons/kchart.png" /><br/>Spreadsheets</a></li>
+		<li><a href="#schools"><img class="tab-link" src="{{MEDIA_URL}}/icons/kdmconfig.png" /><br/>Schools</a></li>
+		<li><a href="#fees"><img class="tab-link" src="{{MEDIA_URL}}/icons/emblems-money.png" /><br/>Fees</a></li>
+		<li><a href="#store"><img class="tab-link" src="{{MEDIA_URL}}/icons/shopping_trolley.png" /><br/>Store</a></li>
+	</ul>
 	
-<div id="stats" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
-	{% if object.delegates %}
-	Registered delegates: {{ object.delegates|length }}
-	{% else %}
-	No registered delegates.
-	{% endif %}
-</div>
-
-<div id="spreadsheets" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
-	<a href="downloads/?sponsor-contacts">Sponsor Contact Info Spreadsheet</a><br/>
-	<a href="downloads/?delegates">Delegates Spreadsheet</a><br/>
-	<br/>
-	<a href="downloads/?school-country-assignments">School-Country Assignments</a><br/>
-	<a href="downloads/?country-committee-assignments">Country-Committee Assignments</a><br/>
-	<br/>
-	<a href="downloads/?country-preferences">Country Preferences</a><br/>
-	<a href="downloads/?delegate-count-requests">Delegate Count Requests</a><br/>
-</div>
-
-<div id="schools" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
-Search:
-	<form method="post" action="see-school" class="search-schools">{% csrf_token %}
-		<input id="id_name" name="name"/>
-		<input type="submit" class="button" name="submitschool" value="Go">
-	</form>
-
-Select from list:
-	<form method="post" action="see-school">{% csrf_token %}
-		<select id="id_name" name="name">
-			{% for school in object.school_set.all %}
-				<option value="{{ school.name }}">{{ school.name }}</option>
-			{% endfor %}
-		</select>
-		<input type="submit" class="button" name="submitschool" value="Go">
-	</form>
-</div>
-
-<div id="fees" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
-	<p>
-	Total Revenue: <br/>
-	Total Due: <br/>
-	</p>
-	<p>
-	<a href="invoices">All Invoices</a>
-	</p>
-</div>
-
-<div id="store" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
-<p>
-Total Revenue: <br/>
-Total Due: <br/>
-</p>
-<p>
-<a href="purchases">All Purchases</a>
-</p>
-</div>
-
-<div id="settings" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
-	<p><a href="#" id="basic-conference-form-dialog-link">Basic Conference Information</a></p>
-	<div id="basic-conference-form-dialog" title="Basic Conference Information"></div>
-	
-	<p><a href="#" id="fee-form-dialog-link">Fee Structure</a></p>
-	<div id="fee-form-dialog" title="Conference Fee Structure"></div>
-	
-	<p><a href="#" id="countries-form-dialog-link">Countries</a></p>
-	<div id="countries-form-dialog" title="Conference Countries"></div>
-	
-	<p><a href="#" id="committees-form-dialog-link">Committees</a></p>
-	<div id="committees-form-dialog" title="Conference Committees"></div>
-	
-	<p><a href="#" id="committees-to-countries-form-dialog-link">Assign Committees to Countries</a></p>
-	<div id="committees-to-countries-form-dialog" title="Assign committees to countries">
-		<div id="upload-delegate-positions-form">
-			<p>Import a spreadsheet containing the country-committee assignments.  The formatting must be the same as the downloaded spreadsheet (available <a href="downloads/?country-committee-assignments">here</a>). Only CSV files are accepted.</p>
-			<form enctype="multipart/form-data" action="ajax/upload-delegate-positions" method="post" id="upload-delegate-positions-form">{% csrf_token %}
-				<label for="id_file">Upload:</label> <input type="file" name="file" id="id_file" accept="text/csv" />
-			<input type="submit" class="button" value="Submit" />
-			</form>
-			<div id="upload-delegate-positions-progress" class="upload-progress"></div>
+	<div id="settings" class="secretariat-pane" >
+		<p><a href="#" id="basic-conference-form-dialog-link">Basic Conference Information</a></p>
+		<div id="basic-conference-form-dialog" title="Basic Conference Information"></div>
+		
+		<p><a href="#" id="fee-form-dialog-link">Fee Structure</a></p>
+		<div id="fee-form-dialog" title="Conference Fee Structure"></div>
+		
+		<p><a href="#" id="countries-form-dialog-link">Countries</a></p>
+		<div id="countries-form-dialog" title="Conference Countries"></div>
+		
+		<p><a href="#" id="committees-form-dialog-link">Committees</a></p>
+		<div id="committees-form-dialog" title="Conference Committees"></div>
+		
+		<p><a href="#" id="committees-to-countries-form-dialog-link">Assign Committees to Countries</a></p>
+		<div id="committees-to-countries-form-dialog" title="Assign committees to countries">
+			<div id="upload-delegate-positions-form">
+				<p>Import a spreadsheet containing the country-committee assignments.  The formatting must be the same as the downloaded spreadsheet (available <a href="downloads/?country-committee-assignments">here</a>). Only CSV files are accepted.</p>
+				<form enctype="multipart/form-data" action="ajax/upload-delegate-positions" method="post" id="upload-delegate-positions-form">{% csrf_token %}
+					<label for="id_file">Upload:</label> <input type="file" name="file" id="id_file" accept="text/csv" />
+				<input type="submit" class="button" value="Submit" />
+				</form>
+				<div id="upload-delegate-positions-progress" class="upload-progress"></div>
+			</div>
+			<div id="positions-assignment-table"></div>
 		</div>
-		<div id="positions-assignment-table"></div>
-	</div>
-	
-	<p><a href="#" id="countries-to-schools-form-dialog-link">Assign Countries to Schools</a></p>
-	<div id="countries-to-schools-form-dialog" title="Assign countries to schools">
-	<div id="upload-school-country-assignments-form">
-		<p>Import a spreadsheet containing the country-school assignments.  The formatting must be the same as the downloaded spreadsheet (available <a href="downloads/?school-country-assignments">here</a>). Only CSV files are accepted.</p>
-		<form enctype="multipart/form-data" action="ajax/upload-school-country-assignments" method="post" id="upload-school-country-assignments-form">{% csrf_token %}
-			<label for="id_file">Upload:</label> <input type="file" name="file" id="id_file" accept="text/csv" />
-		<input type="submit" class="button" value="Submit" />
-		</form>
-		<div id="upload-school-country-assignments-progress" class="upload-progress"></div>
-	</div>
-	<div id="school-country-assignment-table"></div>
-</div>
-</div>
+		
+		<p><a href="#" id="countries-to-schools-form-dialog-link">Assign Countries to Schools</a></p>
+		<div id="countries-to-schools-form-dialog" title="Assign countries to schools">
+			<div id="upload-school-country-assignments-form">
+				<p>Import a spreadsheet containing the country-school assignments.  The formatting must be the same as the downloaded spreadsheet (available <a href="downloads/?school-country-assignments">here</a>). Only CSV files are accepted.</p>
+				<form enctype="multipart/form-data" action="ajax/upload-school-country-assignments" method="post" id="upload-school-country-assignments-form">{% csrf_token %}
+					<label for="id_file">Upload:</label> <input type="file" name="file" id="id_file" accept="text/csv" />
+				<input type="submit" class="button" value="Submit" />
+				</form>
+				<div id="upload-school-country-assignments-progress" class="upload-progress"></div>
+			</div>
+			<div id="school-country-assignment-table"></div>
+		</div>
+	</div>	
 
+	<div id="stats" class="secretariat-pane" >
+		{% if object.delegates %}
+		Registered delegates: {{ object.delegates|length }}
+		{% else %}
+		No registered delegates.
+		{% endif %}
+	</div>
+
+	<div id="spreadsheets" class="secretariat-pane" >
+		<a href="downloads/?sponsor-contacts">Sponsor Contact Info Spreadsheet</a><br/>
+		<a href="downloads/?delegates">Delegates Spreadsheet</a><br/>
+		<br/>
+		<a href="downloads/?school-country-assignments">School-Country Assignments</a><br/>
+		<a href="downloads/?country-committee-assignments">Country-Committee Assignments</a><br/>
+		<br/>
+		<a href="downloads/?country-preferences">Country Preferences</a><br/>
+		<a href="downloads/?delegate-count-requests">Delegate Count Requests</a><br/>
+	</div>
+
+	<div id="schools" class="secretariat-pane" >
+		Search:
+			<form method="post" action="see-school" class="search-schools">{% csrf_token %}
+				<input id="id_name" name="name"/>
+				<input type="submit" class="button" name="submitschool" value="Go">
+			</form>
+		
+		Select from list:
+			<form method="post" action="see-school">{% csrf_token %}
+				<select id="id_name" name="name">
+					{% for school in object.school_set.all %}
+						<option value="{{ school.name }}">{{ school.name }}</option>
+					{% endfor %}
+				</select>
+				<input type="submit" class="button" name="submitschool" value="Go">
+			</form>
+	</div>
+
+	<div id="fees" class="secretariat-pane" >
+		<p>
+		Total Revenue: <br/>
+		Total Due: <br/>
+		</p>
+		<p>
+		<a href="invoices">All Invoices</a>
+		</p>
+	</div>
+
+	<div id="store" class="secretariat-pane" >
+		<p>
+		Total Revenue: <br/>
+		Total Due: <br/>
+		</p>
+		<p>
+		<a href="purchases">All Purchases</a>
+		</p>
+	</div>
+
+</div>
+</div>
 {% endblock %}
