@@ -11,7 +11,6 @@
 		$(function() {
 			$( ".button" ).button();
 			$('#tabs').tabs();
-			$('.no-javascript').remove();			
 			$('li', '.errorlist').each(function() {
 				$(this).replaceWith('<div class="ui-widget"><div class="ui-state-error ui-corner-all" style="padding: 0pt 0.7em;"><p><span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>' + this.innerHTML + '</p></div></div>');
 			});
@@ -46,12 +45,14 @@
 		</table>
 	</div>
 	
+	<noscript>
 	<div class="ui-widget ui-state-error ui-corner-all no-javascript">
 		<p>
 		<span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>
 		You do not have Javascript enabled in your web browser. Please enable Javascript before using this site.
 		</p>
 	</div>
+	</noscript>
 	
 	<div class="container">
 		{% block content %}{% endblock %}

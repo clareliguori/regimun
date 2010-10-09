@@ -1,9 +1,15 @@
 RegiMUN uses the following open-source libraries:
 Django
 ReportLab
-Python Imaging Library
+Paste
+recaptcha
 
 jQuery
 jQueryUI
 JEditable
 DataTables
+autoNumeric
+jQuery Forms
+jQuery Metadata
+
+Icons: Open Icon Library

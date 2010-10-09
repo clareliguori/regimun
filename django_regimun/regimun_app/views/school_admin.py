@@ -7,9 +7,11 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import slugify
 from regimun_app.forms import NewSchoolForm, NewFacultySponsorForm
-from regimun_app.models import Conference, School, FacultySponsor
+from regimun_app.models import Conference, School, FacultySponsor, Committee, \
+    DelegatePosition, Country
 from regimun_app.views.general import render_response, get_recaptcha_response
 from reportlab.pdfgen import canvas
+import csv
 import re
 import settings
 
@@ -111,7 +113,7 @@ def create_school(request, conference_slug):
                     return HttpResponseRedirect(reverse(school_admin, 
                                                         args=(conference.url_name,new_school.url_name,)))
                 else:
-                    school_form._errors.setdefault("school_name", ErrorList()).append(captcha_response.error_code)
+                    school_form._errors.setdefault("school_name", ErrorList()).append("The reCAPTCHA wasn't entered correctly.")
 
     else:
         school_form = NewSchoolForm()
@@ -162,3 +164,33 @@ def generate_invoice(request, conference_slug, school_slug):
         return response
     else:
         raise Http404
+
+@login_required
+def school_spreadsheet_downloads(request, conference_slug, school_slug):
+    conference = get_object_or_404(Conference, url_name=conference_slug)
+    school = get_object_or_404(School, url_name=school_slug)
+    
+    if school_authenticate(request, conference, school):
+        response = HttpResponse(mimetype='text/csv')
+        writer = csv.writer(response)
+        
+        if 'country-committee-assignments' in request.GET:
+            response['Content-Disposition'] = 'attachment; filename=country-committee-assignments-' + conference_slug + ".csv"             
+            committees = Committee.objects.filter(conference=conference)
+            countries = Country.objects.filter(conference=conference)
+    
+            headers = ['Country']
+            for committee in committees:
+                headers.append(committee.name)
+            writer.writerow(headers)
+
+            for country in countries:
+                row = [country.name]
+                for committee in committees:
+                    row.append(str(DelegatePosition.objects.filter(committee=committee,country=country).count()))
+                writer.writerow(row)
+        else:
+            raise Http404
+    else:
+        raise Http404
+    return response

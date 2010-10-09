@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.http import Http404, HttpResponse
+from django.middleware import csrf
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import slugify
 from django.utils import simplejson
@@ -36,7 +37,9 @@ def get_basic_conference_form(request, conference):
     output = ""
     if conference.logo:
         output += "<img src=\"" + MEDIA_URL + "/" + conference.logo.url + "\" border=\"0\" width=\"100\""
-    output += "<form action=\"ajax/save-basic-conference-form\" enctype=\"multipart/form-data\" method=\"post\" id=\"basic_conference_info_form\"><table>"
+    output += "<form action=\"ajax/save-basic-conference-form\" enctype=\"multipart/form-data\" method=\"post\" id=\"basic_conference_info_form\">"
+    output += "<input type='hidden' name='csrfmiddlewaretoken' value='" + csrf.get_token(request) + "' />"
+    output += "<table>"
     output += form.as_table()
     output += "</table></form>"
     return simplejson.dumps({'form':output})

@@ -14,7 +14,7 @@
 			<p>You do not have access to this page.</p> 
 			{% if not user.faculty_sponsor and not user.secretariat_member %}
 				<p>If you are a faculty sponsor for this school, enter the access code for this school. The access code can be retrieved from existing sponsors linked to this school or from the conference secretariat.</p>
-				<form action="grant-school-access" method="post">
+				<form action="grant-school-access" method="post">{% csrf_token %}
 				<label for="access_code">Access Code:</label> <input type="text" name="access_code" />
 				<input type="hidden" name="next" value="{{ request.path }}" />
 				<input type="submit" class="button" value="Submit" />

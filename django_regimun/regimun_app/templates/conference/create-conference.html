@@ -9,7 +9,7 @@ Create New Conference
 
 <h1>Create New Conference</h1>
 
-<form action="/new-conference/" method="post">
+<form action="/new-conference/" method="post">{% csrf_token %}
 <table>
 {{ conference_form.as_table }}
 </table>

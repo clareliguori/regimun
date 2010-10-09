@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import simplejson
@@ -7,7 +8,7 @@ from email.mime.text import MIMEText
 from regimun_app.forms import SchoolMailingAddressForm, EditFacultySponsorForm, \
     DelegateNameForm
 from regimun_app.models import Conference, School, FacultySponsor, \
-    DelegatePosition, Delegate, CountryPreference, Country
+    DelegatePosition, Delegate, CountryPreference, Country, DelegateCountPreference
 from regimun_app.views.school_admin import school_authenticate
 import inspect
 import smtplib
@@ -138,28 +139,46 @@ def get_country_preferences(request, school):
         options.append(name)
         options.append("</option>")
     
-    return simplejson.dumps({'preferences':current_preferences, 'available_countries':''.join(options)})
+    delegate_count = 0
+    try:
+        delegate_count = DelegateCountPreference.objects.get(school=school).delegate_count
+    except ObjectDoesNotExist:
+        pass
+    
+    return simplejson.dumps({'preferences':current_preferences, 'delegate_count':delegate_count, 'available_countries':''.join(options)})
 
 def set_country_preferences(request, school):
     if request.method == 'POST':
         # remove current preferences
         CountryPreference.objects.filter(school=school).delete()
+        DelegateCountPreference.objects.filter(school=school).delete()
         country_names = []
+        count = 0
         
         for pref_num, country_pk in request.POST.items():
-            try:
-                country = Country.objects.get(pk=country_pk)
-            except Country.DoesNotExist:
-                pass
+            if pref_num == 'total_count':
+                try:
+                    count = int(country_pk)
+                    count_pref = DelegateCountPreference()
+                    count_pref.school = school
+                    count_pref.delegate_count = count
+                    count_pref.save()
+                except TypeError:
+                    pass  
             else:
-                if country.conference == school.conference:
-                    # make sure this preference doesnt already exist
-                    if CountryPreference.objects.filter(school=school, country=country).count() == 0:                        
-                        pref = CountryPreference()
-                        pref.country = country
-                        pref.school = school
-                        pref.save()
-                        country_names.append(country.name)
+                try:
+                    country = Country.objects.get(pk=country_pk)
+                except Country.DoesNotExist:
+                    pass
+                else:
+                    if country.conference == school.conference:
+                        # make sure this preference doesnt already exist
+                        if CountryPreference.objects.filter(school=school, country=country).count() == 0:                        
+                            pref = CountryPreference()
+                            pref.country = country
+                            pref.school = school
+                            pref.save()
+                            country_names.append(country.name)
 
         if len(country_names) > 0:
             # send notification email
@@ -187,11 +206,7 @@ def set_country_preferences(request, school):
             for name in country_names:
                 html += "<li>" + name + "</li>"
             
-            html += """\
-                </ol></p>
-              </body>
-            </html>
-            """
+            html += "</ol>Total delegates requested: " + str(count) + "</p></body></html>"
 
             # Record the MIME types of both parts - text/plain and text/html.
             part1 = MIMEText(text, 'plain')

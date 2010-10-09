@@ -1,5 +1,9 @@
 {% extends "school_base.html" %}
 
+{% block headblock %}
+<script src="{{ MEDIA_URL }}/js/autoNumeric-1.5.4.js" type="text/javascript" charset="utf-8"></script>
+{% endblock %}
+
 {% block scriptblock %}
 
 $(function(){
@@ -73,9 +77,13 @@ function open_country_preferences_dialog() {
 				output += "</select></td></tr>";
 			}
 			output += "</table>";
+			output += "<p>Total delegates requested &nbsp;&nbsp;<input type=\"text\" class=\"auto\" name=\"total_count\" size=\"5\" value=\"" + data.delegate_count + "\" /></p>";
 			
 			$('.loading').remove();
 			$('#country-preferences-form').html(output);
+			$('input.auto').each(function() {
+				$(this).autoNumeric();
+			});
 			
 			for(i = 0; i < data.preferences.length; i++) {
 				$('#id_pref_'+i+' option[value='+data.preferences[i]+']').attr('selected','selected');
@@ -345,7 +353,8 @@ function remove_delegate(position_pk) {
 		<p>
 		<button id="country-preferences" class="button" onclick="open_country_preferences_dialog()">Set Country Preferences</button>
 		<div id="country-preferences-dialog" title="Country Preferences">
-			<p>Update country preferences for your school. All countries listed have not yet been assigned to any school.</p>
+			<p>Update country preferences for your school. All countries listed have not yet been assigned to any school.<br/>
+			<a href="downloads/?country-committee-assignments">Download country-committee assignments here.</a><br/>
 			<form action="ajax/set-country-preferences" method="post" id="country-preferences-form">
 			</form>
 		</div>

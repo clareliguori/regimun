@@ -8,7 +8,7 @@ from regimun_app.forms import ConferenceForm, SecretariatUserForm, \
     SchoolNameForm
 from regimun_app.models import Conference, FacultySponsor, Delegate, Country, \
     Committee, Secretariat, School, FeeStructure, DelegatePosition, \
-    CountryPreference
+    CountryPreference, DelegateCountPreference
 from regimun_app.views.general import render_response
 from regimun_app.views.school_admin import school_admin
 from reportlab.pdfgen import canvas
@@ -100,6 +100,14 @@ def spreadsheet_downloads(request, conference_slug):
                     rank = 1
                 
                 writer.writerow([current_school, str(rank), preference.country.name, preference.last_modified.strftime("%A, %d. %B %Y %I:%M%p")])                
+        elif 'delegate-count-requests' in request.GET:
+            response['Content-Disposition'] = 'attachment; filename=delegate-count-requests-' + conference_slug + ".csv"             
+            preferences = DelegateCountPreference.objects.select_related().filter(school__conference=conference).order_by('school__name','last_modified')
+    
+            writer.writerow(['School','Total Delegates Requested','Time Submitted'])
+            
+            for preference in preferences:
+                writer.writerow([preference.school.name, preference.delegate_count, preference.last_modified.strftime("%A, %d. %B %Y %I:%M%p")])                
 
         else:
             raise Http404

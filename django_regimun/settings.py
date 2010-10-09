@@ -1,6 +1,5 @@
 # Django settings for django_regimun project.
 from django.conf import global_settings
-import logging
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -34,20 +33,21 @@ SITE_ID = 1
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
 USE_I18N = True
+USE_L10N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = '/home/clare/Programming/regimun/media/'
+MEDIA_ROOT = '/home/clare/Programming/regimun/public/media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = '/site_media'
+MEDIA_URL = '/media'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
+ADMIN_MEDIA_PREFIX = '/admin_media/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'sw27fxjh!y!6%o1deue6m_=6u%-0(pqblrum$$5d(6z_i(d^dr'
@@ -69,7 +69,9 @@ TEMPLATE_CONTEXT_PROCESSORS = ('django.core.context_processors.request',
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
 )
 
 ROOT_URLCONF = 'django_regimun.urls'
@@ -86,6 +88,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
+    'django.contrib.messages',
     'regimun_app',
 )
 
@@ -96,5 +99,3 @@ AUTH_PROFILE_MODULE = ''
 
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
-
-logging.basicConfig(level=logging.DEBUG)

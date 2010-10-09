@@ -14,7 +14,7 @@ You cannot create a new school as a staff member. Faculty sponsors must individu
 
 {% else %}
 
-<form action="/{{ conference.url_name }}/new-school/" method="post">
+<form action="/{{ conference.url_name }}/new-school/" method="post">{% csrf_token %}
 <h2>School Information</h2>
 <table>
 {{ school_form.as_table }}

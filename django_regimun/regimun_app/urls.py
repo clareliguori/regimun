@@ -50,6 +50,9 @@ urlpatterns = patterns('',
 
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/grant-school-access$', grant_school_access),
 
+    # school page - downloads
+    (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/downloads/', school_spreadsheet_downloads),
+    
     # school invoice
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/invoice$', generate_invoice),
     

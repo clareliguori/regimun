@@ -61,7 +61,7 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
     }
     output += "</tbody></table>";
     
-    output += "<form enctype=\"multipart/form-data\" action=\"ajax/add-"+object_name+"\" method=\"post\" id=\"" + form_element.replace('#','') + "\">";
+    output += "<form action=\"ajax/add-"+object_name+"\" method=\"post\" id=\"" + form_element.replace('#','') + "\">";
     output += data.form;
     output += "<input value=\"Add\" type=\"submit\" id=\"add_" + object_name + "\">";
     output += "</form>";
@@ -566,17 +566,18 @@ $(function(){
 	<a href="downloads/?country-committee-assignments">Country-Committee Assignments</a><br/>
 	<br/>
 	<a href="downloads/?country-preferences">Country Preferences</a><br/>
+	<a href="downloads/?delegate-count-requests">Delegate Count Requests</a><br/>
 </div>
 
 <div id="schools" class="secretariat-pane ui-widget ui-widget-content ui-corner-all" style="display: none">
 Search:
-	<form method="post" action="see-school" class="search-schools">
+	<form method="post" action="see-school" class="search-schools">{% csrf_token %}
 		<input id="id_name" name="name"/>
 		<input type="submit" class="button" name="submitschool" value="Go">
 	</form>
 
 Select from list:
-	<form method="post" action="see-school">
+	<form method="post" action="see-school">{% csrf_token %}
 		<select id="id_name" name="name">
 			{% for school in object.school_set.all %}
 				<option value="{{ school.name }}">{{ school.name }}</option>
@@ -623,7 +624,7 @@ Total Due: <br/>
 	<div id="committees-to-countries-form-dialog" title="Assign committees to countries">
 		<div id="upload-delegate-positions-form">
 			<p>Import a spreadsheet containing the country-committee assignments.  The formatting must be the same as the downloaded spreadsheet (available <a href="downloads/?country-committee-assignments">here</a>). Only CSV files are accepted.</p>
-			<form enctype="multipart/form-data" action="ajax/upload-delegate-positions" method="post" id="upload-delegate-positions-form">
+			<form enctype="multipart/form-data" action="ajax/upload-delegate-positions" method="post" id="upload-delegate-positions-form">{% csrf_token %}
 				<label for="id_file">Upload:</label> <input type="file" name="file" id="id_file" accept="text/csv" />
 			<input type="submit" class="button" value="Submit" />
 			</form>
@@ -636,7 +637,7 @@ Total Due: <br/>
 	<div id="countries-to-schools-form-dialog" title="Assign countries to schools">
 	<div id="upload-school-country-assignments-form">
 		<p>Import a spreadsheet containing the country-school assignments.  The formatting must be the same as the downloaded spreadsheet (available <a href="downloads/?school-country-assignments">here</a>). Only CSV files are accepted.</p>
-		<form enctype="multipart/form-data" action="ajax/upload-school-country-assignments" method="post" id="upload-school-country-assignments-form">
+		<form enctype="multipart/form-data" action="ajax/upload-school-country-assignments" method="post" id="upload-school-country-assignments-form">{% csrf_token %}
 			<label for="id_file">Upload:</label> <input type="file" name="file" id="id_file" accept="text/csv" />
 		<input type="submit" class="button" value="Submit" />
 		</form>

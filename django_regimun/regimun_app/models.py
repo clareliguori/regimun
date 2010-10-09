@@ -162,3 +162,14 @@ class CountryPreference(models.Model):
 	
 	class Meta:
 		ordering = ('last_modified',)
+
+class DelegateCountPreference(models.Model):
+	school = models.ForeignKey(School)
+	delegate_count = models.IntegerField()
+	last_modified = models.DateTimeField(auto_now=True)
+	def __unicode__(self):
+		return self.school + "/" + self.delegate_count
+	
+	class Meta:
+		ordering = ('last_modified',)
+
