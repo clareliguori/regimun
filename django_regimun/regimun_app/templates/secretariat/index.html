@@ -14,6 +14,8 @@ var countryTable;
 
 function form_cleanup() {
 	$('input#id_date').datepicker();
+	$('input#id_start_date').datepicker();
+	$('input#id_end_date').datepicker();
 	$('input#id_late_registration_start_date').datepicker();
 	$('input.auto').each(function() {
 		$(this).autoNumeric();

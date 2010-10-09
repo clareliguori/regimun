@@ -5,7 +5,8 @@ from django.db import models
 class Conference(models.Model):
 	name = models.CharField(max_length=200, unique=True, help_text="This year's event name, such as CMUN 2010 or CMUN XXI")
 	url_name = models.SlugField("Short Name", max_length=200, unique=True, help_text="You will use this name in your unique registration URL. Only alphanumeric characters, underscores, and hyphens are allowed. For example, CMUN2010.")
-	date = models.DateField()
+	start_date = models.DateField()
+	end_date = models.DateField()
 	location = models.CharField(max_length=200)
 	logo = models.ImageField(upload_to="conference_logos", blank=True)
 	email_address = models.EmailField()

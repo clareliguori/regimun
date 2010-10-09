@@ -180,7 +180,7 @@ def create_conference(request):
             # default fee structure (free conference)
             feeStructure = FeeStructure()
             feeStructure.conference = new_conference
-            feeStructure.late_registration_start_date = new_conference.date
+            feeStructure.late_registration_start_date = new_conference.start_date
             feeStructure.save()
             
             user = user_form.save(commit=False)

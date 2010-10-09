@@ -4,7 +4,7 @@ from regimun_app.models import Conference, Committee, Country, School, \
 
 class ConferenceAdmin(admin.ModelAdmin):
     fieldsets = [
-        ("Event information",{'fields': ['name','url_name','date','location']}),
+        ("Event information",{'fields': ['name','url_name','start_date','end_date','location']}),
         ("Organizer information",{'fields': ['organization_name','website_url','logo']}),
         ('Mailing Address', {'fields': ['address_line_1','address_line_2','city','state','zip','address_country']}),
     ]

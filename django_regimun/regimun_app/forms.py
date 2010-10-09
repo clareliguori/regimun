@@ -55,7 +55,7 @@ class ConferenceForm(ModelForm):
 class BasicConferenceInfoForm(ModelForm):
     class Meta:
         model = Conference
-        fields = ('date','location','website_url','logo')
+        fields = ('start_date','end_date','location','website_url','logo')
 
 class FeeStructureForm(ModelForm):
     class Meta:
