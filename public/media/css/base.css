@@ -6,8 +6,8 @@ body {
 	font-size: 14px;
 	font-family: Lucida Grande, Lucida Sans, Arial, sans-serif;
 	text-align: left;
-	padding: 0;
-	margin: 10;
+	padding: 10;
+	margin: 0;
 }
 
 .ui-state-error {
@@ -72,7 +72,19 @@ img.tab-link {
 	font-weight: normal;
 	padding: 10px; 
 	text-align:left;
-	font-size: 14px;	
+	font-size: 14px;
+	height:16px;
+}
+
+.top-user-bar-left {
+   float: left;
+   width: 49%;
+}
+
+.top-user-bar-right {
+   float: right;
+   width: 49%;
+   text-align: right;
 }
 
 .ui-widget-content {

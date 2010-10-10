@@ -26,23 +26,19 @@
 <body>
 <div class="wrapper">
 	<div class="ui-widget ui-widget-header ui-state-active ui-corner-all top-user-bar">
-		<table style="width:100%">
-		<tr>
-		<td style="margin:0; padding:0; color:#ffffff">
+		<div class="top-user-bar-left">
 			{% if user.username %}
 				You are logged in as <span style="font-weight: bold">{{ user.username }}</span> (<a href="{% url django.contrib.auth.views.logout_then_login %}">Logout</a> / <a href="{% url django.contrib.auth.views.password_change %}">Change Password</a>)
 			{% else %}
 				<a href="{% url django.contrib.auth.views.login %}?next={{ request.path }}">Login</a> / 
 				<a href="/accounts/register/?next={{ request.path }}">Register</a>
 			{% endif %}
-		</td>
-		<td style="text-align:right; margin:0; padding:0; color:#ffffff">
+		</div>
+		<div class="top-user-bar-right">
 			<small>
 			Please be patient - we are still developing this site! If you experience issues, email <a href="mailto:webmaster@ctmun.org">webmaster@ctmun.org</a>
 			</small>
-		</td>
-		</tr>
-		</table>
+		</div>
 	</div>
 	
 	<noscript>
