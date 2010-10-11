@@ -36,7 +36,7 @@ def get_basic_conference_form(request, conference):
     
     output = ""
     if conference.logo:
-        output += "<img src=\"" + MEDIA_URL + "/" + conference.logo.url + "\" border=\"0\" width=\"100\""
+        output += "<img src=\"" + MEDIA_URL + "/" + conference.logo.url + "\" border=\"0\" width=\"100\" />"
     output += "<form action=\"ajax/save-basic-conference-form\" enctype=\"multipart/form-data\" method=\"post\" id=\"basic_conference_info_form\">"
     output += "<input type='hidden' name='csrfmiddlewaretoken' value='" + csrf.get_token(request) + "' />"
     output += "<table>"

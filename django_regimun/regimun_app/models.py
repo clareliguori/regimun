@@ -34,6 +34,7 @@ class FeeStructure(models.Model):
 	per_sponsor = models.DecimalField(max_digits=11, decimal_places=2, default=0)
 	per_delegate = models.DecimalField(max_digits=11, decimal_places=2, default=0)
 	late_registration_start_date = models.DateField()
+	no_refunds_start_date = models.DateField()
 	per_school_late_fee = models.DecimalField(max_digits=11, decimal_places=2, default=0)
 	per_delegate_late_fee = models.DecimalField(max_digits=11, decimal_places=2, default=0)
 
@@ -109,6 +110,32 @@ class School(models.Model):
 			except ObjectDoesNotExist:
 				delegations[current_country].append(position)
 		return delegations
+
+	def get_filled_delegate_positions(self):
+		positions = DelegatePosition.objects.filter(school=self)		
+		return [x for x in positions if x.delegate]
+
+	def get_late_delegate_registrations(self):
+		positions = DelegatePosition.objects.filter(school=self)		
+		return [x for x in positions if x.delegate and x.delegate.last_modified > self.conference.feestructure.late_registration_start_date]
+
+	def country_fee(self):
+		return (self.conference.feestructure.per_country * len(self.get_delegations().keys()))
+	
+	def delegate_fee(self):
+		return (self.conference.feestructure.per_delegate * len(self.get_filled_delegate_positions()))
+
+	def sponsor_fee(self):
+		return (self.conference.feestructure.per_sponsor * self.facultysponsor_set.count())
+
+	def delegate_late_fee(self):
+		return (self.conference.feestructure.per_delegate_late_fee * len(self.get_late_delegate_registrations()))
+	
+	def total_fee(self):
+		total = self.conference.feestructure.per_school + self.country_fee() + self.delegate_fee() + self.sponsor_fee() + self.delegate_late_fee()
+		if len(self.get_late_delegate_registrations()) > 0:
+			total += self.conference.feestructure.per_school_late_fee 
+		return total
 
 class DelegatePosition(models.Model):
 	country = models.ForeignKey(Country)
