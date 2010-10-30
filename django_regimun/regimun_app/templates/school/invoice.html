@@ -89,6 +89,7 @@
 		}
 	
 	</style>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>
 <div id="invoice-content">
@@ -98,7 +99,7 @@
 	
 	<div id="letterhead">
 		{% if conference.logo %}
-			<img src="{{ MEDIA_URL }}/{{conference.logo.url}}" border="0" width="100" /><br/>
+			<img src="{{conference.logo.url}}" border="0" width="100" /><br/>
 		{% endif %}
 		<h1 class="invoice">{{ conference.organization_name }}</h1>
 		{{ conference.address_line_1 }}{% if conference.address_line_2 %}, {{ conference.address_line_2 }}{% endif %}, {{ conference.city }}, {{ conference.state }}{% if conference.zip %}, {{ conference.zip }}{% endif %}{% if conference.address_country %}, {{ conference.address_country }}{% endif %}
