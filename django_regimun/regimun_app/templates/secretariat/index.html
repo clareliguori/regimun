@@ -11,6 +11,7 @@
 {% block scriptblock %}
 var committeeTable;
 var countryTable;
+var paymentTable;
 
 function form_cleanup() {
 	$('input#id_date').datepicker();
@@ -50,8 +51,22 @@ function form_country_row(country) {
 	return row_html;
 }
 
+function form_payment_row(payment) {
+	// ['School','Payment Type','Date Received','Amount','Notes','Delete']
+	row_html = "<tr pk=\"" + payment.pk + "\">";
+	row_html += "<td class=\"school\" id=\"school_" + payment.pk + "\">" + payment.fields.school + "</td>";
+	row_html += "<td class=\"type\" id=\"type_" + payment.pk + "\">" + payment.fields.type + "</td>";
+	row_html += "<td class=\"date\" id=\"date_" + payment.pk + "\">" + payment.fields.date + "</td>";
+	row_html += "<td class=\"amount\" id=\"amount_" + payment.pk + "\">" + payment.fields.amount + "</td>";
+	row_html += "<td class=\"notes\" id=\"notes_" + payment.pk + "\">" + payment.fields.notes + "</td>";
+	row_html += "<td class=\"delete\" id=\"" + payment.pk + "\"><a href=\"delete\" id=\"delete_payment\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
+	return row_html;
+}
+
 function get_formset_callback(data, table_headers, column_settings, column_sorting, data_table, object_name, dialog_element, form_element, row_renderer) {
-    output = "<p>Click on any " + object_name + " name to edit it; press Enter to save your changes.</p>";
+	output = ""
+	if(object_name != "payment")
+    	output += "<p>Click on any " + object_name + " to edit it; press Enter to save your changes.</p>";
     output += "<table id=\"existing_" + object_name + "\"><thead><tr>";
     for(i = 0; i < table_headers.length; i++) {
     	output += "<th>" + table_headers[i] + "</th>";
@@ -72,9 +87,15 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
     $('.loading').remove();
     $(dialog_element).html(output);
     $("input:submit").button();
+    form_cleanup();
     
     $(form_element).ajaxForm({ 
     	dataType:	'json',
+    	beforeSerialize:	function($form, options) { 
+	    	$('input.auto').each(function() {
+				$(this).val($.fn.autoNumeric.Strip($(this).attr("id"), $(this).val()));
+			}); 
+    	},
         success:   function(return_data) {
 			if(return_data != null && return_data.form != null) {
 	  			// re-load form with errors
@@ -82,6 +103,7 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
 		        $(form_element).html(decoded);
 	  			$(form_element).append("<input value=\"Add\" type=\"submit\" id=\"add_" + object_name + "\">");
 	  		    $("input:submit").button();
+	  		    form_cleanup();
 			} else {
 				// add the new object to the table
 				$(form_element).resetForm();
@@ -343,6 +365,19 @@ $(function(){
 	countryColumnSorting = [[ 1, "asc" ]]
 	formset_dialog(800, '#countries-form-dialog', '#countries-form-dialog-link', '#new_conference_countries_form',
 		"get-conference-countries", countryHeaders, countryColumnSettings, countryColumnSorting, countryTable, 'country', form_country_row);
+
+	paymentHeaders = ['School','Payment Type','Date Received','Amount','Notes','Delete'];
+	paymentColumnSettings = [ 
+	             			/* School */  	null,
+	            			/* Type */  	{ "bSearchable": false },
+	            			/* Date */  	{ "bSearchable": false },
+	            			/* Amount */  	{ "bSearchable": false },
+	            			/* Notes */  	null,
+	            			/* Delete */ 	{ "bSearchable": false, "bSortable": false }
+	            		];
+	paymentColumnSorting = [[ 2, "desc" ]]
+	formset_dialog(800, '#payments-form-dialog', '#payments-form-dialog-link', '#new_conference_payments_form',
+		"get-conference-payments", paymentHeaders, paymentColumnSettings, paymentColumnSorting, paymentTable, 'payment', form_payment_row);
 
 	var schoolSelectSource = "{ '-1':' ', {% for school in object.school_set.all %} \
 		'{{ school.pk }}':'{{ school.name }}', \
@@ -626,12 +661,17 @@ $(function(){
 	</div>
 
 	<div id="fees" class="secretariat-pane" >
+		<table style="margin: 0 auto;">
+			<tr><td style="text-align:left; padding: 5px;">Total Fees: </td><td style="text-align:right; padding: 5px;">${{ object.feestructure.total_fee|floatformat:2 }}</td>
+			<tr><td style="text-align:left; padding: 5px;">Total Paid: </td><td style="text-align:right; padding: 5px;">${{ object.feestructure.total_payments|floatformat:2 }}</td>
+			<tr><td style="text-align:left; padding: 5px;">Total Balance Due: </td><td style="text-align:right; padding: 5px;">${{ object.feestructure.balance_due|floatformat:2 }}</td>
+		</table>
+		
+		<p><a href="#" id="payments-form-dialog-link">Payments</a></p>
+		<div id="payments-form-dialog" title="Conference Fee Payments"></div>
+		
 		<p>
-		Total Revenue: <br/>
-		Total Due: <br/>
-		</p>
-		<p>
-		<a href="invoices">Download All Invoices</a>
+		<a href="invoices">Download All Invoices (PDF)</a>
 		</p>
 	</div>
 
