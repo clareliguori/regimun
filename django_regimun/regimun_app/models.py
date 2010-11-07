@@ -136,6 +136,18 @@ class School(models.Model):
 		if len(self.get_late_delegate_registrations()) > 0:
 			total += self.conference.feestructure.per_school_late_fee 
 		return total
+	
+	def total_payments(self):
+		total = 0.0
+		
+		payments = Payment.objects.filter(school=self)
+		for payment in payments:
+			total += payment.amount
+		
+		return total
+	
+	def balance_due(self):
+		return (float(self.total_fee()) - float(self.total_payments()))
 
 class DelegatePosition(models.Model):
 	country = models.ForeignKey(Country)
@@ -201,3 +213,20 @@ class DelegateCountPreference(models.Model):
 	class Meta:
 		ordering = ('last_modified',)
 
+PAYMENT_TYPES = (
+    ('Cash', 'Cash'),
+    ('Check', 'Check'),
+    ('Credit', 'Credit Card'),
+    ('Refund', 'Refund')
+)
+
+class Payment(models.Model):
+	school = models.ForeignKey(School)
+	type = models.CharField(max_length=6, choices=PAYMENT_TYPES)
+	date = models.DateField()
+	amount = models.DecimalField(max_digits=11, decimal_places=2, default=0)
+	notes = models.CharField(max_length=24, blank=True, help_text="Check number, credit card transaction ID, etc")
+
+	def __unicode__(self):
+		return self.school + "/" + self.amount
+	

@@ -5,67 +5,47 @@
 	<title>{{ conference.name }} Invoice - {{ school.name }}</title>
 	<!-- style CSS has to go inside the html page for pisa HTML-to-PDF library; external stylesheets won't work -->
 	<style>
-		#invoice-content {
-			font-family: Arial,sans-serif;
-			font-size: 11pt;
-			border: 0px;
-			width: 650px;
-			text-align: left;
-			padding: 10px;
-			margin: 0 auto;
-			margin-bottom: 25px;
-		}
-		
 		#invoice {
 			text-align: center;
-			letter-spacing: 2.5pt;
+			margin-bottom:20px;
 		}
 		
 		#letterhead {
-			text-align: center;
+			text-align: left;
 			font-size: 10pt;
+			margin-bottom: 15px;
 		}
 		
-		#topinfo {
-			width: 100%;
+		img {
+			zoom: 90%;
 		}
 		
 		#billto {
-			width: 50%;
-			float: left;
+			text-align: left;
 		}
 		
 		#date {
 			text-align: right;
-			float: right;
-			width:50%;
 		}
 		
 		#event {
-			width: 100%;
-			clear: both;
-		}
-		
-		#fees {
+			margin-bottom: 20px;
 		}
 		
 		table,tr,td,th {
 			border: 0px;
 		}
 		
-		table.fees {
+		table.topinfo {
 			width: 100%;
-			border: 1px solid;
 			margin:0px;
 			padding:0px;
+			margin-bottom: 20px;
 		}
-		
-		td.right,th.right {
-			text-align: right;
-		}
-		
-		td.left,th.left {
-			text-align: left;
+
+		td.topinfo {
+			width: 50%;
+			vertical-align: top;
 		}
 		
 		h1.invoice{
@@ -80,49 +60,52 @@
 		
 		h2.invoice{
 			margin: 0;
-			font-size: 130%;
+			font-size: 200%;
 		}
 		
 		h3.invoice{
 			margin: 0;
 			font-size: 100%;
 		}
+		
+		@page {
+			size: letter;
+			margin: 1in;
+		}
 	
 	</style>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>
-<div id="invoice-content">
-	<div id="invoice">
-		<h2 class="invoice">INVOICE</h2>
-	</div>
-	
 	<div id="letterhead">
 		{% if conference.logo %}
-			<img src="{{conference.logo.url}}" border="0" width="100" /><br/>
+			<img src="{{conference.logo.url}}" border="0" /><br/>
 		{% endif %}
 		<h1 class="invoice">{{ conference.organization_name }}</h1>
 		{{ conference.address_line_1 }}{% if conference.address_line_2 %}, {{ conference.address_line_2 }}{% endif %}, {{ conference.city }}, {{ conference.state }}{% if conference.zip %}, {{ conference.zip }}{% endif %}{% if conference.address_country %}, {{ conference.address_country }}{% endif %}
 		{% if conference.website_url %}
 			 &bull; {{ conference.website_url }}
 		{% endif %}
-		<br/><br/><br/>
+	</div>
+
+	<div id="invoice">
+		<h2 class="invoice" >I N V O I C E</h2>
 	</div>
 	
-	<div id="topinfo">
-		<div id="billto">
+	<table class="topinfo">
+	<tr>
+		<td id="billto" class="topinfo">
 			<h3 class="invoice">Bill To:</h3>
 			{{ school.name }}<br/>
 			{{ school.address_line_1 }}{% if school.address_line_2 %}, {{ school.address_line_2 }}{% endif %}<br/>
 			{{ school.city }}, {{ school.state }}{% if school.zip %}, {{ school.zip }}{% endif %}{% if school.address_country %}, {{ school.address_country }}{% endif %}
-			<br/><br/><br/>
-		</div>
+		</td>
 		
-		<div id="date">
+		<td id="date" class="topinfo">
 			<h3 class="invoice">Date: </h3>{% now "l, F j, Y" %}
-			<br/><br/><br/>
-		</div>
-	</div>
+		</td>
+	</tr>
+	</table>
 	
 	<div id="event">
 		<h3 class="invoice">Event:</h3>
@@ -133,80 +116,11 @@
 		{% else %}
 			{{ conference.start_date|date:"F j, Y" }} - {{ conference.end_date|date:"F j, Y" }}
 		{% endif %}
-		<br/><br/><br/>
 	</div>
 	
-	<div id="fees">
-		<h3 class="invoice">Conference Fees:</h3>
-		<table class="fees">
-			<tbody>
-				<tr>
-					<th class="left">Fee</th><th class="right">Rate</th><th class="right">Quantity</th><th class="right">Amount</th>
-				</tr>
-				{% if conference.feestructure.per_school != 0 %}
-					<tr>
-						<td class="left">School Fee</td>
-						<td class="right">${{ conference.feestructure.per_school|floatformat:2 }}</td>
-						<td class="right">1</td>
-						<td class="right">${{ conference.feestructure.per_school|floatformat:2 }}</td>
-					</tr>
-				{% endif %}
-				{% if conference.feestructure.per_country != 0 %}
-					<tr>
-						<td class="left">Country Fee</td>
-						<td class="right">${{ conference.feestructure.per_country|floatformat:2 }}</td>
-						<td class="right">{{ school.get_delegations.keys|length }}</td>
-						<td class="right">${{ school.country_fee|floatformat:2 }}</td>
-					</tr>
-				{% endif %}
-				{% if conference.feestructure.per_delegate != 0 %}
-					<tr>
-						<td class="left">Delegate Fee</td>
-						<td class="right">${{ conference.feestructure.per_delegate|floatformat:2 }}</td>
-						<td class="right">{{ school.get_filled_delegate_positions|length }}</td>
-						<td class="right">${{ school.delegate_fee|floatformat:2 }}</td>
-					</tr>
-				{% endif %}
-				{% if conference.feestructure.per_sponsor != 0 %}
-					<tr>
-						<td class="left">Sponsor/Advisor Fee</td>
-						<td class="right">${{ conference.feestructure.per_sponsor|floatformat:2 }}</td>
-						<td class="right">{{ school.facultysponsor_set.count }}</td>
-						<td class="right">${{ school.sponsor_fee|floatformat:2 }}</td>
-					</tr>
-				{% endif %}
-				{% if school.get_late_delegate_registrations|length > 0 %}
-					{% if conference.feestructure.per_school_late_fee != 0 %}
-						<tr>
-							<td class="left">School Registration Late Fee</td>
-							<td class="right">${{ conference.feestructure.per_school_late_fee|floatformat:2 }}</td>
-							<td class="right">1</td>
-							<td class="right">${{ conference.feestructure.per_school_late_fee|floatformat:2 }}</td>
-						</tr>
-					{% endif %}
-					{% if conference.feestructure.per_delegate_late_fee != 0 %}
-						<tr>
-							<td class="left">Delegate Registration Late Fee</td>
-							<td class="right">${{ conference.feestructure.per_delegate_late_fee|floatformat:2 }}</td>
-							<td class="right">{{ school.get_late_delegate_registrations|length }}</td>
-							<td class="right">${{ school.delegate_late_fee|floatformat:2 }}</td>
-						</tr>
-					{% endif %}
-				{% endif %}
-				<tr><th colspan="3">Total Fees</th><th class="right">${{ school.total_fee|floatformat:2 }}</th></tr>
-			</tbody>
-		</table>
-		<br/><br/>
-		Registration is due on {{ conference.feestructure.late_registration_start_date|date:"F jS" }}, after which late fees will be applied.<br/> 
-		No refunds will be issued past {{ conference.feestructure.no_refunds_start_date|date:"F jS" }}. 
-		<br/><br/>
-		Please mail all payment to: <br/>
-		{{ conference.address_line_1 }}{% if conference.address_line_2 %}, {{ conference.address_line_2 }}{% endif %}<br/>
-		{{ conference.city }}, {{ conference.state }}{% if conference.zip %}, {{ conference.zip }}{% endif %}{% if conference.address_country %}, {{ conference.address_country }}{% endif %}<br/>
-		Checks should be made out to {{ conference.organization_name }}.<br/><br/>
-		<i>We look forward to seeing your school at the conference!</i>
-	</div>
-</div>
+	{% include "school/fees.html" %}
+	
+	<i>We look forward to seeing your school at the conference!</i>
 
 </body>
 </html>

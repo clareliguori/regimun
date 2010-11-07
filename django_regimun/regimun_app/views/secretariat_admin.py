@@ -1,18 +1,23 @@
+from django import http
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.template.context import RequestContext
 from django.template.defaultfilters import slugify
+from django.template.loader import render_to_string
+from ho import pisa
 from regimun_app.forms import ConferenceForm, SecretariatUserForm, \
     SchoolNameForm
 from regimun_app.models import Conference, FacultySponsor, Delegate, Country, \
     Committee, Secretariat, School, FeeStructure, DelegatePosition, \
     CountryPreference, DelegateCountPreference
+from regimun_app.utils import fetch_resources
 from regimun_app.views.general import render_response
 from regimun_app.views.school_admin import school_admin
-from reportlab.pdfgen import canvas
 from settings import MEDIA_ROOT
+import StringIO
 import csv
 
 def secretariat_authenticate(request, conference):
@@ -122,15 +127,21 @@ def generate_all_invoices(request, conference_slug):
     if secretariat_authenticate(request, conference):
         response = HttpResponse(mimetype='application/pdf')
         response['Content-Disposition'] = 'attachment; filename=invoices-' + conference_slug + '.pdf'
-        p = canvas.Canvas(response)
-    
-        for school in conference.school_set.all():
-            # Draw things on the PDF
-            p.drawString(100, 100, conference.name + " INVOICE : " + school.name)
-            p.showPage()
-            
-        p.save()
-        return response
+        
+        schools = School.objects.select_related().filter(conference=conference)
+        context_dict = {
+            'pagesize' : 'letter',
+            'conference' : conference,
+            'schools' : schools, }
+        html = render_to_string('secretariat/all-invoices.html', context_dict, context_instance=RequestContext(request))
+        result = StringIO.StringIO()
+        pdf = pisa.pisaDocument(StringIO.StringIO(html.encode("UTF-8")), dest=result, link_callback=fetch_resources)
+        if not pdf.err:
+            response = http.HttpResponse(result.getvalue(), mimetype='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename=invoices-' + conference_slug + '.pdf'
+            return response
+        else:
+            raise Http404
     else:
         raise Http404
 
