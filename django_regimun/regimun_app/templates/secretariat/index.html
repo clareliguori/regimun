@@ -624,11 +624,29 @@ $(function(){
 	</div>	
 
 	<div id="stats" class="secretariat-pane" >
-		{% if object.delegates %}
-		Registered delegates: {{ object.delegates|length }}
-		{% else %}
-		No registered delegates.
-		{% endif %}
+		
+		<table style="margin: 0 auto;">
+			<tr><td style="text-align:left; padding: 5px;" colspan="2"><b>Schools</b></td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Schools with an account: </td><td style="text-align:right; padding: 5px;">{{ object.school_set.count }}</td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Schools with assigned countries: </td><td style="text-align:right; padding: 5px;">{{ object.schools_assigned_countries_count }}</td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Schools with country preferences: </td><td style="text-align:right; padding: 5px;">{{ object.country_preference_count }}</td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Schools with delegate count request: </td><td style="text-align:right; padding: 5px;">{{ object.delegate_count_preference_count }}</td></tr>
+
+			<tr><td style="text-align:left; padding: 5px; padding-top:15px" colspan="2"><b>Delegates</b></td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Delegate positions requested: </td><td style="text-align:right; padding: 5px;">{{ object.delegate_count_preference_total }}</td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Countries assigned to schools: </td><td style="text-align:right; padding: 5px;">{{ object.assigned_countries_count }}</td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Delegate positions assigned to schools: </td><td style="text-align:right; padding: 5px;">{{ object.assigned_positions_count }}</td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Registered delegates: </td><td style="text-align:right; padding: 5px;">{{ object.delegates|length }}</td></tr>
+		</table>
+		
+		<img style="padding: 20px; margin: 0 auto;" src="{{ object.school_accounts_by_month_graph }}" alt="" />
+		
+		<img style="padding: 20px; margin: 0 auto;" src="{{ object.delegate_registration_by_month_graph }}" alt="" />
+		
+		<img style="padding: 20px; margin: 0 auto;" src="{{ object.delegate_preference_by_month_graph }}" alt="" />
+		
+		<img style="padding: 20px; margin: 0 auto;" src="{{ object.payments_by_month_graph }}" alt="" />
+			
 	</div>
 
 	<div id="spreadsheets" class="secretariat-pane" >
@@ -662,10 +680,11 @@ $(function(){
 
 	<div id="fees" class="secretariat-pane" >
 		<table style="margin: 0 auto;">
-			<tr><td style="text-align:left; padding: 5px;">Total Fees: </td><td style="text-align:right; padding: 5px;">${{ object.feestructure.total_fee|floatformat:2 }}</td>
-			<tr><td style="text-align:left; padding: 5px;">Total Paid: </td><td style="text-align:right; padding: 5px;">${{ object.feestructure.total_payments|floatformat:2 }}</td>
-			<tr><td style="text-align:left; padding: 5px;">Total Balance Due: </td><td style="text-align:right; padding: 5px;">${{ object.feestructure.balance_due|floatformat:2 }}</td>
+			<tr><td style="text-align:left; padding: 5px;">Total Fees: </td><td style="text-align:right; padding: 5px;">${{ object.feestructure.total_fee|floatformat:2 }}</td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Total Paid: </td><td style="text-align:right; padding: 5px;">${{ object.feestructure.total_payments|floatformat:2 }}</td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Total Balance Due: </td><td style="text-align:right; padding: 5px;">${{ object.feestructure.balance_due|floatformat:2 }}</td></tr>
 		</table>
+		<p>Fees totaled above only include schools with registered delegates.</p> 
 		
 		<p><a href="#" id="payments-form-dialog-link">Payments</a></p>
 		<div id="payments-form-dialog" title="Conference Fee Payments"></div>
@@ -676,13 +695,7 @@ $(function(){
 	</div>
 
 	<div id="store" class="secretariat-pane" >
-		<p>
-		Total Revenue: <br/>
-		Total Due: <br/>
-		</p>
-		<p>
-		<a href="purchases">All Purchases</a>
-		</p>
+		Coming Soon!
 	</div>
 
 </div>

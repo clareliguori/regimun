@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+import datetime
 
 class Conference(models.Model):
 	name = models.CharField(max_length=200, unique=True, help_text="This year's event name, such as CMUN 2010 or CMUN XXI")
@@ -22,7 +23,177 @@ class Conference(models.Model):
 		return self.name
 
 	def delegates(self):
-		Delegate.objects.filter(position_assignment__country__conference=self)
+		return Delegate.objects.filter(position_assignment__country__conference=self)
+	
+	def delegate_count_preference_total(self):
+		total = 0
+		prefs = DelegateCountPreference.objects.filter(school__conference=self)
+		for pref in prefs:
+			total += pref.delegate_count
+		
+		return total
+	
+	def delegate_count_preference_count(self):
+		return DelegateCountPreference.objects.filter(school__conference=self).count()
+	
+	def country_preference_count(self):
+		count = 0
+		for school in self.school_set.all():
+			if school.countrypreference_set.count() > 0:
+				count += 1
+		return count
+	
+	def schools_assigned_countries_count(self):
+		count = 0
+		for school in self.school_set.all():
+			if school.delegateposition_set.count() > 0:
+				count += 1
+		return count
+	
+	def assigned_countries_count(self):
+		count = 0
+		for country in self.country_set.all():
+			if country.delegateposition_set.count() > 0:
+				count += 1
+		return count
+	
+	def assigned_positions_count(self):
+		count = 0
+		for country in self.country_set.all():
+			count += country.delegateposition_set.count()
+		return count
+	
+	def by_month_graph(self, month_dict):
+		params = []
+		months_sorted = sorted(month_dict.keys())
+		if len(months_sorted) > 0:
+			first_month = months_sorted[0]
+			last_month = months_sorted[-1]
+			month_axis = "chxl=1:|"
+			data_param = "chd=t:"
+			data = []
+			max_value = 0
+			
+			current_month = first_month
+			while True:
+				value = month_dict.get(current_month, 0)
+				value_str = str(value)
+				if isinstance(value, float):
+					value_str = "$" + "%.2f" % value
+				
+				month_axis += current_month.strftime("%b %Y") + " (" + value_str + ")|"
+				data.append(str(value))
+				if value > max_value:
+					max_value = value
+				
+				if current_month.month == last_month.month and current_month.year == last_month.year:
+					break
+				
+				current_month = datetime.datetime(current_month.year+(current_month.month+1)/12, (current_month.month+1)%12, 1)	
+			
+			params.append(month_axis)							# X axis labels
+			params.append(data_param + ','.join(data))			# Data
+			params.append("chds=0," + str(max_value))			# Data scaling
+			params.append("chxr=0,0," + str(max_value))			# Y axis range
+		return params
+
+	def school_accounts_by_month_graph(self):
+		month_dict = dict()
+		
+		for school in self.school_set.all():
+			sponsors = FacultySponsor.objects.filter(school=school).order_by('user__date_joined')
+			if len(sponsors) > 0:
+				month = datetime.datetime(sponsors[0].user.date_joined.year, sponsors[0].user.date_joined.month, 1)
+				month_dict[month] = month_dict.get(month, 0) + 1
+		
+		url = "http://chart.apis.google.com/chart?"
+		
+		params = []
+		params.append("chtt=School+Account+Creation+By+Month")	# Chart title
+		params.append("chs=600x200")							# Image size
+		params.append("cht=bvg")								# Grouped bar chart								
+		params.append("chbh=a,4,25")							# Bar width and spacing
+		params.append("chf=bg,ls,90,EFEFEF,0.25,E0E0E0,0.25")	# Background color, linear stripes
+		params.append("chxt=y,x")								# Axes
+		params.append("chco=76A4FB")							# Bar color
+		params.append("chma=|10,10")							# Margins
+		params.append("chxs=0,676767,11.5,0,lt,676767|1,676767,11.5,0,lt,676767")	# Axis tick marks
+
+		params.extend(self.by_month_graph(month_dict))
+		
+		return url + '&'.join(params)
+	
+	def delegate_registration_by_month_graph(self):
+		month_dict = dict()
+		
+		for delegate in Delegate.objects.filter(position_assignment__country__conference=self):
+			month = datetime.datetime(delegate.last_modified.year, delegate.last_modified.month, 1)
+			month_dict[month] = month_dict.get(month, 0) + 1
+		
+		url = "http://chart.apis.google.com/chart?"
+		
+		params = []
+		params.append("chtt=Delegate+Registration+By+Month")	# Chart title
+		params.append("chs=600x200")							# Image size
+		params.append("cht=bvg")								# Grouped bar chart								
+		params.append("chbh=a,4,25")							# Bar width and spacing
+		params.append("chf=bg,ls,90,EFEFEF,0.25,E0E0E0,0.25")	# Background color, linear stripes
+		params.append("chxt=y,x")								# Axes
+		params.append("chco=76A4FB")							# Bar color
+		params.append("chma=|10,10")							# Margins
+		params.append("chxs=0,676767,11.5,0,lt,676767|1,676767,11.5,0,lt,676767")	# Axis tick marks
+
+		params.extend(self.by_month_graph(month_dict))
+		
+		return url + '&'.join(params)
+	
+	def delegate_preference_by_month_graph(self):
+		month_dict = dict()
+		
+		for delegate_count in DelegateCountPreference.objects.filter(school__conference=self):
+			month = datetime.datetime(delegate_count.last_modified.year, delegate_count.last_modified.month, 1)
+			month_dict[month] = month_dict.get(month, 0) + 1
+		
+		url = "http://chart.apis.google.com/chart?"
+		
+		params = []
+		params.append("chtt=Delegate+Count+Request+Submissions+By+Month")	# Chart title
+		params.append("chs=600x200")							# Image size
+		params.append("cht=bvg")								# Grouped bar chart								
+		params.append("chbh=a,4,25")							# Bar width and spacing
+		params.append("chf=bg,ls,90,EFEFEF,0.25,E0E0E0,0.25")	# Background color, linear stripes
+		params.append("chxt=y,x")								# Axes
+		params.append("chco=76A4FB")							# Bar color
+		params.append("chma=|10,10")							# Margins
+		params.append("chxs=0,676767,11.5,0,lt,676767|1,676767,11.5,0,lt,676767")	# Axis tick marks
+
+		params.extend(self.by_month_graph(month_dict))
+		
+		return url + '&'.join(params)
+	
+	def payments_by_month_graph(self):
+		month_dict = dict()
+		
+		for payment in Payment.objects.filter(school__conference=self):
+			month = datetime.datetime(payment.date.year, payment.date.month, 1)
+			month_dict[month] = month_dict.get(month, 0) + float(payment.amount)
+		
+		url = "http://chart.apis.google.com/chart?"
+		
+		params = []
+		params.append("chtt=Fee+Payments+By+Month")	# Chart title
+		params.append("chs=600x200")							# Image size
+		params.append("cht=bvg")								# Grouped bar chart								
+		params.append("chbh=a,4,25")							# Bar width and spacing
+		params.append("chf=bg,ls,90,EFEFEF,0.25,E0E0E0,0.25")	# Background color, linear stripes
+		params.append("chxt=y,x")								# Axes
+		params.append("chco=76A4FB")							# Bar color
+		params.append("chma=|10,10")							# Margins
+		params.append("chxs=0,676767,11.5,0,lt,676767|1,676767,11.5,0,lt,676767")	# Axis tick marks
+
+		params.extend(self.by_month_graph(month_dict))
+		
+		return url + '&'.join(params)
 	
 	class Meta:
 		ordering = ('name',)
@@ -44,7 +215,8 @@ class FeeStructure(models.Model):
 	def total_fee(self):
 		total = 0.0
 		for school in School.objects.select_related().filter(conference=self.conference):
-			total += school.total_fee()
+			if len(school.get_filled_delegate_positions()) > 0:
+				total += school.total_fee()
 		return float(total)
 	
 	def total_payments(self):
@@ -57,7 +229,8 @@ class FeeStructure(models.Model):
 	def balance_due(self):
 		balance = 0.0
 		for school in School.objects.select_related().filter(conference=self.conference):
-			balance += school.balance_due()
+			if len(school.get_filled_delegate_positions()) > 0:
+				balance += school.balance_due()
 		return float(balance)
 
 class Committee(models.Model):
