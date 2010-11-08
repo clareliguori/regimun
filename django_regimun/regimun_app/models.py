@@ -37,31 +37,29 @@ class Conference(models.Model):
 		return DelegateCountPreference.objects.filter(school__conference=self).count()
 	
 	def country_preference_count(self):
-		count = 0
-		for school in self.school_set.all():
-			if school.countrypreference_set.count() > 0:
-				count += 1
-		return count
+		return CountryPreference.objects.filter(school__conference=self).values("school").distinct().count()
 	
 	def schools_assigned_countries_count(self):
-		count = 0
-		for school in self.school_set.all():
-			if school.delegateposition_set.count() > 0:
-				count += 1
-		return count
+		return DelegatePosition.objects.filter(school__conference=self).values("school").distinct().count()
 	
 	def assigned_countries_count(self):
-		count = 0
-		for country in self.country_set.all():
-			if country.delegateposition_set.count() > 0:
-				count += 1
-		return count
+		return DelegatePosition.objects.filter(school__conference=self).values("country").distinct().count()
 	
 	def assigned_positions_count(self):
-		count = 0
-		for country in self.country_set.all():
-			count += country.delegateposition_set.count()
-		return count
+		return DelegatePosition.objects.filter(school__conference=self).count()
+	
+	def chart_params(self, title):
+		params = []
+		params.append("chtt="+title)							# Chart title
+		params.append("chs=600x200")							# Image size
+		params.append("cht=bvg")								# Grouped bar chart								
+		params.append("chbh=a,4,25")							# Bar width and spacing
+		params.append("chf=bg,ls,90,EFEFEF,0.25,E0E0E0,0.25")	# Background color, linear stripes
+		params.append("chxt=y,x")								# Axes
+		params.append("chco=76A4FB")							# Bar color
+		params.append("chma=|10,10")							# Margins
+		params.append("chxs=0,676767,11.5,0,lt,676767|1,676767,11.5,0,lt,676767")	# Axis tick marks
+		return params
 	
 	def by_month_graph(self, month_dict):
 		params = []
@@ -108,17 +106,7 @@ class Conference(models.Model):
 		
 		url = "http://chart.apis.google.com/chart?"
 		
-		params = []
-		params.append("chtt=School+Account+Creation+By+Month")	# Chart title
-		params.append("chs=600x200")							# Image size
-		params.append("cht=bvg")								# Grouped bar chart								
-		params.append("chbh=a,4,25")							# Bar width and spacing
-		params.append("chf=bg,ls,90,EFEFEF,0.25,E0E0E0,0.25")	# Background color, linear stripes
-		params.append("chxt=y,x")								# Axes
-		params.append("chco=76A4FB")							# Bar color
-		params.append("chma=|10,10")							# Margins
-		params.append("chxs=0,676767,11.5,0,lt,676767|1,676767,11.5,0,lt,676767")	# Axis tick marks
-
+		params = self.chart_params("School+Account+Creation+By+Month")
 		params.extend(self.by_month_graph(month_dict))
 		
 		return url + '&'.join(params)
@@ -132,17 +120,7 @@ class Conference(models.Model):
 		
 		url = "http://chart.apis.google.com/chart?"
 		
-		params = []
-		params.append("chtt=Delegate+Registration+By+Month")	# Chart title
-		params.append("chs=600x200")							# Image size
-		params.append("cht=bvg")								# Grouped bar chart								
-		params.append("chbh=a,4,25")							# Bar width and spacing
-		params.append("chf=bg,ls,90,EFEFEF,0.25,E0E0E0,0.25")	# Background color, linear stripes
-		params.append("chxt=y,x")								# Axes
-		params.append("chco=76A4FB")							# Bar color
-		params.append("chma=|10,10")							# Margins
-		params.append("chxs=0,676767,11.5,0,lt,676767|1,676767,11.5,0,lt,676767")	# Axis tick marks
-
+		params = self.chart_params("Delegate+Registration+By+Month")
 		params.extend(self.by_month_graph(month_dict))
 		
 		return url + '&'.join(params)
@@ -156,17 +134,7 @@ class Conference(models.Model):
 		
 		url = "http://chart.apis.google.com/chart?"
 		
-		params = []
-		params.append("chtt=Delegate+Count+Request+Submissions+By+Month")	# Chart title
-		params.append("chs=600x200")							# Image size
-		params.append("cht=bvg")								# Grouped bar chart								
-		params.append("chbh=a,4,25")							# Bar width and spacing
-		params.append("chf=bg,ls,90,EFEFEF,0.25,E0E0E0,0.25")	# Background color, linear stripes
-		params.append("chxt=y,x")								# Axes
-		params.append("chco=76A4FB")							# Bar color
-		params.append("chma=|10,10")							# Margins
-		params.append("chxs=0,676767,11.5,0,lt,676767|1,676767,11.5,0,lt,676767")	# Axis tick marks
-
+		params = self.chart_params("Delegate+Count+Request+Submissions+By+Month")
 		params.extend(self.by_month_graph(month_dict))
 		
 		return url + '&'.join(params)
@@ -180,17 +148,7 @@ class Conference(models.Model):
 		
 		url = "http://chart.apis.google.com/chart?"
 		
-		params = []
-		params.append("chtt=Fee+Payments+By+Month")	# Chart title
-		params.append("chs=600x200")							# Image size
-		params.append("cht=bvg")								# Grouped bar chart								
-		params.append("chbh=a,4,25")							# Bar width and spacing
-		params.append("chf=bg,ls,90,EFEFEF,0.25,E0E0E0,0.25")	# Background color, linear stripes
-		params.append("chxt=y,x")								# Axes
-		params.append("chco=76A4FB")							# Bar color
-		params.append("chma=|10,10")							# Margins
-		params.append("chxs=0,676767,11.5,0,lt,676767|1,676767,11.5,0,lt,676767")	# Axis tick marks
-
+		params = self.chart_params("Fee+Payments+By+Month")
 		params.extend(self.by_month_graph(month_dict))
 		
 		return url + '&'.join(params)
