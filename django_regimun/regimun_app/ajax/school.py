@@ -8,7 +8,8 @@ from email.mime.text import MIMEText
 from regimun_app.forms import SchoolMailingAddressForm, EditFacultySponsorForm, \
     DelegateNameForm
 from regimun_app.models import Conference, School, FacultySponsor, \
-    DelegatePosition, Delegate, CountryPreference, Country, DelegateCountPreference
+    DelegatePosition, Delegate, CountryPreference, Country, DelegateCountPreference, \
+    DelegationRequest
 from regimun_app.views.school_admin import school_authenticate
 import inspect
 import smtplib
@@ -121,7 +122,7 @@ def remove_delegate(request, school):
             return simplejson.dumps({'position_pk':position_pk})
 
 def get_country_preferences(request, school):
-    preferences = CountryPreference.objects.select_related().filter(school=school)
+    preferences = CountryPreference.objects.select_related().filter(request__school=school)
     current_preferences = []
     for preference in preferences:
         current_preferences.append(preference.country.pk)
@@ -141,7 +142,7 @@ def get_country_preferences(request, school):
     
     delegate_count = 0
     try:
-        delegate_count = DelegateCountPreference.objects.get(school=school).delegate_count
+        delegate_count = DelegateCountPreference.objects.get(request__school=school).delegate_count
     except ObjectDoesNotExist:
         pass
     
@@ -149,9 +150,16 @@ def get_country_preferences(request, school):
 
 def set_country_preferences(request, school):
     if request.method == 'POST':
+        try:
+            delegation_request = DelegationRequest.objects.get(school=school)
+        except ObjectDoesNotExist:
+            delegation_request = DelegationRequest()
+            delegation_request.school = school
+            delegation_request.save()
+        
         # remove current preferences
-        CountryPreference.objects.filter(school=school).delete()
-        DelegateCountPreference.objects.filter(school=school).delete()
+        CountryPreference.objects.filter(request=delegation_request).delete()
+        DelegateCountPreference.objects.filter(request=delegation_request).delete()
         country_names = []
         count = 0
         
@@ -160,7 +168,7 @@ def set_country_preferences(request, school):
                 try:
                     count = int(country_pk)
                     count_pref = DelegateCountPreference()
-                    count_pref.school = school
+                    count_pref.request = delegation_request
                     count_pref.delegate_count = count
                     count_pref.save()
                 except TypeError:
@@ -173,10 +181,10 @@ def set_country_preferences(request, school):
                 else:
                     if country.conference == school.conference:
                         # make sure this preference doesnt already exist
-                        if CountryPreference.objects.filter(school=school, country=country).count() == 0:                        
+                        if CountryPreference.objects.filter(request=delegation_request, country=country).count() == 0:                        
                             pref = CountryPreference()
                             pref.country = country
-                            pref.school = school
+                            pref.request = delegation_request
                             pref.save()
                             country_names.append(country.name)
 

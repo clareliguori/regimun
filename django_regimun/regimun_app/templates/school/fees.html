@@ -37,15 +37,15 @@
 						<td style="padding: 3px; text-align: right">${{ school.sponsor_fee|floatformat:2 }}</td>
 					</tr>
 				{% endif %}
+				{% if school.school_late_fee > 0 %}
+					<tr>
+						<td style="padding: 3px; text-align: left">School Registration Late Fee</td>
+						<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_school_late_fee|floatformat:2 }}</td>
+						<td style="padding: 3px; text-align: right">1</td>
+						<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_school_late_fee|floatformat:2 }}</td>
+					</tr>
+				{% endif %}
 				{% if school.get_late_delegate_registrations|length > 0 %}
-					{% if conference.feestructure.per_school_late_fee != 0 %}
-						<tr>
-							<td style="padding: 3px; text-align: left">School Registration Late Fee</td>
-							<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_school_late_fee|floatformat:2 }}</td>
-							<td style="padding: 3px; text-align: right">1</td>
-							<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_school_late_fee|floatformat:2 }}</td>
-						</tr>
-					{% endif %}
 					{% if conference.feestructure.per_delegate_late_fee != 0 %}
 						<tr>
 							<td style="padding: 3px; text-align: left">Delegate Registration Late Fee</td>
@@ -62,7 +62,12 @@
 		</table>
 				
 		<br/><br/>
-		Registration is due on {{ conference.feestructure.late_registration_start_date|date:"F jS" }}, after which late fees will be applied.<br/> 
+		{% if conference.feestructure.per_school_late_fee != 0 %}
+			Country preferences are due on {{ conference.feestructure.late_registration_start_date|date:"F jS" }}, after which late fees will be applied.<br/>
+		{% endif %} 		
+		{% if conference.feestructure.per_delegate_late_fee != 0 %}
+			Delegate registration is due on {{ conference.feestructure.late_delegate_registration_start_date|date:"F jS" }}, after which late fees will be applied.<br/>
+		{% endif %} 
 		No refunds will be issued past {{ conference.feestructure.no_refunds_start_date|date:"F jS" }}. 
 		<br/><br/>
 		Please mail all payment to: <br/>

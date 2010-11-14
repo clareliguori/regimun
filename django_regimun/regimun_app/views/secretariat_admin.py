@@ -91,28 +91,28 @@ def spreadsheet_downloads(request, conference_slug):
                 writer.writerow(row)
         elif 'country-preferences' in request.GET:
             response['Content-Disposition'] = 'attachment; filename=country-preferences-' + conference_slug + ".csv"             
-            preferences = CountryPreference.objects.select_related().filter(school__conference=conference).order_by('school__name','last_modified')
+            preferences = CountryPreference.objects.select_related().filter(request__school__conference=conference).order_by('request__school__name','last_modified')
     
             writer.writerow(['School','Rank','Country','Time Submitted'])
             
             current_school = ""
             rank = 1
             for preference in preferences:
-                if preference.school.name == current_school:
+                if preference.request.school.name == current_school:
                     rank = rank + 1
                 else:
-                    current_school = preference.school.name
+                    current_school = preference.request.school.name
                     rank = 1
                 
                 writer.writerow([current_school, str(rank), preference.country.name, preference.last_modified.strftime("%A, %d. %B %Y %I:%M%p")])                
         elif 'delegate-count-requests' in request.GET:
             response['Content-Disposition'] = 'attachment; filename=delegate-count-requests-' + conference_slug + ".csv"             
-            preferences = DelegateCountPreference.objects.select_related().filter(school__conference=conference).order_by('school__name','last_modified')
+            preferences = DelegateCountPreference.objects.select_related().filter(request__school__conference=conference).order_by('request__school__name','request__created')
     
             writer.writerow(['School','Total Delegates Requested','Time Submitted'])
             
             for preference in preferences:
-                writer.writerow([preference.school.name, preference.delegate_count, preference.last_modified.strftime("%A, %d. %B %Y %I:%M%p")])                
+                writer.writerow([preference.request.school.name, preference.delegate_count, preference.request.created.strftime("%A, %d. %B %Y %I:%M%p")])                
 
         else:
             raise Http404
@@ -192,6 +192,8 @@ def create_conference(request):
             feeStructure = FeeStructure()
             feeStructure.conference = new_conference
             feeStructure.late_registration_start_date = new_conference.start_date
+            feeStructure.late_delegate_registration_start_date = new_conference.start_date
+            feeStructure.no_refunds_start_date = new_conference.start_date
             feeStructure.save()
             
             user = user_form.save(commit=False)

@@ -27,17 +27,17 @@ class Conference(models.Model):
 	
 	def delegate_count_preference_total(self):
 		total = 0
-		prefs = DelegateCountPreference.objects.filter(school__conference=self)
+		prefs = DelegateCountPreference.objects.filter(request__school__conference=self)
 		for pref in prefs:
 			total += pref.delegate_count
 		
 		return total
 	
 	def delegate_count_preference_count(self):
-		return DelegateCountPreference.objects.filter(school__conference=self).count()
+		return DelegateCountPreference.objects.filter(request__school__conference=self).count()
 	
 	def country_preference_count(self):
-		return CountryPreference.objects.filter(school__conference=self).values("school").distinct().count()
+		return CountryPreference.objects.filter(request__school__conference=self).values("request").distinct().count()
 	
 	def schools_assigned_countries_count(self):
 		return DelegatePosition.objects.filter(school__conference=self).values("school").distinct().count()
@@ -128,13 +128,13 @@ class Conference(models.Model):
 	def delegate_preference_by_month_graph(self):
 		month_dict = dict()
 		
-		for delegate_count in DelegateCountPreference.objects.filter(school__conference=self):
-			month = datetime.datetime(delegate_count.last_modified.year, delegate_count.last_modified.month, 1)
+		for delegate_count in DelegateCountPreference.objects.filter(request__school__conference=self):
+			month = datetime.datetime(delegate_count.request.created.year, delegate_count.request.created.month, 1)
 			month_dict[month] = month_dict.get(month, 0) + 1
 		
 		url = "http://chart.apis.google.com/chart?"
 		
-		params = self.chart_params("Delegate+Count+Request+Submissions+By+Month")
+		params = self.chart_params("Delegation+Request+Submissions+By+Month")
 		params.extend(self.by_month_graph(month_dict))
 		
 		return url + '&'.join(params)
@@ -162,10 +162,11 @@ class FeeStructure(models.Model):
 	per_country = models.DecimalField(max_digits=11, decimal_places=2, default=0)
 	per_sponsor = models.DecimalField(max_digits=11, decimal_places=2, default=0)
 	per_delegate = models.DecimalField(max_digits=11, decimal_places=2, default=0)
-	late_registration_start_date = models.DateField()
+	late_registration_start_date = models.DateField("Late School Registration Start Date")
+	late_delegate_registration_start_date = models.DateField("Late Delegate Registration Start Date")
 	no_refunds_start_date = models.DateField()
-	per_school_late_fee = models.DecimalField(max_digits=11, decimal_places=2, default=0)
-	per_delegate_late_fee = models.DecimalField(max_digits=11, decimal_places=2, default=0)
+	per_school_late_fee = models.DecimalField("Late School Registration Fee (Per School, Based on Country Preference Submissions)", max_digits=11, decimal_places=2, default=0)
+	per_delegate_late_fee = models.DecimalField("Late Delegate Registration Fee (Per Delegate, Based on Delegate Name Submissions)", max_digits=11, decimal_places=2, default=0)
 
 	def __unicode__(self):
 		return self.conference.name
@@ -268,24 +269,31 @@ class School(models.Model):
 		return DelegatePosition.objects.filter(school=self, delegate__isnull=False)
 
 	def get_late_delegate_registrations(self):
-		return DelegatePosition.objects.filter(school=self, delegate__isnull=False, delegate__last_modified__gte=self.conference.feestructure.late_registration_start_date)		
+		return DelegatePosition.objects.filter(school=self, delegate__isnull=False, delegate__last_modified__gte=self.conference.feestructure.late_delegate_registration_start_date)		
 
 	def country_fee(self):
-		return (self.conference.feestructure.per_country * len(self.get_delegations().keys()))
+		return float(self.conference.feestructure.per_country * len(self.get_delegations().keys()))
 	
 	def delegate_fee(self):
-		return (self.conference.feestructure.per_delegate * len(self.get_filled_delegate_positions()))
+		return float(self.conference.feestructure.per_delegate * len(self.get_filled_delegate_positions()))
 
 	def sponsor_fee(self):
-		return (self.conference.feestructure.per_sponsor * self.facultysponsor_set.count())
+		return float(self.conference.feestructure.per_sponsor * self.facultysponsor_set.count())
 
 	def delegate_late_fee(self):
-		return (self.conference.feestructure.per_delegate_late_fee * len(self.get_late_delegate_registrations()))
+		return float(self.conference.feestructure.per_delegate_late_fee * len(self.get_late_delegate_registrations()))
+
+	def school_late_fee(self):
+		try:
+			request = DelegationRequest.objects.get(school=self)
+			if request.created.date() >= self.conference.feestructure.late_registration_start_date:
+				return float(self.conference.feestructure.per_school_late_fee)
+		except ObjectDoesNotExist:
+			pass
+		return float(0.0)
 	
 	def total_fee(self):
-		total = self.conference.feestructure.per_school + self.country_fee() + self.delegate_fee() + self.sponsor_fee() + self.delegate_late_fee()
-		if len(self.get_late_delegate_registrations()) > 0:
-			total += self.conference.feestructure.per_school_late_fee
+		total = float(self.conference.feestructure.per_school) + self.country_fee() + self.delegate_fee() + self.sponsor_fee() + self.delegate_late_fee() + self.school_late_fee()
 		return float(total)
 	
 	def total_payments(self):
@@ -343,23 +351,27 @@ class Secretariat(models.Model):
 
 	class Meta:
 		ordering = ('user',)	
-	
+
+class DelegationRequest(models.Model):
+	school = models.OneToOneField(School)
+	created = models.DateTimeField(auto_now_add=True)
+
 class CountryPreference(models.Model):
+	request = models.ForeignKey(DelegationRequest)
 	country = models.ForeignKey(Country)
-	school = models.ForeignKey(School)
 	last_modified = models.DateTimeField(auto_now=True)
 	def __unicode__(self):
-		return self.country + "/" + self.school
+		return self.country + "/" + self.request.school
 	
 	class Meta:
 		ordering = ('last_modified',)
 
 class DelegateCountPreference(models.Model):
-	school = models.ForeignKey(School)
+	request = models.OneToOneField(DelegationRequest)
 	delegate_count = models.IntegerField()
 	last_modified = models.DateTimeField(auto_now=True)
 	def __unicode__(self):
-		return self.school + "/" + self.delegate_count
+		return self.request.school + "/" + self.delegate_count
 	
 	class Meta:
 		ordering = ('last_modified',)
