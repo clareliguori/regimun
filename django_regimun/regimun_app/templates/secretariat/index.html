@@ -154,7 +154,8 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
 		"submitdata": function ( value, settings ) {
 			return { "row_id": this.parentNode.getAttribute('id') };
 		},
-		"height": "25px"
+		"height": "25px",
+		"tooltip" : 'Click to edit'
 	} );
 	
 	data_table.fnAdjustColumnSizing();
@@ -212,7 +213,8 @@ function get_delegate_positions_callback(data, dialog_element) {
 		"submitdata": function ( value, settings ) {
 			return { "row_id": this.parentNode.getAttribute('id') };
 		},
-		"height": "25px"
+		"height": "25px",
+		"tooltip" : 'Click to edit'
 	} );
 	
 	data_table.fnAdjustColumnSizing();
@@ -251,7 +253,8 @@ function get_school_country_assignments_callback(data, selectSource, dialog_elem
 		"submitdata": function ( value, settings ) {
 			return { "row_id": this.parentNode.getAttribute('id') };
 		},
-		"height": "25px"
+		"height": "25px",
+		"tooltip" : 'Click to edit'
 	} );
 	
 	data_table.fnAdjustColumnSizing();
@@ -581,7 +584,7 @@ $(function(){
 		<li><a href="#spreadsheets"><img class="tab-link" src="{{MEDIA_URL}}/icons/kchart.png" /><br/>Spreadsheets</a></li>
 		<li><a href="#schools"><img class="tab-link" src="{{MEDIA_URL}}/icons/kdmconfig.png" /><br/>Schools</a></li>
 		<li><a href="#fees"><img class="tab-link" src="{{MEDIA_URL}}/icons/emblems-money.png" /><br/>Fees</a></li>
-		<li><a href="#store"><img class="tab-link" src="{{MEDIA_URL}}/icons/shopping_trolley.png" /><br/>Store</a></li>
+		<!-- <li><a href="#store"><img class="tab-link" src="{{MEDIA_URL}}/icons/shopping_trolley.png" /><br/>Store</a></li> -->
 	</ul>
 	
 	<div id="settings" class="secretariat-pane" >
@@ -695,9 +698,9 @@ $(function(){
 		</p>
 	</div>
 
-	<div id="store" class="secretariat-pane" >
+	<!--<div id="store" class="secretariat-pane" >
 		Coming Soon!
-	</div>
+	</div>-->
 
 </div>
 </div>
