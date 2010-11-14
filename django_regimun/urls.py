@@ -2,12 +2,24 @@ from django.conf import settings
 from django.conf.urls.defaults import patterns, include
 from django.contrib import admin
 from django.contrib.auth import views
+from django.core.servers.basehttp import FileWrapper
+from django.http import HttpResponse
 from regimun_app.views.general import register_user
+import os
 
 admin.autodiscover()
 
+def pie_with_headers(request):
+    filename = settings.MEDIA_ROOT + 'css/PIE.htc'
+    wrapper = FileWrapper(open(filename))
+    response = HttpResponse(wrapper, content_type='text/x-component')
+    response['Content-Length'] = os.path.getsize(filename)
+    return response
+
 urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
+    
+    (r'^PIE.htc', pie_with_headers, {}),
     
     # account management
     (r'^accounts/login/$', views.login, {'template_name': 'accounts/login.html', 'redirect_field_name' : 'next'}),

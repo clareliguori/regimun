@@ -346,10 +346,12 @@ function remove_delegate(position_pk) {
 				No positions have been assigned to this country.
 			{% endfor %}
 		{% empty %}
+			<tr><td>
 			No countries have been assigned to your school.
+			</td></tr>
 		{% endfor %}
 		</table>
-			
+		
 		<p>
 		<button id="country-preferences" class="button" onclick="open_country_preferences_dialog()">Set Country Preferences</button>
 		<div id="country-preferences-dialog" title="Country Preferences">
