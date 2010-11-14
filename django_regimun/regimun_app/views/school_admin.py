@@ -58,7 +58,7 @@ def validate_newschool_form(school_form, conference_slug):
     if school_form.is_valid():
         schoolname = school_form.cleaned_data['school_name']
         if schoolname and conference_slug:
-            if School.objects.filter(name=schoolname, conference__url_name=conference_slug).count():
+            if School.objects.filter(name=schoolname, conference__url_name=conference_slug).count() or slugify(schoolname) == "secretariat":
                 school_form._errors.setdefault("school_name", ErrorList()).append(u"School name is not available.")
                 return False
             return True
