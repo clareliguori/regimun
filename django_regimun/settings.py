@@ -99,3 +99,5 @@ AUTH_PROFILE_MODULE = ''
 
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
+
+DEFAULT_FROM_EMAIL='info@munsoftware.com'
