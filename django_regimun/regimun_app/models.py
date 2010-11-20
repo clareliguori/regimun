@@ -359,7 +359,7 @@ class DelegationRequest(models.Model):
 class CountryPreference(models.Model):
 	request = models.ForeignKey(DelegationRequest)
 	country = models.ForeignKey(Country)
-	last_modified = models.DateTimeField(auto_now=True)
+	last_modified = models.DateTimeField()
 	def __unicode__(self):
 		return self.country + "/" + self.request.school
 	

@@ -11,6 +11,7 @@ from regimun_app.models import Conference, School, FacultySponsor, \
     DelegatePosition, Delegate, CountryPreference, Country, DelegateCountPreference, \
     DelegationRequest
 from regimun_app.views.school_admin import school_authenticate
+from datetime import datetime
 import inspect
 import smtplib
 import string
@@ -162,6 +163,8 @@ def set_country_preferences(request, school):
         DelegateCountPreference.objects.filter(request=delegation_request).delete()
         country_names = []
         count = 0
+        country_index = 0
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:")    # MySQL does not support microseconds, so we have to manually order the countries by seconds
         
         for pref_num, country_pk in request.POST.items():
             if pref_num == 'total_count':
@@ -185,7 +188,9 @@ def set_country_preferences(request, school):
                             pref = CountryPreference()
                             pref.country = country
                             pref.request = delegation_request
+                            pref.last_modified = now + str(country_index)
                             pref.save()
+                            country_index = country_index + 1
                             country_names.append(country.name)
 
         if len(country_names) > 0:

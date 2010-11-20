@@ -4,7 +4,7 @@ import settings
 
 def fetch_resources(uri, rel):
     path = settings.MEDIA_ROOT + uri.replace(settings.MEDIA_URL, "")
-    print "fetch_resources " + path + ", " + uri
+    # print "fetch_resources " + path + ", " + uri
     return path
 
 class UploadProgressCachedHandler(FileUploadHandler):
