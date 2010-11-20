@@ -361,7 +361,7 @@ class CountryPreference(models.Model):
 	country = models.ForeignKey(Country)
 	last_modified = models.DateTimeField()
 	def __unicode__(self):
-		return self.country + "/" + self.request.school
+		return self.country.name + "/" + self.request.school.name
 	
 	class Meta:
 		ordering = ('last_modified',)
@@ -371,7 +371,7 @@ class DelegateCountPreference(models.Model):
 	delegate_count = models.IntegerField()
 	last_modified = models.DateTimeField(auto_now=True)
 	def __unicode__(self):
-		return self.request.school + "/" + self.delegate_count
+		return self.request.school.name + "/" + str(self.delegate_count)
 	
 	class Meta:
 		ordering = ('last_modified',)
@@ -391,5 +391,5 @@ class Payment(models.Model):
 	notes = models.CharField(max_length=24, blank=True, help_text="Check number, credit card transaction ID, etc")
 
 	def __unicode__(self):
-		return self.school + "/" + self.amount
+		return self.school.name + "/" + str(self.amount)
 	
