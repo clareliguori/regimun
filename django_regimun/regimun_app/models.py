@@ -86,8 +86,8 @@ class Conference(models.Model):
 				
 				if current_month.month == last_month.month and current_month.year == last_month.year:
 					break
-				
-				current_month = datetime.datetime(current_month.year+(current_month.month+1)/12, (current_month.month+1)%12, 1)	
+
+				current_month = datetime.datetime(current_month.year + current_month.month/12, (current_month.month%12)+1, 1)
 			
 			params.append(month_axis)							# X axis labels
 			params.append(data_param + ','.join(data))			# Data
