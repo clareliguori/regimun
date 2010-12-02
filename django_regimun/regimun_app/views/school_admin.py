@@ -174,6 +174,28 @@ def generate_invoice(request, conference_slug, school_slug):
         raise Http404
 
 @login_required
+def generate_request_based_invoice(request, conference_slug, school_slug):
+    conference = get_object_or_404(Conference, url_name=conference_slug)
+    school = get_object_or_404(School, url_name=school_slug)
+
+    if school_authenticate(request, conference, school):
+        context_dict = {
+            'pagesize' : 'letter',
+            'conference' : conference,
+            'school' : school, }
+        html = render_to_string('school/invoice-from-request.html', context_dict, context_instance=RequestContext(request))
+        result = StringIO.StringIO()
+        pdf = pisa.pisaDocument(StringIO.StringIO(html.encode("UTF-8")), dest=result, link_callback=fetch_resources)
+        if not pdf.err:
+            response = http.HttpResponse(result.getvalue(), mimetype='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename=invoice-' + conference_slug + "-" + school_slug + '.pdf'
+            return response
+        else:
+            raise Http404
+    else:
+        raise Http404                                                                                       
+
+@login_required
 def school_spreadsheet_downloads(request, conference_slug, school_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     school = get_object_or_404(School, url_name=school_slug)

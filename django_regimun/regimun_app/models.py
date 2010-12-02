@@ -177,7 +177,7 @@ class FeeStructure(models.Model):
 			if len(school.get_filled_delegate_positions()) > 0:
 				total += school.total_fee()
 		return float(total)
-	
+
 	def total_payments(self):
 		total = 0.0
 		for payment in Payment.objects.filter(school__conference=self.conference):
@@ -265,6 +265,17 @@ class School(models.Model):
 				delegations[current_country].append(position)
 		return delegations
 
+	def get_delegate_request_count(self):
+		count = 0
+		try:
+			count = int(self.delegationrequest.delegatecountpreference.delegate_count)
+		except ObjectDoesNotExist:
+			pass
+		return count
+
+	def delegate_fee_from_request(self):
+		return float(self.conference.feestructure.per_delegate * self.get_delegate_request_count())
+
 	def get_filled_delegate_positions(self):
 		return DelegatePosition.objects.filter(school=self, delegate__isnull=False)
 
@@ -295,6 +306,10 @@ class School(models.Model):
 	def total_fee(self):
 		total = float(self.conference.feestructure.per_school) + self.country_fee() + self.delegate_fee() + self.sponsor_fee() + self.delegate_late_fee() + self.school_late_fee()
 		return float(total)
+
+	def total_fee_from_request(self):
+		total = float(self.conference.feestructure.per_school) + self.delegate_fee_from_request() + self.sponsor_fee() + self.delegate_late_fee() + self.school_late_fee()
+		return float(total)				
 	
 	def total_payments(self):
 		total = 0.0
@@ -307,6 +322,9 @@ class School(models.Model):
 	
 	def balance_due(self):
 		return (self.total_fee() - self.total_payments())
+
+	def balance_due_from_request(self):
+		return (self.total_fee_from_request() - self.total_payments())
 
 class DelegatePosition(models.Model):
 	country = models.ForeignKey(Country)
