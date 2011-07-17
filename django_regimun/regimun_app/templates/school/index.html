@@ -230,6 +230,8 @@ function send_edit_delegate_form(position_pk) {
 				$('#remove-delegate-'+position_pk).show();
 				$('#save-delegate-'+position_pk).hide();
 				$('#add-delegate-'+position_pk).hide();
+				
+				update_fees_table();
 			}
 		},
 		'json'
@@ -248,10 +250,23 @@ function remove_delegate(position_pk) {
 			$('#remove-delegate-'+position_pk).hide();
 			$('#save-delegate-'+position_pk).hide();
 			$('#add-delegate-'+position_pk).show();
+			
+			update_fees_table();
 		},
 		"json"
 	);
 	return false;
+}
+
+function update_fees_table() {
+	$.post(
+		"fees",
+		{},
+		function(data) {
+			$('#fees-table').replaceWith(data);
+		},
+		"html"
+	);
 }
 
 {% endblock %}

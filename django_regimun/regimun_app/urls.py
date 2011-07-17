@@ -59,6 +59,9 @@ urlpatterns = patterns('',
     # school invoice - based on delegate requests
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/invoice-from-request$', generate_request_based_invoice),
    
+    # school fees
+    (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/fees$', get_fees_table),
+   
     # school ajax calls
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/ajax/(?P<func_name>[-\w]+)$', school_ajax_functions),
 

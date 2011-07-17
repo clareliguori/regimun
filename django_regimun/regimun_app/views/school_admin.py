@@ -224,3 +224,12 @@ def school_spreadsheet_downloads(request, conference_slug, school_slug):
     else:
         raise Http404
     return response
+
+@login_required
+def get_fees_table(request, conference_slug, school_slug):
+    conference = get_object_or_404(Conference, url_name=conference_slug)
+    school = get_object_or_404(School, url_name=school_slug)
+    
+    if school_authenticate(request, conference, school):
+        return render_response(request, 'school/fees.html', {'conference' : conference, 'school' : school})
+    raise Http404
