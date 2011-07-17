@@ -3,14 +3,33 @@
 <head>
 	<title>{% block title %}{% endblock %}</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<script src="{{ MEDIA_URL }}/js/jquery-1.4.2.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ MEDIA_URL }}/js/jquery-1.6.2.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ MEDIA_URL }}/js/jquery-ui-1.8.4.custom.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ MEDIA_URL }}/js/jquery.form.js" type="text/javascript" charset="utf-8"></script>
 	<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}/css/custom-theme/jquery-ui-1.8.4.custom.css" />
 	<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}/css/base.css" />
+	{% load setting %}
 
 	<script type="text/javascript">
 		$(function() {
+			$(this).ajaxError(
+				function(e, jqxhr, settings, exception) {
+					if(settings.url != "/ajax-error/") {	
+						msg =  "Oops! Your last request failed. Please try again. If the error still occurs, the administrator of this website has been notified, so we'll fix it as soon as possible.";
+						alert(msg);
+
+						info = "event: " + JSON.stringify(e, null, 4);
+						info += "\nXHR: " + JSON.stringify(jqxhr, null, 4);
+						info += "\nsettings: " + JSON.stringify(settings, null, 4);
+						info += "\nexception: " + JSON.stringify(exception, null, 4);
+						console.log(info);
+						$.post(
+								"/ajax-error/",
+								{'errordata': info}
+						);
+					}
+				});
+			
 			$( ".button" ).button();
 			$('#tabs').tabs();
 			$('li', '.errorlist').each(function() {

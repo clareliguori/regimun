@@ -58,3 +58,9 @@ def upload_progress(request):
         return HttpResponse(simplejson.dumps(data))
     else:
         return HttpResponseServerError('Server Error: You must provide X-Progress-ID header or query param.')
+
+def ajax_error(request):
+    errordata = "temp"
+    if request.method == 'POST':
+        errordata = request.POST.get('errordata', '')
+    raise ValueError("AJAX error:\n" + errordata);
