@@ -141,7 +141,7 @@ def generate_all_invoices(request, conference_slug):
             response['Content-Disposition'] = 'attachment; filename=invoices-' + conference_slug + '.pdf'
             return response
         else:
-            raise Http404
+            raise ValueError("Error creating all-invoices PDF: " + pdf.err)
     else:
         raise Http404
 

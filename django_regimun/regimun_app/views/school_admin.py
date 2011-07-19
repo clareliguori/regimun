@@ -169,7 +169,7 @@ def generate_invoice(request, conference_slug, school_slug):
             response['Content-Disposition'] = 'attachment; filename=invoice-' + conference_slug + "-" + school_slug + '.pdf'
             return response
         else:
-            raise Http404
+            raise ValueError("Error creating invoice PDF: " + pdf.err)
     else:
         raise Http404
 
@@ -191,7 +191,7 @@ def generate_request_based_invoice(request, conference_slug, school_slug):
             response['Content-Disposition'] = 'attachment; filename=invoice-' + conference_slug + "-" + school_slug + '.pdf'
             return response
         else:
-            raise Http404
+            raise ValueError("Error creating request-based invoice PDF: " + pdf.err)
     else:
         raise Http404                                                                                       
 

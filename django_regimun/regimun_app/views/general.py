@@ -2,7 +2,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME, login, views
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseServerError, \
-    HttpResponseRedirect
+    HttpResponseRedirect, Http404
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from recaptcha.client import captcha
@@ -60,7 +60,7 @@ def upload_progress(request):
         return HttpResponseServerError('Server Error: You must provide X-Progress-ID header or query param.')
 
 def ajax_error(request):
-    errordata = "temp"
     if request.method == 'POST':
         errordata = request.POST.get('errordata', '')
-    raise ValueError("AJAX error:\n" + errordata);
+        raise ValueError("AJAX error:\n" + errordata);
+    raise Http404

@@ -1,13 +1,9 @@
-{% extends "base.html" %}
+{% extends "error_base.html" %}
 
 {% block title %}
-Page not found
+Internal server error
 {% endblock %}
 
-{% block content %}
-<div class="header">
-
-Internal server error.
-
-</div>
+{% block error %}
+Oops! Internal server error.  The website administrator has been notified of this problem, so we will fix it as soon as possible.
 {% endblock %}
