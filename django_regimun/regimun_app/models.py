@@ -96,13 +96,21 @@ class Conference(models.Model):
 		return params
 
 	def school_accounts_by_month_graph(self):
-		month_dict = dict()
 		
-		for school in self.school_set.all():
-			sponsors = FacultySponsor.objects.filter(school=school).order_by('user__date_joined')
-			if len(sponsors) > 0:
-				month = datetime.datetime(sponsors[0].user.date_joined.year, sponsors[0].user.date_joined.month, 1)
-				month_dict[month] = month_dict.get(month, 0) + 1
+		# get the date each school joined
+		school_dict = dict()
+		for sponsor in FacultySponsor.objects.select_related('user','school').filter(school__conference=self):
+			if sponsor.school in school_dict:
+				if school_dict[sponsor.school] > sponsor.user.date_joined:
+					school_dict[sponsor.school] = sponsor.user.date_joined
+			else:
+				school_dict[sponsor.school] = sponsor.user.date_joined
+		
+		# group the dates into months
+		month_dict = dict()
+		for school, date_joined in school_dict.items():
+			month = datetime.datetime(date_joined.year, date_joined.month, 1)
+			month_dict[month] = month_dict.get(month, 0) + 1
 		
 		url = "http://chart.apis.google.com/chart?"
 		
@@ -128,7 +136,7 @@ class Conference(models.Model):
 	def delegate_preference_by_month_graph(self):
 		month_dict = dict()
 		
-		for delegate_count in DelegateCountPreference.objects.filter(request__school__conference=self):
+		for delegate_count in DelegateCountPreference.objects.select_related().filter(request__school__conference=self):
 			month = datetime.datetime(delegate_count.request.created.year, delegate_count.request.created.month, 1)
 			month_dict[month] = month_dict.get(month, 0) + 1
 		
@@ -172,10 +180,21 @@ class FeeStructure(models.Model):
 		return self.conference.name
 	
 	def total_fee(self):
-		total = 0.0
-		for school in School.objects.filter(conference=self.conference):
-			if school.get_filled_delegate_positions_count() > 0:
-				total += school.total_fee()
+		valid_school_ids = []
+		valid_schools = Delegate.objects.filter(position_assignment__school__conference=self.conference).values('position_assignment__school')
+		for item in valid_schools:
+			valid_school_ids.extend(item.values())
+		valid_school_ids = set(valid_school_ids)
+		
+		total_school_fee = float(self.per_school * len(valid_school_ids))
+		total_delegate_fee = float(self.per_delegate * DelegatePosition.objects.filter(school__id__in=valid_school_ids, delegate__isnull=False).count())
+		total_late_delegate_fee = float(self.per_delegate_late_fee * DelegatePosition.objects.filter(school__id__in=valid_school_ids, delegate__isnull=False, delegate__last_modified__gte=self.late_delegate_registration_start_date).count())		
+		total_country_fee = float(self.per_country * DelegatePosition.objects.filter(school__id__in=valid_school_ids, delegate__isnull=False).values('country','school').distinct().count())
+		total_late_school_fee = float(self.per_school_late_fee * DelegationRequest.objects.filter(school__id__in=valid_school_ids, created__gte=self.late_registration_start_date).count())
+		total_sponsor_fee = float(self.per_sponsor * FacultySponsor.objects.filter(school__id__in=valid_school_ids).count())
+		
+		total = total_school_fee + total_delegate_fee + total_late_delegate_fee + total_country_fee + total_late_school_fee + total_sponsor_fee
+		
 		return float(total)
 
 	def total_payments(self):
@@ -263,7 +282,7 @@ class School(models.Model):
 		return delegations
 		
 	def get_delegations_count(self):
-		return self.delegateposition_set.values('country').distinct().count()
+		return self.delegateposition_set.filter(delegate__isnull=False).values('country').distinct().count()
 
 	def get_delegate_request_count(self):
 		count = 0
