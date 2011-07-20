@@ -173,7 +173,7 @@ class FeeStructure(models.Model):
 	
 	def total_fee(self):
 		total = 0.0
-		for school in School.objects.select_related().filter(conference=self.conference):
+		for school in School.objects.filter(conference=self.conference):
 			if school.get_filled_delegate_positions_count() > 0:
 				total += school.total_fee()
 		return float(total)
@@ -184,7 +184,7 @@ class FeeStructure(models.Model):
 	
 	def balance_due(self):
 		balance = 0.0
-		for school in School.objects.select_related().filter(conference=self.conference):
+		for school in School.objects.filter(conference=self.conference):
 			if school.get_filled_delegate_positions_count() > 0:
 				balance += school.balance_due()
 		return float(balance)
@@ -248,7 +248,19 @@ class School(models.Model):
 		return self.delegateposition_set.all()
 
 	def get_delegations(self):
-		return self.delegateposition_set.values('country').distinct()
+		delegations = {}
+		positions = DelegatePosition.objects.select_related('delegate','country','committee').filter(school=self)
+		current_country = Country()
+		
+		for position in positions:
+			if position.country.pk != current_country.pk:
+				current_country = position.country
+				delegations[current_country] = []
+			try:
+				delegations[current_country].append(position.delegate)
+			except ObjectDoesNotExist:
+				delegations[current_country].append(position)
+		return delegations
 		
 	def get_delegations_count(self):
 		return self.delegateposition_set.values('country').distinct().count()
