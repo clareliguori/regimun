@@ -17,7 +17,7 @@
 					<tr>
 						<td style="padding: 3px; text-align: left">Country Fee</td>
 						<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_country|floatformat:2 }}</td>
-						<td style="padding: 3px; text-align: right">{{ school.get_delegations.keys|length }}</td>
+						<td style="padding: 3px; text-align: right">{{ school.get_delegations_count }}</td>
 						<td style="padding: 3px; text-align: right">${{ school.country_fee|floatformat:2 }}</td>
 					</tr>
 				{% endif %}
@@ -25,7 +25,7 @@
 					<tr>
 						<td style="padding: 3px; text-align: left">Delegate Fee</td>
 						<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_delegate|floatformat:2 }}</td>
-						<td style="padding: 3px; text-align: right">{{ school.get_filled_delegate_positions|length }}</td>
+						<td style="padding: 3px; text-align: right">{{ school.get_filled_delegate_positions_count }}</td>
 						<td style="padding: 3px; text-align: right">${{ school.delegate_fee|floatformat:2 }}</td>
 					</tr>
 				{% endif %}
@@ -45,12 +45,12 @@
 						<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_school_late_fee|floatformat:2 }}</td>
 					</tr>
 				{% endif %}
-				{% if school.get_late_delegate_registrations|length > 0 %}
+				{% if school.get_late_delegate_registrations_count > 0 %}
 					{% if conference.feestructure.per_delegate_late_fee != 0 %}
 						<tr>
 							<td style="padding: 3px; text-align: left">Delegate Registration Late Fee</td>
 							<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_delegate_late_fee|floatformat:2 }}</td>
-							<td style="padding: 3px; text-align: right">{{ school.get_late_delegate_registrations|length }}</td>
+							<td style="padding: 3px; text-align: right">{{ school.get_late_delegate_registrations_count }}</td>
 							<td style="padding: 3px; text-align: right">${{ school.delegate_late_fee|floatformat:2 }}</td>
 						</tr>
 					{% endif %}

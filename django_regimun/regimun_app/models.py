@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from django.db.models.aggregates import Sum
 import datetime
 
 class Conference(models.Model):
@@ -25,13 +26,12 @@ class Conference(models.Model):
 	def delegates(self):
 		return Delegate.objects.filter(position_assignment__country__conference=self)
 	
+	def delegates_count(self):
+		return Delegate.objects.filter(position_assignment__country__conference=self).count()
+	
 	def delegate_count_preference_total(self):
-		total = 0
-		prefs = DelegateCountPreference.objects.filter(request__school__conference=self)
-		for pref in prefs:
-			total += pref.delegate_count
-		
-		return total
+		pref_sum = DelegateCountPreference.objects.filter(request__school__conference=self).aggregate(Sum('delegate_count'))
+		return pref_sum['delegate_count__sum']
 	
 	def delegate_count_preference_count(self):
 		return DelegateCountPreference.objects.filter(request__school__conference=self).count()
@@ -174,21 +174,18 @@ class FeeStructure(models.Model):
 	def total_fee(self):
 		total = 0.0
 		for school in School.objects.select_related().filter(conference=self.conference):
-			if len(school.get_filled_delegate_positions()) > 0:
+			if school.get_filled_delegate_positions_count() > 0:
 				total += school.total_fee()
 		return float(total)
 
 	def total_payments(self):
-		total = 0.0
-		for payment in Payment.objects.filter(school__conference=self.conference):
-			total += float(payment.amount)
-		
-		return float(total)
+		paysum = Payment.objects.filter(school__conference=self.conference).aggregate(Sum('amount'))
+		return float(paysum['amount__sum'])
 	
 	def balance_due(self):
 		balance = 0.0
 		for school in School.objects.select_related().filter(conference=self.conference):
-			if len(school.get_filled_delegate_positions()) > 0:
+			if school.get_filled_delegate_positions_count() > 0:
 				balance += school.balance_due()
 		return float(balance)
 
@@ -248,22 +245,13 @@ class School(models.Model):
 		return ret;
 
 	def get_delegate_positions(self):
-		return DelegatePosition.objects.filter(school=self)
+		return self.delegateposition_set.all()
 
 	def get_delegations(self):
-		delegations = {}
-		positions = self.get_delegate_positions()
-		current_country = Country()
+		return self.delegateposition_set.values('country').distinct()
 		
-		for position in positions:
-			if position.country.pk != current_country.pk:
-				current_country = position.country
-				delegations[current_country] = []
-			try:
-				delegations[current_country].append(position.delegate)
-			except ObjectDoesNotExist:
-				delegations[current_country].append(position)
-		return delegations
+	def get_delegations_count(self):
+		return self.delegateposition_set.values('country').distinct().count()
 
 	def get_delegate_request_count(self):
 		count = 0
@@ -277,22 +265,28 @@ class School(models.Model):
 		return float(self.conference.feestructure.per_delegate * self.get_delegate_request_count())
 
 	def get_filled_delegate_positions(self):
-		return DelegatePosition.objects.filter(school=self, delegate__isnull=False)
+		return self.delegateposition_set.filter(delegate__isnull=False)
+
+	def get_filled_delegate_positions_count(self):
+		return self.delegateposition_set.filter(delegate__isnull=False).count()
 
 	def get_late_delegate_registrations(self):
-		return DelegatePosition.objects.filter(school=self, delegate__isnull=False, delegate__last_modified__gte=self.conference.feestructure.late_delegate_registration_start_date)		
+		return self.delegateposition_set.filter(delegate__isnull=False, delegate__last_modified__gte=self.conference.feestructure.late_delegate_registration_start_date)		
+
+	def get_late_delegate_registrations_count(self):
+		return self.delegateposition_set.filter(delegate__isnull=False, delegate__last_modified__gte=self.conference.feestructure.late_delegate_registration_start_date).count()		
 
 	def country_fee(self):
-		return float(self.conference.feestructure.per_country * len(self.get_delegations().keys()))
+		return float(self.conference.feestructure.per_country * self.get_delegations_count())
 	
 	def delegate_fee(self):
-		return float(self.conference.feestructure.per_delegate * len(self.get_filled_delegate_positions()))
+		return float(self.conference.feestructure.per_delegate * self.get_filled_delegate_positions_count())
 
 	def sponsor_fee(self):
 		return float(self.conference.feestructure.per_sponsor * self.facultysponsor_set.count())
 
 	def delegate_late_fee(self):
-		return float(self.conference.feestructure.per_delegate_late_fee * len(self.get_late_delegate_registrations()))
+		return float(self.conference.feestructure.per_delegate_late_fee * self.get_late_delegate_registrations_count())
 
 	def school_late_fee(self):
 		try:
@@ -312,13 +306,8 @@ class School(models.Model):
 		return float(total)				
 	
 	def total_payments(self):
-		total = 0.0
-		
-		payments = Payment.objects.filter(school=self)
-		for payment in payments:
-			total += float(payment.amount)
-		
-		return float(total)
+		sum = Payment.objects.filter(school=self).aggregate(Sum('amount'))
+		return float(sum['amount__sum'])
 	
 	def balance_due(self):
 		return (self.total_fee() - self.total_payments())
