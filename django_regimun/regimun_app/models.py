@@ -31,6 +31,8 @@ class Conference(models.Model):
 	
 	def delegate_count_preference_total(self):
 		pref_sum = DelegateCountPreference.objects.filter(request__school__conference=self).aggregate(Sum('delegate_count'))
+		if pref_sum['delegate_count__sum'] is None:
+			return 0
 		return pref_sum['delegate_count__sum']
 	
 	def delegate_count_preference_count(self):
@@ -199,14 +201,12 @@ class FeeStructure(models.Model):
 
 	def total_payments(self):
 		paysum = Payment.objects.filter(school__conference=self.conference).aggregate(Sum('amount'))
+		if paysum['amount__sum'] is None:
+			return 0.0
 		return float(paysum['amount__sum'])
 	
 	def balance_due(self):
-		balance = 0.0
-		for school in School.objects.filter(conference=self.conference):
-			if school.get_filled_delegate_positions_count() > 0:
-				balance += school.balance_due()
-		return float(balance)
+		return (self.total_fee() - self.total_payments())
 
 class Committee(models.Model):
 	conference = models.ForeignKey(Conference)
@@ -338,6 +338,8 @@ class School(models.Model):
 	
 	def total_payments(self):
 		sum = Payment.objects.filter(school=self).aggregate(Sum('amount'))
+		if sum['amount__sum'] is None:
+			return 0.0 
 		return float(sum['amount__sum'])
 	
 	def balance_due(self):
