@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
+from django.db.models.aggregates import Count
 from django.http import Http404, HttpResponse
 from django.middleware import csrf
 from django.shortcuts import get_object_or_404
@@ -29,6 +30,7 @@ def conference_ajax_functions(request, conference_slug, func_name):
                 return return_value
             else:
                 return HttpResponse(return_value, mimetype='application/javascript')
+                #return HttpResponse("<html><body>" + return_value + "</body></html>")
     
     raise Http404
 
@@ -84,7 +86,7 @@ def get_conference_countries(request, conference):
     return simplejson.dumps({'form':form.as_p(), 'objects':existing_countries})
 
 def get_conference_payments(request, conference):
-    existing_payments = serializers.serialize('json', Payment.objects.filter(school__conference=conference), fields=('school','type','date','amount','notes'), use_natural_keys=True)
+    existing_payments = serializers.serialize('json', Payment.objects.select_related('school').filter(school__conference=conference), fields=('school','type','date','amount','notes'), use_natural_keys=True)
     form = NewPaymentForm()
     
     return simplejson.dumps({'form':form.as_p(), 'objects':existing_payments})
@@ -201,12 +203,19 @@ def get_delegate_positions_table(committees, countries):
         table_list.append("</th>")
     table_list.append("</tr></thead><tbody>")
     
+    counts = DelegatePosition.objects.values('committee','country').annotate(count=Count('id'))
+    
+    count_dict = dict()
+    for item in counts:
+        count_dict[(item['country'],item['committee'])] = item['count']
+    
     for country in countries:
         table_list.append("<tr><td>")
         table_list.append(country.name)
         table_list.append("</td>")
         for committee in committees:
-            count = DelegatePosition.objects.filter(committee=committee,country=country).count()
+            count = count_dict.get((country.pk, committee.pk), 0)
+            
             table_list.append("<td class=\"position_count\" id=\"")
             table_list.append(str(committee.pk))
             table_list.append("_")
@@ -309,24 +318,27 @@ def set_delegate_positions(request, conference):
                         print "Parsing error: " + value
 
 def get_country_school_assignment_table(countries):
-    table_list = []
+    table_list = ["<thead><tr><th>Country</th><th>School</th></tr></thead><tbody>"]
     
-    table_list.append("<thead><tr><th>Country</th><th>School</th></tr></thead><tbody>")
+    assignments = DelegatePosition.objects.filter(country__in=countries).values('school__name','country__name','country__pk')
+    
+    assignment_dict = dict()
+    for item in assignments:
+        if item['school__name'] != None:
+            assignment_dict.setdefault((item['country__name'],item['country__pk']), set()).add(item['school__name'])
+        else:
+            assignment_dict.setdefault((item['country__name'],item['country__pk']), set())
     
     for country in countries:
-        current_positions = DelegatePosition.objects.filter(country=country)
-        if len(current_positions) > 0:
+        key = (country.name, country.pk)
+        if assignment_dict.has_key(key):
             table_list.append("<tr><td>")
             table_list.append(country.name)
             table_list.append("</td>")
-            school = current_positions[0].school
             table_list.append("<td class=\"school_assignment\" id=\"")
             table_list.append(str(country.pk))
             table_list.append("\">")
-            if school:
-                table_list.append(school.name)
-            else:
-                table_list.append(" ")
+            table_list.append(','.join(assignment_dict[key]))
             table_list.append("</td></tr>")        
     table_list.append("</tbody>")
     
