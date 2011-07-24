@@ -54,7 +54,7 @@ $(function(){
             position: 'top',
             buttons: {
                 "Save": function() {
-        			$('#country-preferences-form').ajaxSubmit();
+        			$('#country-preferences-form').ajaxSubmit({dataType:'json'});
                  	$(this).dialog("close");
                 },
                 "Cancel": function() {
