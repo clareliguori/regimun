@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.db.models.aggregates import Count
 from django.forms.util import ErrorList
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import get_object_or_404
@@ -208,16 +209,22 @@ def school_spreadsheet_downloads(request, conference_slug, school_slug):
             response['Content-Disposition'] = 'attachment; filename=country-committee-assignments-' + conference_slug + ".csv"             
             committees = Committee.objects.filter(conference=conference)
             countries = Country.objects.filter(conference=conference)
-    
+            
             headers = ['Country']
             for committee in committees:
                 headers.append(committee.name)
             writer.writerow(headers)
 
+            counts = DelegatePosition.objects.values('committee','country').annotate(count=Count('id'))
+            
+            count_dict = dict()
+            for item in counts:
+                count_dict[(item['country'],item['committee'])] = item['count']
+            
             for country in countries:
                 row = [country.name]
                 for committee in committees:
-                    row.append(str(DelegatePosition.objects.filter(committee=committee,country=country).count()))
+                    row.append(str(count_dict.get((country.pk, committee.pk), 0)))
                 writer.writerow(row)
         else:
             raise Http404

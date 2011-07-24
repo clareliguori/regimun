@@ -2,6 +2,7 @@ from django import http
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.db.models.aggregates import Count
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.context import RequestContext
@@ -52,7 +53,10 @@ def spreadsheet_downloads(request, conference_slug):
             response['Content-Disposition'] = 'attachment; filename=delegates-' + conference_slug + ".csv" 
             writer.writerow(['School', 'Country', 'Committee', 'Title', 'First Name', 'Last Name'])
             
-            delegates = Delegate.objects.select_related().filter(position_assignment__country__conference__url_name__exact=conference_slug)
+            delegates = Delegate.objects.select_related('position_assignment',\
+                                                        'position_assignment__country',\
+                                                        'position_assignment__school',\
+                                                        'position_assignment__committee').filter(position_assignment__country__conference__url_name__exact=conference_slug)
             
             for delegate in delegates:
                 writer.writerow([delegate.position_assignment.school.name, delegate.position_assignment.country.name,
@@ -64,30 +68,40 @@ def spreadsheet_downloads(request, conference_slug):
             writer.writerow(['Country', 'School'])
             
             countries = Country.objects.filter(conference=conference)
+            assignments = DelegatePosition.objects.filter(country__in=countries).values('school__name','country__name','country__pk')
+            
+            assignment_dict = dict()
+            for item in assignments:
+                if item['school__name'] != None:
+                    assignment_dict.setdefault((item['country__name'],item['country__pk']), set()).add(item['school__name'])
+                else:
+                    assignment_dict.setdefault((item['country__name'],item['country__pk']), set())
             
             for country in countries:
-                current_positions = DelegatePosition.objects.select_related().filter(country=country)
-                if len(current_positions) > 0:
-                    school = current_positions[0].school
-                    if school:
-                        writer.writerow([country.name, school.name])
-                    else:
-                        writer.writerow([country.name, " "])            
-
+                key = (country.name, country.pk)
+                if assignment_dict.has_key(key):
+                    writer.writerow([country.name, ','.join(assignment_dict[key])])            
+            
         elif 'country-committee-assignments' in request.GET:
             response['Content-Disposition'] = 'attachment; filename=country-committee-assignments-' + conference_slug + ".csv"             
             committees = Committee.objects.filter(conference=conference)
             countries = Country.objects.filter(conference=conference)
-    
+            
             headers = ['Country']
             for committee in committees:
                 headers.append(committee.name)
             writer.writerow(headers)
-
+            
+            counts = DelegatePosition.objects.values('committee','country').annotate(count=Count('id'))
+            
+            count_dict = dict()
+            for item in counts:
+                count_dict[(item['country'],item['committee'])] = item['count']
+            
             for country in countries:
                 row = [country.name]
                 for committee in committees:
-                    row.append(str(DelegatePosition.objects.filter(committee=committee,country=country).count()))
+                    row.append(str(count_dict.get((country.pk, committee.pk), 0)))
                 writer.writerow(row)
         elif 'country-preferences' in request.GET:
             response['Content-Disposition'] = 'attachment; filename=country-preferences-' + conference_slug + ".csv"             
