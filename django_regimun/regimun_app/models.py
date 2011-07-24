@@ -269,16 +269,16 @@ class School(models.Model):
 	def get_delegations(self):
 		delegations = {}
 		positions = DelegatePosition.objects.select_related('delegate','country','committee').filter(school=self)
-		current_country = Country()
 		
 		for position in positions:
-			if position.country.pk != current_country.pk:
-				current_country = position.country
-				delegations[current_country] = []
+			delegations.setdefault(position.country,[])
 			try:
-				delegations[current_country].append(position.delegate)
+				if position.delegate != None:
+					delegations[position.country].append(position.delegate)
+				else:
+					delegations[position.country].append(position)
 			except ObjectDoesNotExist:
-				delegations[current_country].append(position)
+				delegations[position.country].append(position)
 		return delegations
 		
 	def get_delegations_count(self):

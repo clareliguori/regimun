@@ -29,7 +29,8 @@ def school_ajax_functions(request, conference_slug, school_slug, func_name):
                 return return_value
             else:
                 return HttpResponse(return_value, mimetype='application/javascript')
-    
+                #return HttpResponse("<html><body>" + return_value + "</body></html>")
+            
     raise Http404
 
 def get_school_mailing_address_form(request, school):
@@ -123,12 +124,12 @@ def remove_delegate(request, school):
             return simplejson.dumps({'position_pk':position_pk})
 
 def get_country_preferences(request, school):
-    preferences = CountryPreference.objects.select_related().filter(request__school=school)
+    preferences = CountryPreference.objects.select_related('country').filter(request__school=school)
     current_preferences = []
     for preference in preferences:
         current_preferences.append(preference.country.pk)
     
-    available_positions = DelegatePosition.objects.select_related().filter(school=None).order_by('country__name')
+    available_positions = DelegatePosition.objects.select_related('country').filter(school=None).order_by('country__name')
     available_countries = {}
     for position in available_positions:
         available_countries[position.country.pk] = position.country.name
@@ -184,7 +185,7 @@ def set_country_preferences(request, school):
                 else:
                     if country.conference == school.conference:
                         # make sure this preference doesnt already exist
-                        if CountryPreference.objects.filter(request=delegation_request, country=country).count() == 0:                        
+                        if country.name not in country_names:                        
                             pref = CountryPreference()
                             pref.country = country
                             pref.request = delegation_request
