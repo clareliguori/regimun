@@ -402,7 +402,6 @@ $(function(){
 		position: 'top',
 		close: function(event, ui) {
 			$('#positions-assignment-table').html("");
-			$.post('ajax/cleanup-country-preferences');
 		},
 		buttons: {
 			"Close": function() {
@@ -488,7 +487,6 @@ $(function(){
 		position: 'top',
 		close: function(event, ui) {
 			$('#school-country-assignment-table').html("");
-			$.post('ajax/cleanup-country-preferences');
 		},
 		buttons: {
 			"Close": function() {
@@ -684,9 +682,10 @@ $(function(){
 
 	<div id="fees" class="secretariat-pane" >
 		<table style="margin: 0 auto;">
-			<tr><td style="text-align:left; padding: 5px;">Total Fees: </td><td style="text-align:right; padding: 5px;">${{ object.feestructure.total_fee|floatformat:2 }}</td></tr>
-			<tr><td style="text-align:left; padding: 5px;">Total Paid: </td><td style="text-align:right; padding: 5px;">${{ object.feestructure.total_payments|floatformat:2 }}</td></tr>
-			<tr><td style="text-align:left; padding: 5px;">Total Balance Due: </td><td style="text-align:right; padding: 5px;">${{ object.feestructure.balance_due|floatformat:2 }}</td></tr>
+			{% load currencyformat %}
+			<tr><td style="text-align:left; padding: 5px;">Total Fees: </td><td style="text-align:right; padding: 5px;">{{ object.feestructure.total_fee|currencyformat }}</td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Total Paid: </td><td style="text-align:right; padding: 5px;">{{ object.feestructure.total_payments|currencyformat }}</td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Total Balance Due: </td><td style="text-align:right; padding: 5px;">{{ object.feestructure.balance_due|currencyformat }}</td></tr>
 		</table>
 		<p>Fees totaled above only include schools with registered delegates.</p> 
 		

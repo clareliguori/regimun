@@ -62,5 +62,9 @@ def upload_progress(request):
 def ajax_error(request):
     if request.method == 'POST':
         errordata = request.POST.get('errordata', '')
+        
+        if settings.DEBUG:
+            print errordata
+        
         raise ValueError("AJAX error:\n" + errordata);
     raise Http404

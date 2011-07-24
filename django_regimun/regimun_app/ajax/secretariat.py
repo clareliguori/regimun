@@ -412,18 +412,3 @@ def upload_school_country_assignments(request, conference):
             if len(errors) > 0:
                 return simplejson.dumps({'errors':list(errors),'table':get_country_school_assignment_table(countries)})
             return simplejson.dumps({'table':get_country_school_assignment_table(countries)})
-
-def cleanup_country_preferences(request, conference):
-    countries = Country.objects.filter(conference=conference)
-    
-    for country in countries:
-        current_positions = DelegatePosition.objects.select_related(depth=1).filter(country=country)
-        if len(current_positions) > 0:
-            if current_positions[0].school:
-                # assigned to a school, mark it unavailable
-                CountryPreference.objects.filter(country=country).delete()
-        else:
-            # no delegate positions for this country - mark it unavailable
-            CountryPreference.objects.filter(country=country).delete()
-        
-    return simplejson.dumps({'success':True})
