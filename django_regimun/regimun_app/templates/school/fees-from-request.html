@@ -1,4 +1,5 @@
 	<div id="fees">
+	{% load currencyformat %}
 		<h3 style="margin: 0; font-size: 100%;" >Conference Fees:</h3>
 		<table style="width: 100%; border: 1px solid; margin:0px; padding:6px;">
 			<tbody>
@@ -8,38 +9,38 @@
 				{% if conference.feestructure.per_school != 0 %}
 					<tr>
 						<td style="padding: 3px; text-align: left">School Fee</td>
-						<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_school|floatformat:2 }}</td>
+						<td style="padding: 3px; text-align: right">{{ conference.feestructure.per_school|currencyformat }}</td>
 						<td style="padding: 3px; text-align: right">1</td>
-						<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_school|floatformat:2 }}</td>
+						<td style="padding: 3px; text-align: right">{{ conference.feestructure.per_school|currencyformat }}</td>
 					</tr>
 				{% endif %}
 				{% if conference.feestructure.per_delegate != 0 %}
 					<tr>
 						<td style="padding: 3px; text-align: left">Delegate Fee</td>
-						<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_delegate|floatformat:2 }}</td>
+						<td style="padding: 3px; text-align: right">{{ conference.feestructure.per_delegate|currencyformat }}</td>
 						<td style="padding: 3px; text-align: right">{{ school.get_delegate_request_count }}</td>
-						<td style="padding: 3px; text-align: right">${{ school.delegate_fee_from_request|floatformat:2 }}</td>
+						<td style="padding: 3px; text-align: right">{{ school.delegate_fee_from_request|currencyformat }}</td>
 					</tr>
 				{% endif %}
 				{% if conference.feestructure.per_sponsor != 0 %}
 					<tr>
 						<td style="padding: 3px; text-align: left">Sponsor/Advisor Fee</td>
-						<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_sponsor|floatformat:2 }}</td>
+						<td style="padding: 3px; text-align: right">{{ conference.feestructure.per_sponsor|currencyformat }}</td>
 						<td style="padding: 3px; text-align: right">{{ school.facultysponsor_set.count }}</td>
-						<td style="padding: 3px; text-align: right">${{ school.sponsor_fee|floatformat:2 }}</td>
+						<td style="padding: 3px; text-align: right">{{ school.sponsor_fee|currencyformat }}</td>
 					</tr>
 				{% endif %}
 				{% if school.school_late_fee > 0 %}
 					<tr>
 						<td style="padding: 3px; text-align: left">School Registration Late Fee</td>
-						<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_school_late_fee|floatformat:2 }}</td>
+						<td style="padding: 3px; text-align: right">{{ conference.feestructure.per_school_late_fee|currencyformat }}</td>
 						<td style="padding: 3px; text-align: right">1</td>
-						<td style="padding: 3px; text-align: right">${{ conference.feestructure.per_school_late_fee|floatformat:2 }}</td>
+						<td style="padding: 3px; text-align: right">{{ conference.feestructure.per_school_late_fee|currencyformat }}</td>
 					</tr>
 				{% endif %}
-				<tr><th style="font-weight: bold; padding: 3px; text-align: right" colspan="3">Total Fees</th><th style="font-weight: bold; padding: 3px; text-align: right">${{ school.total_fee_from_request|floatformat:2 }}</th></tr>
-				<tr><th style="font-weight: bold; padding: 3px; text-align: right" colspan="3">Paid</th><th style="font-weight: bold; padding: 3px; text-align: right">${{ school.total_payments|floatformat:2 }}</th></tr>
-				<tr><th style="font-weight: bold; padding: 3px; text-align: right" colspan="3">Balance Due</th><th style="font-weight: bold; padding: 3px; text-align: right">${{ school.balance_due_from_request|floatformat:2 }}</th></tr>
+				<tr><th style="font-weight: bold; padding: 3px; text-align: right" colspan="3">Total Fees</th><th style="font-weight: bold; padding: 3px; text-align: right">{{ school.total_fee_from_request|currencyformat }}</th></tr>
+				<tr><th style="font-weight: bold; padding: 3px; text-align: right" colspan="3">Paid</th><th style="font-weight: bold; padding: 3px; text-align: right">{{ school.total_payments|currencyformat }}</th></tr>
+				<tr><th style="font-weight: bold; padding: 3px; text-align: right" colspan="3">Balance Due</th><th style="font-weight: bold; padding: 3px; text-align: right">{{ school.balance_due_from_request|currencyformat }}</th></tr>
 			</tbody>
 		</table>
 				
