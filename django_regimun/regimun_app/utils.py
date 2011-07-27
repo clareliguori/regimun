@@ -1,11 +1,10 @@
 from django.core.cache import cache
 from django.core.files.uploadhandler import FileUploadHandler
+import os
 import settings
 
 def fetch_resources(uri, rel):
-    path = settings.MEDIA_ROOT + uri.replace(settings.MEDIA_URL, "")
-    # print "fetch_resources " + path + ", " + uri
-    return path
+    return os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, "").lstrip(os.path.sep))
 
 class UploadProgressCachedHandler(FileUploadHandler):
     """

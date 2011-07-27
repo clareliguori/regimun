@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.aggregates import Sum
+from django.template.defaultfilters import date
+from regimun_app.templatetags.currencyformat import currencyformat
 import datetime
 
 class Conference(models.Model):
@@ -292,21 +294,27 @@ class School(models.Model):
 			pass
 		return count
 
+	def get_delegate_request_date(self):
+		try:
+			return self.delegationrequest.created
+		except ObjectDoesNotExist:
+			return None
+	
 	def delegate_fee_from_request(self):
 		return float(self.conference.feestructure.per_delegate * self.get_delegate_request_count())
 
 	def get_filled_delegate_positions(self):
-		return self.delegateposition_set.filter(delegate__isnull=False)
+		return Delegate.objects.select_related('position_assignment__country').filter(position_assignment__school=self)
 
 	def get_filled_delegate_positions_count(self):
-		return self.delegateposition_set.filter(delegate__isnull=False).count()
-
+		return Delegate.objects.filter(position_assignment__school=self).count()
+	
 	def get_late_delegate_registrations(self):
 		return self.delegateposition_set.filter(delegate__isnull=False, delegate__last_modified__gte=self.conference.feestructure.late_delegate_registration_start_date)		
 
-	def get_late_delegate_registrations_count(self):
-		return self.delegateposition_set.filter(delegate__isnull=False, delegate__last_modified__gte=self.conference.feestructure.late_delegate_registration_start_date).count()		
-
+	def get_late_delegate_registrations_count(self, late_delegate_registration_start_date):
+		return Delegate.objects.filter(position_assignment__school=self, last_modified__gte=late_delegate_registration_start_date).count()
+	
 	def country_fee(self):
 		return float(self.conference.feestructure.per_country * self.get_delegations_count())
 	
@@ -317,7 +325,7 @@ class School(models.Model):
 		return float(self.conference.feestructure.per_sponsor * self.facultysponsor_set.count())
 
 	def delegate_late_fee(self):
-		return float(self.conference.feestructure.per_delegate_late_fee * self.get_late_delegate_registrations_count())
+		return float(self.conference.feestructure.per_delegate_late_fee * self.get_late_delegate_registrations_count(self.conference.feestructure.late_delegate_registration_start_date))
 
 	def school_late_fee(self):
 		try:

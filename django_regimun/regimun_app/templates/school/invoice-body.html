@@ -1,0 +1,44 @@
+	<div id="letterhead">
+		{% if conference.logo %}
+			<img src="{{MEDIA_URL}}/{{conference.logo.url}}" border="0" /><br/>
+		{% endif %}
+		<h1 class="invoice">{{ conference.organization_name }}</h1>
+		{{ conference.address_line_1 }}{% if conference.address_line_2 %}, {{ conference.address_line_2 }}{% endif %}, {{ conference.city }}, {{ conference.state }}{% if conference.zip %}, {{ conference.zip }}{% endif %}{% if conference.address_country %}, {{ conference.address_country }}{% endif %}
+		{% if conference.website_url %}
+			 &bull; {{ conference.website_url }}
+		{% endif %}
+	</div>
+
+	<div id="invoice">
+		<h2 class="invoice" >I N V O I C E</h2>
+	</div>
+	
+	<table class="topinfo">
+	<tr>
+		<td id="billto" class="topinfo">
+			<h3 class="invoice">Bill To:</h3>
+			{{ school.name }}<br/>
+			{{ school.address_line_1 }}{% if school.address_line_2 %}, {{ school.address_line_2 }}{% endif %}<br/>
+			{{ school.city }}, {{ school.state }}{% if school.zip %}, {{ school.zip }}{% endif %}{% if school.address_country %}, {{ school.address_country }}{% endif %}
+		</td>
+		
+		<td id="date" class="topinfo">
+			<h3 class="invoice">Date: </h3>{% now "l, F j, Y" %}
+		</td>
+	</tr>
+	</table>
+	
+	<div id="event">
+		<h3 class="invoice">Event:</h3>
+		{{ conference.name }}<br/>
+		{{ conference.location }}<br/>
+		{% if conference.start_date == conference.end_date %}
+			{{ conference.start_date|date:"F j, Y" }}
+		{% else %}
+			{{ conference.start_date|date:"F j, Y" }} - {{ conference.end_date|date:"F j, Y" }}
+		{% endif %}
+	</div>
+	
+	{% autoescape off %}{{ fees_table }}{% endautoescape %}
+	
+	<i>We look forward to seeing your school at the conference!</i>

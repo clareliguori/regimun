@@ -2,23 +2,23 @@ from django import http
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.db.models.aggregates import Count
+from django.db.models.aggregates import Count, Sum
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.context import RequestContext
 from django.template.defaultfilters import slugify
 from django.template.loader import render_to_string
-from ho import pisa
 from regimun_app.forms import ConferenceForm, SecretariatUserForm, \
     SchoolNameForm
 from regimun_app.models import Conference, FacultySponsor, Delegate, Country, \
     Committee, Secretariat, School, FeeStructure, DelegatePosition, \
-    CountryPreference, DelegateCountPreference
+    CountryPreference, DelegateCountPreference, DelegationRequest, Payment
 from regimun_app.utils import fetch_resources
 from regimun_app.views.general import render_response
-from regimun_app.views.school_admin import school_admin
+from regimun_app.views.school_admin import school_admin, \
+    get_fees_table_from_data
 from settings import MEDIA_ROOT
-import StringIO
+from xhtml2pdf import pisa
 import csv
 
 def secretariat_authenticate(request, conference):
@@ -139,20 +139,63 @@ def generate_all_invoices(request, conference_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     
     if secretariat_authenticate(request, conference):
-        response = HttpResponse(mimetype='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename=invoices-' + conference_slug + '.pdf'
+        schools = School.objects.filter(conference=conference)
+        print "Schools " + str(len(schools))
+        feestructure = conference.feestructure
         
-        schools = School.objects.select_related().filter(conference=conference)
+        delegate_counts = dict((k['position_assignment__school'],k['count']) for k in \
+                                    Delegate.objects.filter(position_assignment__school__in=schools).values('position_assignment__school').annotate(count=Count('id')))
+        
+        late_delegate_counts = dict((k['position_assignment__school'],k['count']) for k in \
+                                    Delegate.objects.filter(position_assignment__school__in=schools,last_modified__gte=feestructure.late_delegate_registration_start_date).values('position_assignment__school').annotate(count=Count('id')))
+        
+        country_school_pairs = DelegatePosition.objects.filter(school__in=schools, delegate__isnull=False).values('school','country').annotate(count=Count('id'))
+        delegations_counts = dict()
+        for pair in country_school_pairs:
+            school_id = pair['school']
+            delegations_counts[school_id] = delegations_counts.get(school_id, 0) + 1
+         
+        sponsor_counts = dict((k['school'],k['count']) for k in \
+                                 FacultySponsor.objects.filter(school__in=schools).values('school').annotate(count=Count('id')))
+        
+        delegate_request_dates = dict((k['school'],k['created']) for k in \
+                                      DelegationRequest.objects.filter(school__in=schools).values('school','created'))
+        
+        sums = dict((k['school'],float(k['sum'])) for k in \
+                    Payment.objects.filter(school__in=schools).values('school').annotate(sum=Sum('amount')))
+        
+        schools_output = []
+
+        for school in schools:
+            school_context_dict = {
+                'pagesize' : 'letter',
+                'conference' : conference,
+                'school' : school, 
+                'fees_table' : get_fees_table_from_data(school, \
+                                                        conference, \
+                                                        feestructure, \
+                                                        sponsor_counts.setdefault(school.id, 0), \
+                                                        delegate_counts.setdefault(school.id, 0), \
+                                                        delegations_counts.setdefault(school.id, 0), \
+                                                        late_delegate_counts.setdefault(school.id, 0), \
+                                                        delegate_request_dates.setdefault(school.id, None), \
+                                                        sums.setdefault(school.id, 0))}
+            schools_output.append(render_to_string('school/invoice-body.html', school_context_dict, context_instance=RequestContext(request)))
+        
         context_dict = {
             'pagesize' : 'letter',
             'conference' : conference,
-            'schools' : schools, }
+            'school_invoices' : schools_output
+        }
         html = render_to_string('secretariat/all-invoices.html', context_dict, context_instance=RequestContext(request))
-        result = StringIO.StringIO()
-        pdf = pisa.pisaDocument(StringIO.StringIO(html.encode("UTF-8")), dest=result, link_callback=fetch_resources)
+        
+        response = http.HttpResponse()
+        response['Content-Type'] ='application/pdf'
+        response['Content-Disposition'] = 'attachment; filename=invoices-' + conference_slug + '.pdf'
+        
+        pdf = pisa.CreatePDF(src=html, dest=response, show_error_as_pdf=True, link_callback=fetch_resources)
+        
         if not pdf.err:
-            response = http.HttpResponse(result.getvalue(), mimetype='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename=invoices-' + conference_slug + '.pdf'
             return response
         else:
             raise ValueError("Error creating all-invoices PDF: " + pdf.err)
