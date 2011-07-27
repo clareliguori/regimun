@@ -12,7 +12,7 @@ from django.template.defaultfilters import slugify, date
 from django.template.loader import render_to_string
 from regimun_app.forms import NewSchoolForm, NewFacultySponsorForm
 from regimun_app.models import Conference, School, FacultySponsor, Committee, \
-    DelegatePosition, Country
+    DelegatePosition, Country, CountryPreference, DelegateCountPreference
 from regimun_app.templatetags.currencyformat import currencyformat
 from regimun_app.utils import fetch_resources
 from regimun_app.views.general import render_response, get_recaptcha_response
@@ -52,7 +52,11 @@ def school_admin(request, conference_slug, school_slug):
                                           school.get_late_delegate_registrations_count(feestructure.late_delegate_registration_start_date), \
                                           school.get_delegate_request_date(), \
                                           school.total_payments())
-    return render_response(request, 'school/index.html', {'conference' : conference, 'school' : school, 'fees_table' : fees_table})
+    country_preferences = get_country_preferences_html(school)
+    return render_response(request, 'school/index.html', {'conference' : conference, 
+                                                          'school' : school, 
+                                                          'fees_table' : fees_table,
+                                                          'country_preferences' : country_preferences})
 
 def validate_newsponsor_form(sponsor_form):
     if sponsor_form.is_valid():
@@ -272,6 +276,31 @@ def get_fees_table(request, conference_slug, school_slug):
                                           school.get_delegate_request_date(), \
                                           school.total_payments()))
     raise Http404
+
+def get_country_preferences_html(school):
+    
+    country_preferences = []
+    preferences = CountryPreference.objects.select_related('country').filter(request__school=school)
+    if len(preferences) == 0:
+        country_preferences.append("<i>No country preferences have been submitted.</i>")
+    else:
+        country_preferences.append("<ol>")
+        for pref in preferences:
+            country_preferences.append('<li>' + pref.country.name + "</li>")
+        country_preferences.append("</ol>")
+    
+    delegate_count = 0
+    try:
+        delegate_count = DelegateCountPreference.objects.get(request__school=school).delegate_count
+    except ObjectDoesNotExist:
+        pass
+    
+    context_dict = {
+        'school' : school,
+        'country_preferences': ''.join(country_preferences),
+        'delegate_count': delegate_count,
+        }
+    return render_to_string('school/country-preferences.html', context_dict)
 
 def get_fees_table_from_data(school, conference, feestructure, sponsor_count, delegates_count, delegations_count, late_delegates_count, delegation_request_date, total_payments):
     output = []

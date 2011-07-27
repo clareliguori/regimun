@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
@@ -10,8 +11,8 @@ from regimun_app.forms import SchoolMailingAddressForm, EditFacultySponsorForm, 
 from regimun_app.models import Conference, School, FacultySponsor, \
     DelegatePosition, Delegate, CountryPreference, Country, DelegateCountPreference, \
     DelegationRequest
-from regimun_app.views.school_admin import school_authenticate
-from datetime import datetime
+from regimun_app.views.school_admin import school_authenticate, \
+    get_country_preferences_html
 import inspect
 import smtplib
 import string
@@ -237,5 +238,7 @@ def set_country_preferences(request, school):
             s.sendmail(sender, to, msg.as_string())
             s.quit()
         
-        return simplejson.dumps({'success':True})
+        return simplejson.dumps({'prefs':get_country_preferences_html(school)})
         
+def get_country_preferences_html_ajax(request, school):
+    return simplejson.dumps({'prefs':get_country_preferences_html(school)})

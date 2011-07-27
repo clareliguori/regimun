@@ -22,6 +22,7 @@ $(function(){
 				  			// remove the sponsor from display
 				  			$('#sponsor_' + data.sponsor_pk).remove();
 				  			$('#buttons_sponsor_' + data.sponsor_pk).remove();
+				  			update_fees_table();
 						},
 						"json"
 					);
@@ -45,54 +46,78 @@ $(function(){
                 }
             }
         });
-
-        $('#country-preferences-dialog').dialog({
-            autoOpen: false,
-            width: 500,
-            modal: true,
-            resizable: false,
-            position: 'top',
-            buttons: {
-                "Save": function() {
-        			$('#country-preferences-form').ajaxSubmit({dataType:'json'});
-                 	$(this).dialog("close");
-                },
-                "Cancel": function() {
-                    $(this).dialog("close");
-                }
-            }
-        });
-
 });
 
-function open_country_preferences_dialog() {
-	$.post(
-		"ajax/get-country-preferences",
+function toggle_country_preferences_buttons() {
+	$('#update-country-preferences').toggle();
+	$('#save-country-preferences').toggle();
+	$('#cancel-country-preferences').toggle();
+}
+
+function open_country_preferences_form() {
+	$.get(
+			"ajax/get-country-preferences",
+			function(data) {
+				// build the form
+				output = "<h3>Country Preferences</h3>";
+				
+				if(data.available_countries.length > 0) {
+					output += "<p>Countries listed in the drop-down boxes are currently available. They have not yet been assigned to any school.</p>";
+					
+					output += "<table>";
+					for(i = 1; i <= 10; i++) {
+						output += "<tr><td>" + i + "</td><td><select id=\"id_pref_" + (i-1) + "\" name=\"pref_" + (i-1) + "\"><option value=\"-1\"> </option>";
+						output += data.available_countries;
+						output += "</select></td></tr>";
+					}
+					output += "</table>";					
+				} else {
+					output += "<i>No countries are currently available for selection.</i>";
+				}
+				output += "<p><a href=\"downloads/?country-committee-assignments\">Download country-committee assignments here.</a></p>";
+				output += "<h3>Delegate Request</h3><p>Total delegates requested: <input type=\"text\" class=\"auto\" name=\"total_count\" size=\"5\" value=\"" + data.delegate_count + "\" /></p>";
+								
+	  			// switch to country preferences form
+				$('#country-preferences-form').html(output);
+				
+				for(i = 0; i < data.preferences.length; i++) {
+					$('#id_pref_'+i+' option[value='+data.preferences[i]+']').attr('selected','selected');
+				}
+				
+				toggle_country_preferences_buttons();
+				$('input.auto').each(function() {
+					$(this).autoNumeric();
+				});
+			},
+			"json"
+	);
+	$('#country-preferences-form').html('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
+}
+
+function cancel_country_preferences_form() {
+	$.get(
+		"ajax/get-country-preferences-html-ajax",
 		function(data) {
-  			// build the form
-			output = "<table>";
-			for(i = 1; i <= 10; i++) {
-				output += "<tr><td>" + i + "</td><td><select id=\"id_pref_" + (i-1) + "\" name=\"pref_" + (i-1) + "\"><option value=\"-1\"> </option>";
-				output += data.available_countries;
-				output += "</select></td></tr>";
-			}
-			output += "</table>";
-			output += "<p>Total delegates requested &nbsp;&nbsp;<input type=\"text\" class=\"auto\" name=\"total_count\" size=\"5\" value=\"" + data.delegate_count + "\" /></p>";
-			
-			$('.loading').remove();
-			$('#country-preferences-form').html(output);
-			$('input.auto').each(function() {
-				$(this).autoNumeric();
-			});
-			
-			for(i = 0; i < data.preferences.length; i++) {
-				$('#id_pref_'+i+' option[value='+data.preferences[i]+']').attr('selected','selected');
-			}
+			$('#country-preferences-form').html(data.prefs);
+			toggle_country_preferences_buttons();
 		},
 		"json"
 	);
-	$('#country-preferences-dialog').append('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
-	$('#country-preferences-dialog').dialog('open');
+	$('#country-preferences-form').html('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
+}
+
+function save_country_preferences_form() {
+	$('#country-preferences-form').ajaxSubmit({
+		dataType:'json',
+		beforeSubmit: 	function(arr, $form, options) { 
+			$('#country-preferences-form').html('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
+		},
+		success:		function(data) {
+			$('#country-preferences-form').html(data.prefs);
+			toggle_country_preferences_buttons();
+			update_fees_table();
+		}
+	});
 }
 
 function toggle_school_mailing_address_buttons() {
@@ -281,6 +306,7 @@ function update_fees_table() {
 <div id="tabs" class="ui-layout-center">
 	<ul>
 		<li><a href="#contacts">Contacts</a></li>
+		<li><a href="#register">Register</a></li>
 		<li><a href="#delegations">Delegations</a></li>
 		<li><a href="#fees">Fees</a></li>
 	</ul>
@@ -326,6 +352,17 @@ function update_fees_table() {
 				<p><b>Access Code</b>: {{ school.access_code }}</p>
 			</div>
 	</div>
+	
+	<div id="register">
+		<form action="ajax/set-country-preferences" method="post" id="country-preferences-form">
+		{% autoescape off %}{{ country_preferences }}{% endautoescape %}
+		</form>
+		<p>
+		<button id="update-country-preferences" class="button" onclick="open_country_preferences_form()">Update</button>
+		<button id="save-country-preferences" class="button" style="display: none" onclick="save_country_preferences_form()">Save</button>
+		<button id="cancel-country-preferences" class="button" style="display: none" onclick="cancel_country_preferences_form()">Cancel</button>
+		</p>
+	</div>
 
 	<div id="delegations">
 
@@ -365,17 +402,7 @@ function update_fees_table() {
 			No countries have been assigned to your school.
 			</td></tr>
 		{% endfor %}
-		</table>
-		
-		<p>
-		<button id="country-preferences" class="button" onclick="open_country_preferences_dialog()">Set Country Preferences</button>
-		<div id="country-preferences-dialog" title="Country Preferences">
-			<p>Update country preferences for your school. All countries listed have not yet been assigned to any school.<br/>
-			<a href="downloads/?country-committee-assignments">Download country-committee assignments here.</a><br/>
-			<form action="ajax/set-country-preferences" method="post" id="country-preferences-form">
-			</form>
-		</div>
-		</p>
+		</table>		
 	</div>
 
 	<div id="fees">
