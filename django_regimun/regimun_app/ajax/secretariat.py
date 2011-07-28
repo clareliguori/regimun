@@ -234,10 +234,29 @@ def get_delegate_positions(request, conference):
     return simplejson.dumps({'table':get_delegate_positions_table(committees, countries)})
 
 def dictify_queryset(set, field):
-    dict = {}
+    ret = dict()
     for obj in set:
-        dict[getattr(obj, field)] = object
-    return set
+        ret[getattr(obj, field)] = obj
+    return ret
+
+def sort_queryset(list, field):
+    ret = dict()
+    for obj in list:
+        ret.setdefault(getattr(obj, field),[]).append(obj)
+    return ret
+
+def get_school_from_position_set(positions):
+    school_dict = {}
+    for pos in positions:
+        if pos.school != None:
+            school_dict[pos.school] = school_dict.get(pos.school, 0) + 1
+    
+    if school_dict:
+        # get the most common school
+        for key, value in sorted(school_dict.iteritems(), key=lambda (k,v): (v,k), reverse=True):
+            return key
+    else:
+        return None 
 
 def upload_delegate_positions(request, conference):
     errors = set()
@@ -250,48 +269,60 @@ def upload_delegate_positions(request, conference):
             countries = Country.objects.filter(conference=conference)
             countries_dict = dictify_queryset(countries, 'name')
             
+            all_positions = DelegatePosition.objects.filter(country__in=countries, committee__in=committees)
+            positions_dict = dict()
+            for pos in all_positions:
+                positions_dict.setdefault((pos.country,pos.committee),[]).append(pos)
+                
+            positions_by_country = sort_queryset(all_positions, 'country')
+            
             try:
                 positions_reader = csv.DictReader(uploaded_file)
                 for row in positions_reader:
                     try:
-                        country_name = row["Country"]
+                        country_name = row["Country"].strip()
                     except KeyError:
                         errors.add("Not a valid CSV file: No Country column.")
+                        break
                     else:
                         try:
                             country = countries_dict[country_name]
                         except KeyError:
-                            errors.add("Could not find country " + country_name)
+                            errors.add("Could not find country " + country_name + " (skipping)")
                         else:
                             for committee_name,value in row.items():
+                                committee_name = committee_name.strip()
+                                value = value.strip()
+                                if value == "":
+                                    value = "0"
                                 if committee_name != "Country":
                                     try:
                                         committee = committees_dict[committee_name]
                                     except KeyError:
-                                        errors.add("Could not find committee " + committee_name) 
+                                        errors.add("Could not find committee " + committee_name + " (skipping)") 
                                     else:
                                         try:
                                             new_count = int(value)
                                         except exceptions.ValueError:
-                                            errors.add("Invalid value for " + country.name + "/" + committee.name + ": " + value)
+                                            errors.add("Invalid value for " + country.name + "/" + committee.name + ": " + value + " (skipping)")
                                         else:
-                                            set_delegate_position_count(committee, country, new_count)
+                                            set_delegate_position_count(committee, country, 
+                                                                        positions_dict.get((country,committee),[]), 
+                                                                        get_school_from_position_set(positions_by_country.get(country, [])), new_count)
             except csv.Error:
                 errors.add("Not a valid CSV file.")
             if len(errors) > 0:
                 return simplejson.dumps({'errors':list(errors),'table':get_delegate_positions_table(committees, countries)})
             return simplejson.dumps({'table':get_delegate_positions_table(committees, countries)})
 
-def set_delegate_position_count(committee, country, new_count):
-    current_positions = DelegatePosition.objects.filter(committee=committee,country=country)
+def set_delegate_position_count(committee, country, current_positions, school, new_count):
     current_count = len(current_positions)
     if new_count > current_count:   # add new positions
         for i in range(current_count, new_count):
             new_position = DelegatePosition()
             new_position.committee = committee
             new_position.country = country
-            
-            # TODO assign school
+            new_position.school = school
             
             new_position.save()
     elif new_count < current_count: # remove positions
@@ -310,12 +341,15 @@ def set_delegate_positions(request, conference):
                 country = get_object_or_404(Country, pk=country_pk)
                 value = form.cleaned_data['value']
                 if committee.conference == conference and country.conference == conference and value:
-                    try:
-                        new_count = int(value)
-                        set_delegate_position_count(committee, country, new_count)
-                        return HttpResponse(value)
-                    except exceptions.ValueError:
-                        print "Parsing error: " + value
+                    if value == "":
+                        value = "0"
+                    new_count = int(value)
+                    country_positions = []
+                    current_positions = DelegatePosition.objects.filter(committee=committee,country=country)
+                    if len(current_positions) < new_count:
+                        country_positions = DelegatePosition.objects.filter(country=country)
+                    set_delegate_position_count(committee, country, current_positions, get_school_from_position_set(country_positions), new_count)
+                    return HttpResponse(value)
 
 def get_country_school_assignment_table(countries):
     table_list = ["<thead><tr><th>Country</th><th>School</th></tr></thead><tbody>"]
@@ -348,9 +382,8 @@ def get_country_school_assignments(request, conference):
     countries = Country.objects.filter(conference=conference)
     return simplejson.dumps({'table':get_country_school_assignment_table(countries)})
 
-def set_country_school_assignment(country, school):
-    current_positions = DelegatePosition.objects.filter(country=country)
-    for position in current_positions:
+def set_country_school_assignment(country_positions, school):
+    for position in country_positions:
         position.school = school
         position.save()
 
@@ -361,14 +394,15 @@ def set_country_school_assignments(request, conference):
             country_pk = request.POST.get('id', '')
             country = get_object_or_404(Country, pk=country_pk)
             if country.conference == conference:
+                country_positions = DelegatePosition.objects.filter(country=country)
                 school_pk = form.cleaned_data['value']
                 if school_pk == "-1":
-                    set_country_school_assignment(country, None)
+                    set_country_school_assignment(country_positions, None)
                     return HttpResponse(" ")
                 else:
                     school = get_object_or_404(School, pk=school_pk)
                     if school.conference == conference:
-                        set_country_school_assignment(country, school)
+                        set_country_school_assignment(country_positions, school)
                         return HttpResponse(school.name)
 
 def upload_school_country_assignments(request, conference):
@@ -381,32 +415,39 @@ def upload_school_country_assignments(request, conference):
             countries_dict = dictify_queryset(countries, 'name')
             schools = School.objects.filter(conference=conference)
             schools_dict = dictify_queryset(schools, 'name')
+            all_positions = DelegatePosition.objects.filter(country__in=countries)
+            positions_dict = sort_queryset(all_positions, 'country')
             
             try:
                 assignments_reader = csv.DictReader(uploaded_file)
                 for row in assignments_reader:
                     try:
-                        country_name = row["Country"]
+                        country_name = row["Country"].strip()
                     except KeyError:
                         errors.add("Not a valid CSV file: No Country column.")
+                        break
                     else:
                         try:
                             country = countries_dict[country_name]
                         except KeyError:
-                            errors.add("Could not find country " + country_name)
+                            errors.add("Could not find country " + country_name + " (skipping)")
                         else:
                             try:
-                                school_name = row["School"]
+                                school_name = row["School"].strip()
                             except KeyError:
                                 errors.add("Not a valid CSV file: No School column.")
+                                break
                             else:
                                 school = None
                                 try:
-                                    school = schools_dict[school_name]
-                                except KeyError:
                                     if len(school_name) > 1:
-                                        errors.add("Could not find school " + school_name)
-                                set_country_school_assignment(country, school)
+                                        school = schools_dict[school_name]
+                                    try:
+                                        set_country_school_assignment(positions_dict[country], school)
+                                    except KeyError:
+                                        errors.add("No positions for " + country_name + " - cannot assign to " + school_name)
+                                except KeyError:
+                                    errors.add("Could not find school " + school_name + " for " + country_name + " (skipping)")
             except csv.Error:
                 errors.add("Not a valid CSV file.")
             if len(errors) > 0:

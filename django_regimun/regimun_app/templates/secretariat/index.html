@@ -100,7 +100,7 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
         success:   function(return_data) {
 			if(return_data != null && return_data.form != null) {
 	  			// re-load form with errors
-				decoded = $('<textarea/>').html(return_data.form).val();
+				decoded = return_data.form;
 		        $(form_element).html(decoded);
 	  			$(form_element).append("<input value=\"Add\" type=\"submit\" id=\"add_" + object_name + "\">");
 	  		    $("input:submit").button();
@@ -472,7 +472,7 @@ $(function(){
 				}
 				if(return_data.table != null) {
 					// refresh the delegate positions table
-					return_data.table = $('<textarea/>').html(return_data.table).val();
+					//return_data.table = $("<div/>").html(return_data.table).text();
 					get_delegate_positions_callback(return_data, '#committees-to-countries-form-dialog', '#committees-to-countries-form');
 				}
 			}
@@ -557,7 +557,7 @@ $(function(){
 				}
 				if(return_data.table != null) {
 					// refresh the delegate positions table
-					return_data.table = $('<textarea/>').html(return_data.table).val();
+					//return_data.table = $("<div/>").html(return_data.table).text();
 					get_school_country_assignments_callback(return_data, schoolSelectSource, '#countries-to-schools-form-dialog');
 				}
 			}

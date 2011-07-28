@@ -230,9 +230,9 @@ def create_conference(request):
             for row in countriesListReader:
                 new_country = Country()
                 new_country.conference = new_conference
-                new_country.name = row[0]
+                new_country.name = row[0].strip()
                 new_country.url_name = slugify(new_country.name)
-                new_country.country_code = row[1]
+                new_country.country_code = row[1].strip()
                 new_country.save()
                 
             # create default committees and delegate positions
@@ -241,7 +241,7 @@ def create_conference(request):
             for row in committeesListReader:
                 new_committee = Committee()
                 new_committee.conference = new_conference
-                new_committee.name = row[0]
+                new_committee.name = row[0].strip()
                 new_committee.url_name = slugify(new_committee.name)
                 new_committee.save()
             

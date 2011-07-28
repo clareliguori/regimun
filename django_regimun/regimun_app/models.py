@@ -270,8 +270,8 @@ class School(models.Model):
 
 	def get_delegations(self):
 		delegations = {}
-		positions = DelegatePosition.objects.select_related('delegate','country','committee').filter(school=self)
-		
+		positions = DelegatePosition.objects.select_related('delegate','country','committee').filter(school=self).order_by('country__name','committee__name','delegate__last_name','delegate__first_name')
+				
 		for position in positions:
 			delegations.setdefault(position.country,[])
 			try:
@@ -281,7 +281,8 @@ class School(models.Model):
 					delegations[position.country].append(position)
 			except ObjectDoesNotExist:
 				delegations[position.country].append(position)
-		return delegations
+		
+		return sorted(delegations.items())
 		
 	def get_delegations_count(self):
 		return self.delegateposition_set.filter(delegate__isnull=False).values('country').distinct().count()
