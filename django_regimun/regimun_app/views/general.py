@@ -1,3 +1,4 @@
+from django import http
 from django.contrib.auth import REDIRECT_FIELD_NAME, login, views
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
@@ -5,8 +6,13 @@ from django.http import HttpResponse, HttpResponseServerError, \
     HttpResponseRedirect, Http404
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
 from recaptcha.client import captcha
 from regimun_app.forms import DetailedUserCreationForm
+import base64
+import mimetypes
+import os
 import re
 import settings
 
@@ -68,3 +74,34 @@ def ajax_error(request):
         
         raise ValueError("AJAX error:\n" + errordata);
     raise Http404
+
+def convert_html_to_doc(html, filename, conference):
+    response = http.HttpResponse()
+    response['Content-Type'] ='application/msword'
+    response['Content-Disposition'] = 'filename=' + filename + '.doc'
+    
+    image_filepath = "media/" + os.path.basename(conference.logo.url)
+    html = html.replace(settings.MEDIA_URL + "/" + conference.logo.url, image_filepath)
+    
+    # pack the html and image into a MIME file 
+    doc = MIMEMultipart('related')
+    part1 = MIMEBase('text', 'html')
+    part1.set_payload(base64.encodestring(html.encode("UTF-8")),"utf-8")
+    part1.add_header("Content-Location", "file:///C:/" + filename + ".htm")
+    part1.replace_header("Content-Transfer-Encoding", "base64")
+    
+    conference.logo.open("rb")
+    image_str = conference.logo.read()
+    conference.logo.close()
+    mimetype = mimetypes.guess_type(conference.logo.url)[0].split('/')
+    
+    part2 = MIMEBase(mimetype[0], mimetype[1])
+    part2.set_payload(base64.encodestring(image_str))
+    part2.add_header("Content-Location", "file:///C:/" + image_filepath)
+    part2.add_header("Content-Transfer-Encoding", "base64")
+    
+    doc.attach(part1)
+    doc.attach(part2)
+    
+    response.content = doc.as_string()
+    return response

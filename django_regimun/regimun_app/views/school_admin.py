@@ -15,7 +15,8 @@ from regimun_app.models import Conference, School, FacultySponsor, Committee, \
     DelegatePosition, Country, CountryPreference, DelegateCountPreference
 from regimun_app.templatetags.currencyformat import currencyformat
 from regimun_app.utils import fetch_resources
-from regimun_app.views.general import render_response, get_recaptcha_response
+from regimun_app.views.general import render_response, get_recaptcha_response, \
+    convert_html_to_doc
 from xhtml2pdf import pisa
 import csv
 import re
@@ -167,16 +168,12 @@ def grant_school_access(request, conference_slug, school_slug):
     return render_response(request, "school/wrong-access-code.html", {'conference' : conference, 'school' : school})
 
 @login_required
-def generate_invoice(request, conference_slug, school_slug):
+def generate_invoice_html(request, conference_slug, school_slug, template):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     school = get_object_or_404(School, url_name=school_slug)
     feestructure = conference.feestructure
-
+    
     if school_authenticate(request, conference, school):
-        response = http.HttpResponse()
-        response['Content-Type'] ='application/pdf'
-        response['Content-Disposition'] = 'attachment; filename=invoice-' + conference_slug + "-" + school_slug + '.pdf'
-        
         context_dict = {
         'pagesize' : 'letter',
         'conference' : conference,
@@ -190,14 +187,29 @@ def generate_invoice(request, conference_slug, school_slug):
                                           school.get_late_delegate_registrations_count(feestructure.late_delegate_registration_start_date), \
                                           school.get_delegate_request_date(), \
                                           school.total_payments())}
-        html = render_to_string('school/invoice.html', context_dict, context_instance=RequestContext(request))
-        pdf = pisa.CreatePDF(src=html, dest=response, show_error_as_pdf=True, link_callback=fetch_resources)
-        if not pdf.err:
-            return response
-        else:
-            raise ValueError("Error creating invoice PDF: " + pdf.err)
+        return render_to_string(template, context_dict, context_instance=RequestContext(request))
     else:
         raise Http404
+
+@login_required
+def generate_invoice_pdf(request, conference_slug, school_slug):
+    response = http.HttpResponse()
+    response['Content-Type'] ='application/pdf'
+    response['Content-Disposition'] = 'attachment; filename=invoice-' + conference_slug + "-" + school_slug + '.pdf'
+    
+    html = generate_invoice_html(request, conference_slug, school_slug, 'invoice/invoice.html')
+    pdf = pisa.CreatePDF(src=html, dest=response, show_error_as_pdf=True, link_callback=fetch_resources)
+    if not pdf.err:
+        return response
+    else:
+        raise ValueError("Error creating invoice PDF: " + pdf.err)
+
+@login_required
+def generate_invoice_doc(request, conference_slug, school_slug):
+    conference = get_object_or_404(Conference, url_name=conference_slug)
+    filename = 'invoice-' + conference_slug + "-" + school_slug
+    html = generate_invoice_html(request, conference_slug, school_slug, 'invoice/invoice-doc.html')
+    return convert_html_to_doc(html, filename, conference)
 
 @login_required
 def generate_request_based_invoice(request, conference_slug, school_slug):
@@ -214,7 +226,7 @@ def generate_request_based_invoice(request, conference_slug, school_slug):
             'conference' : conference,
             'school' : school, }
         
-        html = render_to_string('school/invoice-from-request.html', context_dict, context_instance=RequestContext(request))
+        html = render_to_string('invoice/invoice-from-request.html', context_dict, context_instance=RequestContext(request))
         pdf = pisa.CreatePDF(src=html, dest=response, show_error_as_pdf=True, link_callback=fetch_resources)
         if not pdf.err:
             return response

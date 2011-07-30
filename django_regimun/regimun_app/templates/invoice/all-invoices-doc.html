@@ -1,0 +1,34 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+	<title>{{ conference.name }} Invoices</title>
+<!--[if gte mso 9]>
+<xml>
+<w:WordDocument>
+<w:View>Print</w:View>
+<w:Zoom>100</w:Zoom>
+<w:DoNotOptimizeForBrowser/>
+</w:WordDocument>
+</xml>
+<![endif]-->
+	<link rel=File-List href="media/filelist.xml">
+	<style> <!-- 
+	@page
+	{
+	    size: 8.5in 11in;  /* letter */
+	    margin: 1in 1in 1in 1in; /* Margins: 1 inch on each side */
+	    mso-page-orientation: portrait;  
+	}
+	@page Section1 { }
+	div.Section1 { page:Section1; }
+	--></style>
+	{% include "invoice/invoice-style.html" %}
+</head>
+<body>
+<div class="Section1">
+	{% for invoice in school_invoices %}
+		{% autoescape off %}{{ invoice }}{% endautoescape %}
+		<br clear=all style='mso-special-character:line-break;page-break-before:always'>
+	{% endfor %}
+</div>
+</body>
+</html>
