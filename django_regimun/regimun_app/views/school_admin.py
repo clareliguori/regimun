@@ -23,14 +23,18 @@ import re
 import settings
 
 def school_authenticate(request, conference, school):
-    if school.conference != conference:
+    if not is_school_registered(conference, school):
         return False
     
     if request.user.is_staff:
         return True
     
     try:
-        return request.user.secretariat_member.conference.pk == conference.pk
+        secretariat_member = request.user.secretariat_member
+        try:
+            secretariat_member.conferences.get(id=conference.id)
+        except Conference.DoesNotExist:
+            return False
     except ObjectDoesNotExist:
         pass
     
@@ -39,47 +43,34 @@ def school_authenticate(request, conference, school):
     except ObjectDoesNotExist:
         return False
 
+def is_school_registered(conference, school):
+    try:
+        school.conferences.get(id=conference.id)
+    except Conference.DoesNotExist:
+        return False
+    return True 
+
 @login_required
 def school_admin(request, conference_slug, school_slug):
-    conference = get_object_or_404(Conference, url_name=conference_slug)
+    conference = get_object_or_404(Conference, url_name=conference_slug)    
     school = get_object_or_404(School, url_name=school_slug)
     feestructure = conference.feestructure
+    sponsors = FacultySponsor.objects.filter(school=school,conferences__id__exact=conference.id)
     fees_table = get_fees_table_from_data(school, \
                                           conference, \
                                           feestructure, \
-                                          school.facultysponsor_set.count(), \
-                                          school.get_filled_delegate_positions_count(), \
-                                          school.get_delegations_count(), \
-                                          school.get_late_delegate_registrations_count(feestructure.late_delegate_registration_start_date), \
-                                          school.get_delegate_request_date(), \
-                                          school.total_payments())
-    country_preferences = get_country_preferences_html(school)
+                                          school.facultysponsor_set.filter(conferences__id__exact=conference.id).count(), \
+                                          school.get_filled_delegate_positions_count(conference), \
+                                          school.get_delegations_count(conference), \
+                                          school.get_late_delegate_registrations_count(feestructure.late_delegate_registration_start_date,conference), \
+                                          school.get_delegate_request_date(conference), \
+                                          school.total_payments(conference))
+    country_preferences = get_country_preferences_html(school,conference)
     return render_response(request, 'school/index.html', {'conference' : conference, 
                                                           'school' : school, 
                                                           'fees_table' : fees_table,
-                                                          'country_preferences' : country_preferences})
-
-def validate_newsponsor_form(sponsor_form):
-    if sponsor_form.is_valid():
-        username = sponsor_form.cleaned_data['sponsor_username']
-        if username:
-            if User.objects.filter(username=username).count():
-                sponsor_form._errors.setdefault("sponsor_username", ErrorList()).append(u"Username is not available.")
-                return False
-            return True
-    
-    return False
-
-def validate_newschool_form(school_form, conference_slug):
-    if school_form.is_valid():
-        schoolname = school_form.cleaned_data['school_name']
-        if schoolname and conference_slug:
-            if School.objects.filter(name=schoolname, conference__url_name=conference_slug).count() or slugify(schoolname) == "secretariat":
-                school_form._errors.setdefault("school_name", ErrorList()).append(u"School name is not available.")
-                return False
-            return True
-
-    return False
+                                                          'country_preferences' : country_preferences,
+                                                          'sponsors' : sponsors})
 
 def create_school(request, conference_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
@@ -88,11 +79,10 @@ def create_school(request, conference_slug):
         sponsor_form = NewFacultySponsorForm(request.POST)
         captcha_response = get_recaptcha_response(request)
         
-        if validate_newschool_form(school_form, conference_slug):
-            if request.user.is_authenticated() or validate_newsponsor_form(sponsor_form):
+        if school_form.is_valid():
+            if request.user.is_authenticated() or sponsor_form.is_valid():
                 if captcha_response.is_valid:
                     new_school = School()
-                    new_school.conference = conference
                     new_school.name = school_form.cleaned_data['school_name']
                     new_school.url_name = slugify(school_form.cleaned_data['school_name'])
                     new_school.address_line_1 = school_form.cleaned_data['school_address_line_1']
@@ -103,7 +93,8 @@ def create_school(request, conference_slug):
                     new_school.address_country = school_form.cleaned_data['school_address_country']
                     new_school.access_code = User.objects.make_random_password()
                     new_school.save()
-        
+                    new_school.conferences.add(conference)
+                    
                     new_sponsor = FacultySponsor()
                     new_sponsor.school = new_school
                     if hasattr(sponsor_form,'cleaned_data'):
@@ -116,7 +107,6 @@ def create_school(request, conference_slug):
                         new_user.first_name = sponsor_form.cleaned_data['sponsor_first_name']
                         new_user.last_name = sponsor_form.cleaned_data['sponsor_last_name']
                         new_user.email = sponsor_form.cleaned_data['sponsor_email']
-                        new_user.username = sponsor_form.cleaned_data['sponsor_username']
                         new_user.set_password(sponsor_form.cleaned_data['sponsor_password'])
                         new_user.save()
                     else:
@@ -130,7 +120,8 @@ def create_school(request, conference_slug):
                     
                     new_sponsor.user = new_user
                     new_sponsor.save()
-        
+                    new_sponsor.conferences.add(conference)
+       
                     return HttpResponseRedirect(reverse(school_admin, 
                                                         args=(conference.url_name,new_school.url_name,)))
                 else:
@@ -157,6 +148,7 @@ def grant_school_access(request, conference_slug, school_slug):
             sponsor.user = request.user
             sponsor.school = school
             sponsor.save()
+            sponsor.conferences.add(conference)
 
             if not redirect_to or ' ' in redirect_to:
                 redirect_to = settings.LOGIN_REDIRECT_URL
@@ -181,12 +173,12 @@ def generate_invoice_html(request, conference_slug, school_slug, template):
         'fees_table' : get_fees_table_from_data(school, \
                                           conference, \
                                           feestructure, \
-                                          school.facultysponsor_set.count(), \
-                                          school.get_filled_delegate_positions_count(), \
-                                          school.get_delegations_count(), \
-                                          school.get_late_delegate_registrations_count(feestructure.late_delegate_registration_start_date), \
-                                          school.get_delegate_request_date(), \
-                                          school.total_payments())}
+                                          school.facultysponsor_set.filter(conferences__id__exact=conference.id).count(), \
+                                          school.get_filled_delegate_positions_count(conference), \
+                                          school.get_delegations_count(conference), \
+                                          school.get_late_delegate_registrations_count(feestructure.late_delegate_registration_start_date,conference), \
+                                          school.get_delegate_request_date(conference), \
+                                          school.total_payments(conference))}
         return render_to_string(template, context_dict, context_instance=RequestContext(request))
     else:
         raise Http404
@@ -281,18 +273,18 @@ def get_fees_table(request, conference_slug, school_slug):
         return HttpResponse(get_fees_table_from_data(school, \
                                           conference, \
                                           feestructure, \
-                                          school.facultysponsor_set.count(), \
-                                          school.get_filled_delegate_positions_count(), \
-                                          school.get_delegations_count(), \
-                                          school.get_late_delegate_registrations_count(feestructure.late_delegate_registration_start_date), \
-                                          school.get_delegate_request_date(), \
-                                          school.total_payments()))
+                                          school.facultysponsor_set.filter(conferences__id__exact=conference.id).count(), \
+                                          school.get_filled_delegate_positions_count(conference), \
+                                          school.get_delegations_count(conference), \
+                                          school.get_late_delegate_registrations_count(feestructure.late_delegate_registration_start_date,conference), \
+                                          school.get_delegate_request_date(conference), \
+                                          school.total_payments(conference)))
     raise Http404
 
-def get_country_preferences_html(school):
+def get_country_preferences_html(school,conference):
     
     country_preferences = []
-    preferences = CountryPreference.objects.select_related('country').filter(request__school=school)
+    preferences = CountryPreference.objects.select_related('country').filter(request__school=school,request__conference=conference)
     if len(preferences) == 0:
         country_preferences.append("<i>No country preferences have been submitted.</i>")
     else:
@@ -303,7 +295,7 @@ def get_country_preferences_html(school):
     
     delegate_count = 0
     try:
-        delegate_count = DelegateCountPreference.objects.get(request__school=school).delegate_count
+        delegate_count = DelegateCountPreference.objects.get(request__school=school,request__conference=conference).delegate_count
     except ObjectDoesNotExist:
         pass
     

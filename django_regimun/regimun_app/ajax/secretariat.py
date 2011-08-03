@@ -10,7 +10,8 @@ from regimun_app.forms import jEditableForm, BasicConferenceInfoForm, \
     NewCommitteeForm, NewCountryForm, FeeStructureForm, UploadFileForm, \
     NewPaymentForm
 from regimun_app.models import Conference, Committee, Country, DelegatePosition, \
-    School, CountryPreference, Payment
+    School, Payment
+from regimun_app.views.school_admin import is_school_registered
 from regimun_app.views.secretariat_admin import secretariat_authenticate
 import csv
 import exceptions
@@ -86,7 +87,7 @@ def get_conference_countries(request, conference):
     return simplejson.dumps({'form':form.as_p(), 'objects':existing_countries})
 
 def get_conference_payments(request, conference):
-    existing_payments = serializers.serialize('json', Payment.objects.select_related('school').filter(school__conference=conference), fields=('school','type','date','amount','notes'), use_natural_keys=True)
+    existing_payments = serializers.serialize('json', Payment.objects.select_related('school').filter(conference=conference), fields=('school','type','date','amount','notes'), use_natural_keys=True)
     form = NewPaymentForm()
     
     return simplejson.dumps({'form':form.as_p(), 'objects':existing_payments})
@@ -172,7 +173,7 @@ def edit_payment(request, conference):
             if payment_attr and payment_pk:
                 payment = get_object_or_404(Payment, pk=payment_pk)
                 value = form.cleaned_data['value']
-                if payment.school.conference == conference and value:
+                if payment.conference == conference and value:
                     payment.__setattr__(payment_attr, value)
                     payment.save()
                     return HttpResponse(value)
@@ -188,7 +189,9 @@ def add_payment(request, conference):
     if request.method == 'POST':
         form = NewPaymentForm(request.POST, request.FILES)
         if(form.is_valid()):
-            payment = form.save()
+            payment = form.save(commit=False)
+            payment.conference = conference
+            payment.save()
             return serializers.serialize('json', [payment], fields=('school','type','date','amount','notes'), use_natural_keys=True)[1:-1]
         else:
             return simplejson.dumps({'form':form.as_p()})
@@ -401,7 +404,7 @@ def set_country_school_assignments(request, conference):
                     return HttpResponse(" ")
                 else:
                     school = get_object_or_404(School, pk=school_pk)
-                    if school.conference == conference:
+                    if is_school_registered(conference, school):
                         set_country_school_assignment(country_positions, school)
                         return HttpResponse(school.name)
 
@@ -413,7 +416,7 @@ def upload_school_country_assignments(request, conference):
             uploaded_file = request.FILES['file']
             countries = Country.objects.filter(conference=conference)
             countries_dict = dictify_queryset(countries, 'name')
-            schools = School.objects.filter(conference=conference)
+            schools = School.objects.filter(conferences__id__exact=conference.id)
             schools_dict = dictify_queryset(schools, 'name')
             all_positions = DelegatePosition.objects.filter(country__in=countries)
             positions_dict = sort_queryset(all_positions, 'country')

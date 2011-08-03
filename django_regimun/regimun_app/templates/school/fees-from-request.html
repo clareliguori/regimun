@@ -26,7 +26,7 @@
 					<tr>
 						<td style="padding: 3px; text-align: left">Sponsor/Advisor Fee</td>
 						<td style="padding: 3px; text-align: right">{{ conference.feestructure.per_sponsor|currencyformat }}</td>
-						<td style="padding: 3px; text-align: right">{{ school.facultysponsor_set.count }}</td>
+						<td style="padding: 3px; text-align: right">{{ school.facultysponsor_set(conference).count }}</td>
 						<td style="padding: 3px; text-align: right">{{ school.sponsor_fee|currencyformat }}</td>
 					</tr>
 				{% endif %}

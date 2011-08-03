@@ -320,7 +320,7 @@ function update_fees_table() {
 			</p>
 	
 		<h3>Faculty Sponsors</h3>
-			{% for sponsor in school.facultysponsor_set.all %}
+			{% for sponsor in sponsors %}
 				<div id="sponsor_{{sponsor.pk}}">
 					<b>{{ sponsor.user.get_full_name }} </b>
 					{% if sponsor.user.username == user.username %}

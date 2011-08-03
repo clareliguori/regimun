@@ -24,8 +24,9 @@ import csv
 def secretariat_authenticate(request, conference):
     if request.user.is_staff:
         return True
+
     try:
-        return request.user.secretariat_member.conference.pk == conference.pk
+        request.user.secretariat_member.conferences.get(id=conference.id)
     except ObjectDoesNotExist:
         return False
 
@@ -41,7 +42,7 @@ def spreadsheet_downloads(request, conference_slug):
             writer.writerow(['School', 'First Name', 'Last Name', 'E-mail Address', 'Phone',
                             'Street Address','Address 2','City','State / Province / Region','ZIP / Postal Code','Country'])
             
-            sponsors = FacultySponsor.objects.select_related().filter(school__conference__url_name__exact=conference_slug)
+            sponsors = FacultySponsor.objects.select_related().filter(conferences__url_name__exact=conference_slug)
             
             for sponsor in sponsors:
                 school = sponsor.school
@@ -105,7 +106,7 @@ def spreadsheet_downloads(request, conference_slug):
                 writer.writerow(row)
         elif 'country-preferences' in request.GET:
             response['Content-Disposition'] = 'attachment; filename=country-preferences-' + conference_slug + ".csv"             
-            preferences = CountryPreference.objects.select_related().filter(request__school__conference=conference).order_by('request__school__name','last_modified')
+            preferences = CountryPreference.objects.select_related().filter(request__conference=conference).order_by('request__school__name','last_modified')
     
             writer.writerow(['School','Rank','Country','Time Submitted'])
             
@@ -121,7 +122,7 @@ def spreadsheet_downloads(request, conference_slug):
                 writer.writerow([current_school, str(rank), preference.country.name, preference.last_modified.strftime("%A, %d. %B %Y %I:%M%p")])                
         elif 'delegate-count-requests' in request.GET:
             response['Content-Disposition'] = 'attachment; filename=delegate-count-requests-' + conference_slug + ".csv"             
-            preferences = DelegateCountPreference.objects.select_related().filter(request__school__conference=conference).order_by('request__school__name','request__created')
+            preferences = DelegateCountPreference.objects.select_related().filter(request__conference=conference).order_by('request__school__name','request__created')
     
             writer.writerow(['School','Total Delegates Requested','Time Submitted'])
             
@@ -139,30 +140,29 @@ def generate_all_invoices_html(request, conference_slug, template):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     
     if secretariat_authenticate(request, conference):
-        schools = School.objects.filter(conference=conference)
-        print "Schools " + str(len(schools))
+        schools = School.objects.filter(conferences__id__exact=conference.id)
         feestructure = conference.feestructure
         
         delegate_counts = dict((k['position_assignment__school'],k['count']) for k in \
-                                    Delegate.objects.filter(position_assignment__school__in=schools).values('position_assignment__school').annotate(count=Count('id')))
+                                    Delegate.objects.filter(position_assignment__school__in=schools,position_assignment__country__conference=conference).values('position_assignment__school').annotate(count=Count('id')))
         
         late_delegate_counts = dict((k['position_assignment__school'],k['count']) for k in \
-                                    Delegate.objects.filter(position_assignment__school__in=schools,last_modified__gte=feestructure.late_delegate_registration_start_date).values('position_assignment__school').annotate(count=Count('id')))
+                                    Delegate.objects.filter(position_assignment__school__in=schools,position_assignment__country__conference=conference,last_modified__gte=feestructure.late_delegate_registration_start_date).values('position_assignment__school').annotate(count=Count('id')))
         
-        country_school_pairs = DelegatePosition.objects.filter(school__in=schools, delegate__isnull=False).values('school','country').annotate(count=Count('id'))
+        country_school_pairs = DelegatePosition.objects.filter(school__in=schools, country__conference=conference, delegate__isnull=False).values('school','country').annotate(count=Count('id'))
         delegations_counts = dict()
         for pair in country_school_pairs:
             school_id = pair['school']
             delegations_counts[school_id] = delegations_counts.get(school_id, 0) + 1
          
         sponsor_counts = dict((k['school'],k['count']) for k in \
-                                 FacultySponsor.objects.filter(school__in=schools).values('school').annotate(count=Count('id')))
+                                 FacultySponsor.objects.filter(school__in=schools,conferences__id__exact=conference.id).values('school').annotate(count=Count('id')))
         
         delegate_request_dates = dict((k['school'],k['created']) for k in \
-                                      DelegationRequest.objects.filter(school__in=schools).values('school','created'))
+                                      DelegationRequest.objects.filter(school__in=schools,conference=conference).values('school','created'))
         
         sums = dict((k['school'],float(k['sum'])) for k in \
-                    Payment.objects.filter(school__in=schools).values('school').annotate(sum=Sum('amount')))
+                    Payment.objects.filter(school__in=schools,conference=conference).values('school').annotate(sum=Sum('amount')))
         
         schools_output = []
 
@@ -267,8 +267,8 @@ def create_conference(request):
             user.save()
             secretariat_user = Secretariat()
             secretariat_user.user = user
-            secretariat_user.conference = new_conference
             secretariat_user.save()
+            secretariat_user.conferences.add(new_conference)
             
             return HttpResponseRedirect('/' + new_conference.url_name + '/secretariat/')
     else:

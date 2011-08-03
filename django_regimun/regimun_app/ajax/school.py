@@ -12,7 +12,7 @@ from regimun_app.models import Conference, School, FacultySponsor, \
     DelegatePosition, Delegate, CountryPreference, Country, DelegateCountPreference, \
     DelegationRequest
 from regimun_app.views.school_admin import school_authenticate, \
-    get_country_preferences_html
+    get_country_preferences_html, is_school_registered
 import inspect
 import smtplib
 import string
@@ -24,7 +24,7 @@ def school_ajax_functions(request, conference_slug, school_slug, func_name):
     func_name = string.replace(func_name, "-", "_")
     
     if school_authenticate(request, conference, school) and func_name in globals() and inspect.isfunction(globals()[func_name]):
-        return_value = globals()[func_name](request, school)
+        return_value = globals()[func_name](request, school, conference)
         if return_value != None:
             if isinstance(return_value, HttpResponse):
                 return return_value
@@ -34,11 +34,11 @@ def school_ajax_functions(request, conference_slug, school_slug, func_name):
             
     raise Http404
 
-def get_school_mailing_address_form(request, school):
+def get_school_mailing_address_form(request, school, conference):
     form = SchoolMailingAddressForm(instance=school)
     return simplejson.dumps({'form':form.as_p()})
 
-def save_school_mailing_address_form(request, school):
+def save_school_mailing_address_form(request, school, conference):
     form = SchoolMailingAddressForm(data=request.POST, instance=school)
     
     if form.is_valid():
@@ -47,7 +47,7 @@ def save_school_mailing_address_form(request, school):
     else:
         return simplejson.dumps({'form':form.as_p()})
 
-def get_edit_sponsor_form(request, school):
+def get_edit_sponsor_form(request, school, conference):
     if request.method == 'POST':
         sponsor_pk = request.POST.get('sponsor_pk','')
         sponsor = get_object_or_404(FacultySponsor, pk=sponsor_pk)
@@ -55,7 +55,7 @@ def get_edit_sponsor_form(request, school):
             form = EditFacultySponsorForm(initial={'sponsor_pk':sponsor_pk, 'sponsor_first_name': sponsor.user.first_name, 'sponsor_last_name':sponsor.user.last_name,'sponsor_email':sponsor.user.email,'sponsor_phone':sponsor.phone})
             return simplejson.dumps({'form':form.as_p(), 'sponsor_pk':sponsor_pk})
 
-def save_edit_sponsor_form(request, school):
+def save_edit_sponsor_form(request, school, conference):
     if request.method == 'POST':
         form = EditFacultySponsorForm(data=request.POST)
     
@@ -74,7 +74,7 @@ def save_edit_sponsor_form(request, school):
         else:
             return simplejson.dumps({'form':form.as_p(), 'sponsor_pk':sponsor_pk})
 
-def remove_sponsor(request, school):
+def remove_sponsor(request, school, conference):
     if request.method == 'POST':
         sponsor_pk = request.POST.get('sponsor_pk','')
         sponsor = get_object_or_404(FacultySponsor, pk=sponsor_pk)
@@ -82,7 +82,7 @@ def remove_sponsor(request, school):
             sponsor.delete()
             return simplejson.dumps({'success':'true', 'sponsor_pk':sponsor_pk})
     
-def edit_delegate(request, school):
+def edit_delegate(request, school, conference):
     if request.method == 'POST':
         position_pk = request.POST.get('position_pk','')
         delegate_position = DelegatePosition.objects.get(pk=position_pk)
@@ -100,7 +100,7 @@ def edit_delegate(request, school):
             else:
                 return simplejson.dumps({'form':form.as_p(), 'position_pk':position_pk})
 
-def get_edit_delegate_form(request, school):
+def get_edit_delegate_form(request, school, conference):
     if request.method == 'POST':
         position_pk = request.POST.get('position_pk','')
         delegate_position = DelegatePosition.objects.get(pk=position_pk)
@@ -112,7 +112,7 @@ def get_edit_delegate_form(request, school):
                 form = DelegateNameForm()
             return simplejson.dumps({'form':form.as_p(), 'position_pk':position_pk})
 
-def remove_delegate(request, school):
+def remove_delegate(request, school, conference):
     if request.method == 'POST':
         position_pk = request.POST.get('position_pk','')
         delegate_position = DelegatePosition.objects.get(pk=position_pk)
@@ -124,13 +124,13 @@ def remove_delegate(request, school):
                 pass
             return simplejson.dumps({'position_pk':position_pk})
 
-def get_country_preferences(request, school):
-    preferences = CountryPreference.objects.select_related('country').filter(request__school=school)
+def get_country_preferences(request, school, conference):
+    preferences = CountryPreference.objects.select_related('country').filter(request__school=school,request__conference=conference)
     current_preferences = []
     for preference in preferences:
         current_preferences.append(preference.country.pk)
     
-    available_positions = DelegatePosition.objects.select_related('country').filter(school=None).order_by('country__name')
+    available_positions = DelegatePosition.objects.select_related('country').filter(school=None,country__conference=conference).order_by('country__name')
     available_countries = {}
     for position in available_positions:
         available_countries[position.country.pk] = position.country.name
@@ -145,18 +145,19 @@ def get_country_preferences(request, school):
     
     delegate_count = 0
     try:
-        delegate_count = DelegateCountPreference.objects.get(request__school=school).delegate_count
+        delegate_count = DelegateCountPreference.objects.get(request__school=school,request__conference=conference).delegate_count
     except ObjectDoesNotExist:
         pass
     
     return simplejson.dumps({'preferences':current_preferences, 'delegate_count':delegate_count, 'available_countries':''.join(options)})
 
-def set_country_preferences(request, school):
+def set_country_preferences(request, school, conference):
     if request.method == 'POST':
         try:
-            delegation_request = DelegationRequest.objects.get(school=school)
+            delegation_request = DelegationRequest.objects.get(school=school,conference=conference)
         except ObjectDoesNotExist:
             delegation_request = DelegationRequest()
+            delegation_request.conference = conference
             delegation_request.school = school
             delegation_request.save()
         
@@ -184,9 +185,9 @@ def set_country_preferences(request, school):
                 except Country.DoesNotExist:
                     pass
                 else:
-                    if country.conference == school.conference:
+                    if is_school_registered(country.conference, school):
                         # make sure this preference doesnt already exist
-                        if country.name not in country_names:                        
+                        if country.name not in country_names:   
                             pref = CountryPreference()
                             pref.country = country
                             pref.request = delegation_request
@@ -197,8 +198,8 @@ def set_country_preferences(request, school):
 
         if len(country_names) > 0:
             # send notification email
-            sender = school.conference.email_address
-            to = school.conference.email_address
+            sender = conference.email_address
+            to = conference.email_address
             
             # Create message container - the correct MIME type is multipart/alternative.
             msg = MIMEMultipart('alternative')
@@ -238,7 +239,7 @@ def set_country_preferences(request, school):
             s.sendmail(sender, to, msg.as_string())
             s.quit()
         
-        return simplejson.dumps({'prefs':get_country_preferences_html(school)})
+        return simplejson.dumps({'prefs':get_country_preferences_html(school,conference)})
         
-def get_country_preferences_html_ajax(request, school):
-    return simplejson.dumps({'prefs':get_country_preferences_html(school)})
+def get_country_preferences_html_ajax(request, school, conference):
+    return simplejson.dumps({'prefs':get_country_preferences_html(school,conference)})

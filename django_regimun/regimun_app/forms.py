@@ -1,8 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.db.models.query_utils import Q
 from django.forms.models import ModelForm, modelformset_factory
-from django.forms.widgets import PasswordInput, HiddenInput, TextInput
+from django.forms.widgets import HiddenInput, TextInput, DateInput
+from django.template.defaultfilters import slugify
 from regimun_app.models import Conference, School, Committee, Country, \
     FeeStructure, Delegate, Payment
 
@@ -40,6 +42,17 @@ class NewSchoolForm(CleanForm):
     school_state = forms.CharField(label="State / Province / Region", max_length=200)
     school_zip = forms.CharField(label="ZIP / Postal Code", max_length=200, required=False)
     school_address_country = forms.CharField(label="Country", max_length=200, required=False)
+    
+    def clean_school_name(self):
+        data = self.cleaned_data['school_name'].strip()
+        slug = slugify(data)
+        if data == "secretariat" or slug == 'secretariat' or slug == '':
+            raise forms.ValidationError("Invalid school name.")
+        
+        if School.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug)).count() > 0:
+            raise forms.ValidationError("School name is not available.")
+        
+        return data
 
 class SchoolNameForm(CleanModelForm):
     class Meta:
@@ -49,10 +62,27 @@ class SchoolNameForm(CleanModelForm):
 class NewFacultySponsorForm(CleanForm):
     sponsor_username = forms.RegexField("\w+", label="Username", max_length=30, help_text="Alphanumeric characters only (letters, digits and underscores).")
     sponsor_password = forms.CharField(label="Password", max_length=128, widget=forms.PasswordInput)
+    password2 = forms.CharField(label="Password confirmation", widget=forms.PasswordInput,
+        help_text = "Enter the same password as above, for verification.")
     sponsor_first_name = forms.CharField(label="First name", max_length=30)
     sponsor_last_name = forms.CharField(label="Last name", max_length=30)
     sponsor_email = forms.EmailField(label="E-mail address", max_length=200)
     sponsor_phone = forms.CharField(label="Phone number", max_length=30)
+    
+    def clean_sponsor_username(self):
+        username = self.cleaned_data['sponsor_username'].strip()
+        try:
+            User.objects.get(username=username)
+        except User.DoesNotExist:
+            return username
+        raise forms.ValidationError(_("A user with that username already exists."))
+        
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("sponsor_password", "")
+        password2 = self.cleaned_data["password2"]
+        if password1 != password2:
+            raise forms.ValidationError(_("The two password fields didn't match."))
+        return password2
     
 class EditFacultySponsorForm(CleanForm):
     sponsor_pk = forms.DecimalField(widget=HiddenInput())
@@ -65,11 +95,31 @@ class ConferenceForm(CleanModelForm):
     class Meta:
         model = Conference
         exclude = ('url_name',)
-
+        widgets = {
+            'start_date': DateInput(attrs={'class':'datepicker'}),
+            'end_date': DateInput(attrs={'class':'datepicker'}),
+        }
+    
+    def clean_name(self):
+        data = self.cleaned_data['name'].strip()
+        slug = slugify(data)
+        
+        if slug == '':
+            raise forms.ValidationError("Invalid conference name.")
+        
+        if Conference.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug)).count() > 0:
+            raise forms.ValidationError("A conference already exists with this name.")
+        
+        return data
+    
 class BasicConferenceInfoForm(CleanModelForm):
     class Meta:
         model = Conference
         fields = ('start_date','end_date','location','website_url','logo')
+        widgets = {
+            'start_date': DateInput(attrs={'class':'datepicker'}),
+            'end_date': DateInput(attrs={'class':'datepicker'}),
+        }
 
 class FeeStructureForm(CleanModelForm):
     class Meta:
@@ -89,13 +139,10 @@ class OrganizationInfoForm(CleanModelForm):
         model = Conference
         fields = ('organization_name','address_line_1','address_line_2','city','state','zip','address_country')
 
-class SecretariatUserForm(CleanModelForm):
+class SecretariatUserForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ('username','password',)
-        widgets = {
-            'password' : PasswordInput,
-        }
+        fields = ("username",)
 
 class SchoolMailingAddressForm(CleanModelForm):
     class Meta:
@@ -109,9 +156,15 @@ class NewCommitteeForm(CleanModelForm):
 
     def clean_name(self):
         data = self.cleaned_data['name'].strip()
-        if Committee.objects.filter(name=data).count() > 0:
+        slug = slugify(data)
+        
+        if slug == '':
+            raise forms.ValidationError("Invalid committee name.")
+        
+        conf_id = self.cleaned_data['conference'].strip()
+        if Committee.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug),conference__pk=conf_id).count() > 0:
             raise forms.ValidationError("A committee already exists with this name.")
-
+        
         return data
 
 class NewCountryForm(CleanModelForm):
@@ -121,14 +174,21 @@ class NewCountryForm(CleanModelForm):
 
     def clean_name(self):
         data = self.cleaned_data['name'].strip()
-        if Country.objects.filter(name=data).count() > 0:
+        slug = slugify(data)
+        
+        if slug == '':
+            raise forms.ValidationError("Invalid country name.")
+        
+        conf_id = self.cleaned_data['conference'].strip()
+        if Country.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug),conference__pk=conf_id).count() > 0:
             raise forms.ValidationError("A country already exists with this name.")
-
+        
         return data
 
 class NewPaymentForm(CleanModelForm):
     class Meta:
         model = Payment
+        exclude = ('conference')
         widgets = {
             'amount': TextInput(attrs={'class': "auto {aNeg: '-', aSign: '$'}"}),
         }

@@ -1,5 +1,5 @@
 from django import http
-from django.contrib.auth import REDIRECT_FIELD_NAME, login, views
+from django.contrib.auth import REDIRECT_FIELD_NAME, views
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseServerError, \
@@ -67,12 +67,8 @@ def upload_progress(request):
 
 def ajax_error(request):
     if request.method == 'POST':
-        errordata = request.POST.get('errordata', '')
-        
-        if settings.DEBUG:
-            print errordata
-        
-        raise ValueError("AJAX error:\n" + errordata);
+        errordata = request.POST.get('errordata', '')        
+        raise ValueError("AJAX error:\n" + errordata)
     raise Http404
 
 def convert_html_to_doc(html, filename, conference):
