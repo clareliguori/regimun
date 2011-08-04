@@ -205,27 +205,30 @@ def generate_invoice_doc(request, conference_slug, school_slug):
 
 @login_required
 def generate_request_based_invoice(request, conference_slug, school_slug):
+    response = http.HttpResponse()
+    response['Content-Type'] ='application/pdf'
+    response['Content-Disposition'] = 'attachment; filename=invoice-' + conference_slug + "-" + school_slug + '.pdf'
+    
     conference = get_object_or_404(Conference, url_name=conference_slug)
     school = get_object_or_404(School, url_name=school_slug)
-
+    feestructure = conference.feestructure
+    
     if school_authenticate(request, conference, school):
-        response = http.HttpResponse()
-        response['Content-Type'] ='application/pdf'
-        response['Content-Disposition'] = 'attachment; filename=invoice-' + conference_slug + "-" + school_slug + '.pdf'
-
         context_dict = {
-            'pagesize' : 'letter',
-            'conference' : conference,
-            'school' : school, }
-        
+        'pagesize' : 'letter',
+        'conference' : conference,
+        'school' : school, 
+        'fees_table' : get_request_fees_table_from_data(school, \
+                                          conference, \
+                                          feestructure)}
         html = render_to_string('invoice/invoice-from-request.html', context_dict, context_instance=RequestContext(request))
         pdf = pisa.CreatePDF(src=html, dest=response, show_error_as_pdf=True, link_callback=fetch_resources)
         if not pdf.err:
             return response
         else:
-            raise ValueError("Error creating request-based invoice PDF: " + pdf.err)
+            raise ValueError("Error creating invoice PDF: " + pdf.err)
     else:
-        raise Http404                                                                                       
+        raise Http404
 
 @login_required
 def school_spreadsheet_downloads(request, conference_slug, school_slug):
@@ -314,15 +317,7 @@ def get_fees_table_from_data(school, conference, feestructure, sponsor_count, de
     
     total_fee = 0.0
 
-    output.append("<div id=\"fees-table\">")
-    output.append("<h3 style=\"margin: 0; font-size: 100%;\" >Conference Fees:</h3>")
-    output.append("<table style=\"width: 100%; border: 1px solid; margin:0px; padding:6px;\">")
-    output.append("<tbody><tr>")
-    output.append("<th style=\"font-weight: bold; padding: 3px; text-align: left\">Fee</th>")
-    output.append("<th style=\"font-weight: bold; padding: 3px; text-align: right\">Rate</th>")
-    output.append("<th style=\"font-weight: bold; padding: 3px; text-align: right\">Quantity</th>")
-    output.append("<th style=\"font-weight: bold; padding: 3px; text-align: right\">Amount</th>")
-    output.append("</tr>")
+    output.append(fees_table_header())
             
     if feestructure.per_school != 0:
         per_school = str(currencyformat(feestructure.per_school))
@@ -392,6 +387,103 @@ def get_fees_table_from_data(school, conference, feestructure, sponsor_count, de
     output.append("<tr><th style=\"font-weight: bold; padding: 3px; text-align: right\" colspan=\"3\">Balance Due</th><th style=\"font-weight: bold; padding: 3px; text-align: right\">")
     output.append(currencyformat(total_fee - total_payments) + "</th></tr>");
     
+    output.append(fees_table_footer(conference, feestructure))
+    
+    return ''.join(output)
+    
+def get_request_fees_table_from_data(school, conference, feestructure):
+    output = []
+    
+    left_style = "style=\"padding: 3px; text-align: left\""
+    right_style = "style=\"padding: 3px; text-align: right\""
+    
+    total_fee = 0.0
+
+    output.append(fees_table_header())
+            
+    if feestructure.per_school != 0:
+        per_school = str(currencyformat(feestructure.per_school))
+        output.append("<tr>")
+        output.append("<td " + left_style + ">School Fee</td>")
+        output.append("<td " + right_style + ">" + per_school + "</td>")
+        output.append("<td " + right_style + ">1</td>")
+        output.append("<td " + right_style + ">" + per_school + "</td>")
+        output.append("</tr>")
+        total_fee += float(feestructure.per_school)
+        
+    if feestructure.per_country != 0:
+        delegations_count = school.get_assigned_countries_count(conference)
+        per_country_fee = float(delegations_count * feestructure.per_country)
+        output.append("<tr>")
+        output.append("<td " + left_style + ">Country Fee</td>")
+        output.append("<td " + right_style + ">" + str(currencyformat(feestructure.per_country)) + "</td>")
+        output.append("<td " + right_style + ">" + str(delegations_count) + "</td>")
+        output.append("<td " + right_style + ">" + str(currencyformat(per_country_fee)) + "</td>")
+        output.append("</tr>")
+        total_fee += per_country_fee
+        
+    if feestructure.per_delegate != 0:
+        delegates_count = school.get_delegate_request_count(conference)
+        per_delegate_fee = float(delegates_count * feestructure.per_delegate)
+        output.append("<tr>")
+        output.append("<td " + left_style + ">Delegate Fee</td>")
+        output.append("<td " + right_style + ">" + str(currencyformat(feestructure.per_delegate)) + "</td>")
+        output.append("<td " + right_style + ">" + str(delegates_count) + "</td>")
+        output.append("<td " + right_style + ">" + str(currencyformat(per_delegate_fee)) + "</td>")
+        output.append("</tr>")
+        total_fee += per_delegate_fee
+
+    if feestructure.per_sponsor != 0:
+        sponsor_count = school.facultysponsor_set.filter(conferences__id__exact=conference.id).count()
+        per_sponsor_fee = float(sponsor_count * feestructure.per_sponsor)
+        output.append("<tr>")
+        output.append("<td " + left_style + ">Sponsor/Advisor Fee</td>")
+        output.append("<td " + right_style + ">" + str(currencyformat(feestructure.per_sponsor)) + "</td>")
+        output.append("<td " + right_style + ">" + str(sponsor_count) + "</td>")
+        output.append("<td " + right_style + ">" + str(currencyformat(per_sponsor_fee)) + "</td>")
+        output.append("</tr>")
+        total_fee += per_sponsor_fee
+    
+    if feestructure.per_school_late_fee > 0:
+        delegation_request_date = school.get_delegate_request_date(conference)
+        if delegation_request_date != None and delegation_request_date.date() >= feestructure.late_registration_start_date:
+            late_fee_str = str(currencyformat(feestructure.per_school_late_fee))
+            output.append("<tr>")
+            output.append("<td " + left_style + ">School Registration Late Fee</td>")
+            output.append("<td " + right_style + ">" + late_fee_str + "</td>")
+            output.append("<td " + right_style + ">1</td>")
+            output.append("<td " + right_style + ">" + late_fee_str + "</td>")
+            output.append("</tr>")
+            total_fee += float(feestructure.per_school_late_fee)
+    
+    total_payments = school.total_payments(conference)
+    output.append("<tr><th style=\"font-weight: bold; padding: 3px; text-align: right\" colspan=\"3\">Total Fees</th><th style=\"font-weight: bold; padding: 3px; text-align: right\">")
+    output.append(currencyformat(total_fee) + "</th></tr>")
+    output.append("<tr><th style=\"font-weight: bold; padding: 3px; text-align: right\" colspan=\"3\">Paid</th><th style=\"font-weight: bold; padding: 3px; text-align: right\">")
+    output.append(currencyformat(total_payments) + "</th></tr>")
+    output.append("<tr><th style=\"font-weight: bold; padding: 3px; text-align: right\" colspan=\"3\">Balance Due</th><th style=\"font-weight: bold; padding: 3px; text-align: right\">")
+    output.append(currencyformat(total_fee - total_payments) + "</th></tr>");
+    
+    output.append(fees_table_footer(conference, feestructure))
+    
+    return ''.join(output)
+    
+def fees_table_header():    
+    output = []
+    output.append("<div id=\"fees-table\">")
+    output.append("<h3 style=\"margin: 0; font-size: 100%;\" >Conference Fees:</h3>")
+    output.append("<table style=\"width: 100%; border: 1px solid; margin:0px; padding:6px;\">")
+    output.append("<tbody><tr>")
+    output.append("<th style=\"font-weight: bold; padding: 3px; text-align: left\">Fee</th>")
+    output.append("<th style=\"font-weight: bold; padding: 3px; text-align: right\">Rate</th>")
+    output.append("<th style=\"font-weight: bold; padding: 3px; text-align: right\">Quantity</th>")
+    output.append("<th style=\"font-weight: bold; padding: 3px; text-align: right\">Amount</th>")
+    output.append("</tr>")
+
+    return ''.join(output)
+
+def fees_table_footer(conference, feestructure):
+    output = []
     output.append("</tbody></table><br/><br/>")
     if feestructure.per_school_late_fee != 0:
         output.append("Country preferences are due on " + date(feestructure.late_registration_start_date,"F jS") + ", after which late fees will be applied.<br/>")
@@ -409,6 +501,6 @@ def get_fees_table_from_data(school, conference, feestructure, sponsor_count, de
         output.append(", " + conference.zip)
     if conference.address_country:
         output.append(", " + conference.address_country)
-    output.append("<br/></span>Checks should be made out to " + conference.organization_name + ".<br/><br/></div>")
+    output.append("<br/></span>Checks should be made out to " + conference.organization_name + ".</div>")
     
     return ''.join(output)

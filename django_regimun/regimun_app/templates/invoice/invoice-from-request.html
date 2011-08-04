@@ -3,124 +3,12 @@
 <html>
 <head>
 	<title>{{ conference.name }} Invoice - {{ school.name }}</title>
-	<!-- style CSS has to go inside the html page for pisa HTML-to-PDF library; external stylesheets won't work -->
-	<style>
-		#invoice {
-			text-align: center;
-			margin-bottom:20px;
-		}
-		
-		#letterhead {
-			text-align: left;
-			font-size: 10pt;
-			margin-bottom: 15px;
-		}
-		
-		img {
-			zoom: 90%;
-		}
-		
-		#billto {
-			text-align: left;
-		}
-		
-		#date {
-			text-align: right;
-		}
-		
-		#event {
-			margin-bottom: 20px;
-		}
-		
-		table,tr,td,th {
-			border: 0px;
-		}
-		
-		table.topinfo {
-			width: 100%;
-			margin:0px;
-			padding:0px;
-			margin-bottom: 20px;
-		}
-
-		td.topinfo {
-			width: 50%;
-			vertical-align: top;
-		}
-		
-		h1.invoice{
-			margin: 0;
-			font-family: Verdana,Arial,sans-serif;
-			font-size: 150%;
-			padding-bottom: 3px;
-			border-bottom: 2px solid #000;
-			margin-top: 10px;
-			margin-bottom: 3px;
-		}
-		
-		h2.invoice{
-			margin: 0;
-			font-size: 200%;
-		}
-		
-		h3.invoice{
-			margin: 0;
-			font-size: 100%;
-		}
-		
-		@page {
-			size: letter;
-			margin: 1in;
-		}
-	
-	</style>
+	{% include "invoice/invoice-style.html" %}
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>
-	<div id="letterhead">
-		{% if conference.logo %}
-			<img src="{{conference.logo.url}}" border="0" /><br/>
-		{% endif %}
-		<h1 class="invoice">{{ conference.organization_name }}</h1>
-		{{ conference.address_line_1 }}{% if conference.address_line_2 %}, {{ conference.address_line_2 }}{% endif %}, {{ conference.city }}, {{ conference.state }}{% if conference.zip %}, {{ conference.zip }}{% endif %}{% if conference.address_country %}, {{ conference.address_country }}{% endif %}
-		{% if conference.website_url %}
-			 &bull; {{ conference.website_url }}
-		{% endif %}
-	</div>
+	{% include "invoice/invoice-body.html" %}
 
-	<div id="invoice">
-		<h2 class="invoice" >I N V O I C E</h2>
-	</div>
-	
-	<table class="topinfo">
-	<tr>
-		<td id="billto" class="topinfo">
-			<h3 class="invoice">Bill To:</h3>
-			{{ school.name }}<br/>
-			{{ school.address_line_1 }}{% if school.address_line_2 %}, {{ school.address_line_2 }}{% endif %}<br/>
-			{{ school.city }}, {{ school.state }}{% if school.zip %}, {{ school.zip }}{% endif %}{% if school.address_country %}, {{ school.address_country }}{% endif %}
-		</td>
-		
-		<td id="date" class="topinfo">
-			<h3 class="invoice">Date: </h3>{% now "l, F j, Y" %}
-		</td>
-	</tr>
-	</table>
-	
-	<div id="event">
-		<h3 class="invoice">Event:</h3>
-		{{ conference.name }}<br/>
-		{{ conference.location }}<br/>
-		{% if conference.start_date == conference.end_date %}
-			{{ conference.start_date|date:"F j, Y" }}
-		{% else %}
-			{{ conference.start_date|date:"F j, Y" }} - {{ conference.end_date|date:"F j, Y" }}
-		{% endif %}
-	</div>
-	
-	{% include "school/fees-from-request.html" %}
-	
-	<p><i>Note:</i> This invoice is based on the number of delegate positions requested by the school{% if conference.feestructure.per_country != 0 %}, and does not include any country fees charged by the conference{% endif %}. An updated invoice will be issued when the school enters the names of the delegates it intends on bringing to the conference into the online registration system.</p>
-
+	<p><i>Note:</i> This invoice is based on the number of delegate positions requested by the school and the countries currently assigned to the school. An updated invoice will be issued when the school enters the names of the delegates it intends on bringing to the conference into the online registration system.</p>
 </body>
 </html>

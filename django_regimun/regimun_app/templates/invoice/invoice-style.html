@@ -2,7 +2,7 @@
 	<style>
 		#invoice {
 			text-align: center;
-			margin-bottom:20px;
+			margin-bottom:15px;
 		}
 		
 		#letterhead {
@@ -12,7 +12,8 @@
 		}
 		
 		img {
-			zoom: 90%;
+			height: 100px;
+			vertical-align: text-bottom;
 		}
 		
 		#billto {
@@ -24,7 +25,7 @@
 		}
 		
 		#event {
-			margin-bottom: 20px;
+			margin-bottom: 15px;
 		}
 		
 		table,tr,td,th {
@@ -35,7 +36,7 @@
 			width: 100%;
 			margin:0px;
 			padding:0px;
-			margin-bottom: 20px;
+			margin-bottom: 15px;
 		}
 
 		td.topinfo {
@@ -43,14 +44,35 @@
 			vertical-align: top;
 		}
 		
-		h1.invoice{
+		td.conference-title{
 			margin: 0;
+			padding-bottom: 5px;
 			font-family: Verdana,Arial,sans-serif;
-			font-size: 150%;
-			padding-bottom: 3px;
+			font-size: 15pt;
+			vertical-align: bottom;
+			line-height:0px;
+		}
+		
+		td.logo {
+			{% load mathfilters %} 
+			width: {{ conference.logo.width|mult:"100"|div:conference.logo.height }}px;
+			margin: 0;
+			padding-bottom: 5px;
+			text-align: right;
+		}
+		
+		table.header {
+			width: 100%;
+			margin: 0;
+			margin-bottom: 15px;
+		}
+		
+		td.header {
+			padding-top: 5px;
+		}
+		
+		tr.header {
 			border-bottom: 2px solid #000;
-			margin-top: 10px;
-			margin-bottom: 3px;
 		}
 		
 		h2.invoice{

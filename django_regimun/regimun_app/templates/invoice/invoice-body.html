@@ -1,12 +1,21 @@
 	<div id="letterhead">
-		{% if conference.logo %}
-			<img src="{{MEDIA_URL}}/{{conference.logo.url}}" border="0" /><br/>
-		{% endif %}
-		<h1 class="invoice">{{ conference.organization_name }}</h1>
-		{{ conference.address_line_1 }}{% if conference.address_line_2 %}, {{ conference.address_line_2 }}{% endif %}, {{ conference.city }}, {{ conference.state }}{% if conference.zip %}, {{ conference.zip }}{% endif %}{% if conference.address_country %}, {{ conference.address_country }}{% endif %}
-		{% if conference.website_url %}
-			 &bull; {{ conference.website_url }}
-		{% endif %}
+		<table class="header">
+			<tr class="header">
+				<td class="conference-title">{{ conference.organization_name }}</td>
+				<td class="logo">
+				{% if conference.logo %}
+					<img src="{{MEDIA_URL}}/{{conference.logo.url}}" border="0" /><br/>
+				{% endif %}
+				</td>
+			</tr>
+			<tr><td colspan="2" class="header">
+				{{ conference.address_line_1 }}{% if conference.address_line_2 %}, {{ conference.address_line_2 }}{% endif %}, {{ conference.city }}, {{ conference.state }}{% if conference.zip %}, {{ conference.zip }}{% endif %}{% if conference.address_country %}, {{ conference.address_country }}{% endif %}
+				{% if conference.website_url %}
+					 &bull; {{ conference.website_url }}
+				{% endif %}			
+			</td>
+			</tr>
+		</table>
 	</div>
 
 	<div id="invoice">
@@ -40,5 +49,4 @@
 	</div>
 	
 	{% autoescape off %}{{ fees_table }}{% endautoescape %}
-	
-	<i>We look forward to seeing your school at the conference!</i>
+	<br/>

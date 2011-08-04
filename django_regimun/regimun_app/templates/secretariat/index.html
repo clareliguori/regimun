@@ -638,17 +638,20 @@ $(function(){
 			<tr><td style="text-align:left; padding: 5px;">Delegate positions requested: </td><td style="text-align:right; padding: 5px;">{{ object.delegate_count_preference_total }}</td></tr>
 			<tr><td style="text-align:left; padding: 5px;">Countries assigned to schools: </td><td style="text-align:right; padding: 5px;">{{ object.assigned_countries_count }}</td></tr>
 			<tr><td style="text-align:left; padding: 5px;">Delegate positions assigned to schools: </td><td style="text-align:right; padding: 5px;">{{ object.assigned_positions_count }}</td></tr>
+			<tr><td style="text-align:left; padding: 5px;">Unassigned delegate positions: </td><td style="text-align:right; padding: 5px;">{{ object.unassigned_delegate_position_count }}</td></tr>
 			<tr><td style="text-align:left; padding: 5px;">Registered delegates: </td><td style="text-align:right; padding: 5px;">{{ object.delegates_count }}</td></tr>
 		</table>
-		
-		<img style="padding: 20px; margin: 0 auto;" src="{{ object.school_accounts_by_month_graph }}" alt="" />
 		
 		<img style="padding: 20px; margin: 0 auto;" src="{{ object.delegate_registration_by_month_graph }}" alt="" />
 		
 		<img style="padding: 20px; margin: 0 auto;" src="{{ object.delegate_preference_by_month_graph }}" alt="" />
 		
+		<img style="padding: 20px; margin: 0 auto;" src="{{ object.delegate_preference_modified_by_month_graph }}" alt="" />
+		
 		<img style="padding: 20px; margin: 0 auto;" src="{{ object.payments_by_month_graph }}" alt="" />
-			
+
+		<img style="padding: 20px; margin: 0 auto;" src="{{ object.school_accounts_by_month_graph }}" alt="" />
+		
 	</div>
 
 	<div id="spreadsheets" class="secretariat-pane" >

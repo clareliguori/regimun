@@ -35,6 +35,9 @@ class Conference(models.Model):
 			return 0
 		return pref_sum['delegate_count__sum']
 	
+	def unassigned_delegate_position_count(self):
+		return DelegatePosition.objects.filter(country__conference=self,school__isnull=True).count()
+	
 	def delegate_count_preference_count(self):
 		return DelegateCountPreference.objects.filter(request__conference=self).count()
 	
@@ -145,6 +148,20 @@ class Conference(models.Model):
 		url = "http://chart.apis.google.com/chart?"
 		
 		params = self.chart_params("Delegation+Request+Submissions+By+Month")
+		params.extend(self.by_month_graph(month_dict))
+		
+		return url + '&'.join(params)
+	
+	def delegate_preference_modified_by_month_graph(self):
+		month_dict = dict()
+		
+		for delegate_count in DelegateCountPreference.objects.select_related().filter(request__conference=self):
+			month = datetime.datetime(delegate_count.last_modified.year, delegate_count.last_modified.month, 1)
+			month_dict[month] = month_dict.get(month, 0) + 1
+		
+		url = "http://chart.apis.google.com/chart?"
+		
+		params = self.chart_params("Delegation+Request+Last+Modified+By+Month")
 		params.extend(self.by_month_graph(month_dict))
 		
 		return url + '&'.join(params)
@@ -286,6 +303,9 @@ class School(models.Model):
 		
 	def get_delegations_count(self,conference):
 		return DelegatePosition.objects.filter(school=self,country__conference=conference,delegate__isnull=False).values('country').distinct().count()
+	
+	def get_assigned_countries_count(self,conference):
+		return DelegatePosition.objects.filter(school=self,country__conference=conference).values('country').distinct().count()
 	
 	def get_delegate_request_count(self,conference):
 		count = 0
