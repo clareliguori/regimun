@@ -74,14 +74,33 @@ def save_edit_sponsor_form(request, school, conference):
         else:
             return simplejson.dumps({'form':form.as_p(), 'sponsor_pk':sponsor_pk})
 
-def remove_sponsor(request, school, conference):
+def remove_sponsor_from_school(request, school, conference):
     if request.method == 'POST':
         sponsor_pk = request.POST.get('sponsor_pk','')
         sponsor = get_object_or_404(FacultySponsor, pk=sponsor_pk)
         if sponsor.school == school:
             sponsor.delete()
             return simplejson.dumps({'success':'true', 'sponsor_pk':sponsor_pk})
-    
+
+def remove_sponsor_from_conference(request, school, conference):
+    if request.method == 'POST':
+        sponsor_pk = request.POST.get('sponsor_pk','')
+        sponsor = get_object_or_404(FacultySponsor, pk=sponsor_pk)
+        if sponsor.school == school:
+            sponsor.conferences.remove(conference)
+            return simplejson.dumps({'success':'true', 'sponsor_pk':sponsor_pk, 'sponsor_name':sponsor.user.get_full_name()})
+
+def add_sponsor_to_conference(request, school, conference):
+    if request.method == 'POST':
+        sponsor_pk = request.POST.get('sponsor_pk','')
+        sponsor = get_object_or_404(FacultySponsor, pk=sponsor_pk)
+        if sponsor.school == school:
+            try:
+                sponsor.conferences.get(id=conference.id)
+            except Conference.DoesNotExist:
+                sponsor.conferences.add(conference)
+            return simplejson.dumps({'success':'true', 'sponsor_pk':sponsor_pk})
+
 def edit_delegate(request, school, conference):
     if request.method == 'POST':
         position_pk = request.POST.get('position_pk','')

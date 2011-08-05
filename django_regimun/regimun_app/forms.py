@@ -8,6 +8,8 @@ from django.template.defaultfilters import slugify
 from regimun_app.models import Conference, School, Committee, Country, \
     FeeStructure, Delegate, Payment
 
+invalid_names = ["secretariat", "ajax-error", "new-conference", "upload-progress", "school", "new-school","admin", "accounts", "media"]
+
 def strip_data(data):
     for key,value in data.items():
         if isinstance(value, basestring):
@@ -46,10 +48,13 @@ class NewSchoolForm(CleanForm):
     def clean_school_name(self):
         data = self.cleaned_data['school_name'].strip()
         slug = slugify(data)
-        if data == "secretariat" or slug == 'secretariat' or slug == '':
+        if data in invalid_names or slug in invalid_names or slug == '':
             raise forms.ValidationError("Invalid school name.")
         
         if School.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug)).count() > 0:
+            raise forms.ValidationError("School name is not available.")
+        
+        if Conference.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug)).count() > 0:
             raise forms.ValidationError("School name is not available.")
         
         return data
@@ -104,11 +109,14 @@ class ConferenceForm(CleanModelForm):
         data = self.cleaned_data['name'].strip()
         slug = slugify(data)
         
-        if slug == '':
+        if data in invalid_names or slug in invalid_names or slug == '':
             raise forms.ValidationError("Invalid conference name.")
         
+        if School.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug)).count() > 0:
+            raise forms.ValidationError("Conference name is not available.")
+        
         if Conference.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug)).count() > 0:
-            raise forms.ValidationError("A conference already exists with this name.")
+            raise forms.ValidationError("Conference name is not available.")
         
         return data
     

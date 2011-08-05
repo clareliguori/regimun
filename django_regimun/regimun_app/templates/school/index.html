@@ -7,7 +7,7 @@
 {% block scriptblock %}
 
 $(function(){
-        $('.remove-sponsor-dialog').dialog({
+        $('.remove-sponsor-from-school-dialog').dialog({
             autoOpen: false,
             width: 400,
             modal: true,
@@ -16,7 +16,7 @@ $(function(){
             buttons: {
                 "Remove Sponsor": function() {
 					$.post(
-						"ajax/remove-sponsor",
+						"ajax/remove-sponsor-from-school",
 						{'sponsor_pk': $(this).attr("sponsor")},
 						function(data) {
 				  			// remove the sponsor from display
@@ -34,9 +34,46 @@ $(function(){
             }
         });
         
-        $('.add-sponsor-dialog').dialog({
+        $('.remove-sponsor-from-conference-dialog').dialog({
             autoOpen: false,
             width: 400,
+            modal: true,
+            resizable: false,
+            position: 'center',
+            buttons: {
+                "Remove Sponsor": function() {
+					$.post(
+						"ajax/remove-sponsor-from-conference",
+						{'sponsor_pk': $(this).attr("sponsor")},
+						function(data) {
+				  			// remove the sponsor from display
+				  			$('#sponsor_' + data.sponsor_pk).remove();
+				  			$('#buttons_sponsor_' + data.sponsor_pk).remove();
+				  			update_fees_table();
+				  			
+				  			if(data.sponsor_pk == "{{ user.faculty_sponsor.pk }}") {
+				  				$('#add_sponsor_buttons').prepend('<a id="add_me" class="button" href="add-me">Add Me</a>');
+				  				$( ".button" ).button();
+				  			} else {
+				  				if ($("#register-sponsors").length == 0) {
+				  					$("#add_sponsor_dialog").append('<div id="register-sponsors"><p><b>Register Sponsor for {{ conference.name }}:</b></p></div>');
+				  				}
+				  				$("#register-sponsors").append('<a href="javascript:void(0);" onclick="add_sponsor_to_conference(' + data.sponsor_pk + ')" id="add-sponsor-' + data.sponsor_pk + '">' + data.sponsor_name + '</a><br/>');
+				  			}
+						},
+						"json"
+					);
+                   	$(this).dialog("close");
+                },
+                "Cancel": function() {
+                    $(this).dialog("close");
+                }
+            }
+        });
+
+        $('.add-sponsor-dialog').dialog({
+            autoOpen: false,
+            width: 500,
             modal: true,
             resizable: false,
             position: 'center',
@@ -47,6 +84,18 @@ $(function(){
             }
         });
 });
+
+function add_sponsor_to_conference(sponsor_pk) {
+	$.post(
+			"ajax/add-sponsor-to-conference",
+			{'sponsor_pk': sponsor_pk},
+			function(data) {
+				window.location.reload(true);
+			},
+			"json"
+	);
+	return false;
+}
 
 function toggle_country_preferences_buttons() {
 	$('#update-country-preferences').toggle();
@@ -335,21 +384,40 @@ function update_fees_table() {
 						<button id="edit_sponsor_{{sponsor.pk}}" class="button" onclick="get_edit_sponsor_form({{ sponsor.pk }})">Edit</button>
 					{% endif %}
 					<button id="save_sponsor_{{sponsor.pk}}" class="button" style="display: none" onclick="send_edit_sponsor_form({{sponsor.pk}})">Save</button>
+					<button id="remove_sponsor_from_conference_{{sponsor.pk}}" class="button" onclick="$('#remove_sponsor_from_conference_confirm_{{sponsor.pk}}').dialog('open')">Remove From Conference</button>
+					
 					{% if sponsor.user.username != user.username %}
-						<button id="remove_sponsor_{{sponsor.pk}}" class="button" onclick="$('#remove_sponsor_confirm_{{sponsor.pk}}').dialog('open')">Remove</button>
+						<button id="remove_sponsor_from_school_{{sponsor.pk}}" class="button" onclick="$('#remove_sponsor_from_school_confirm_{{sponsor.pk}}').dialog('open')">Revoke Access</button>
 						
-						<div style="display: none" id="remove_sponsor_confirm_{{sponsor.pk}}" class="remove-sponsor-dialog" title="Remove Faculty Sponsor" sponsor="{{sponsor.pk}}">
+						<div style="display: none" id="remove_sponsor_from_school_confirm_{{sponsor.pk}}" class="remove-sponsor-from-school-dialog" title="Remove Faculty Sponsor From School" sponsor="{{sponsor.pk}}">
 							<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 0 0;"></span> Please confirm that you want to remove {{sponsor.user.get_full_name}} from this school. Removing this sponsor will revoke their access to {{school.name}}, and they will not be notified.</p>
 						</div>
 					{% endif %}
+					<div style="display: none" id="remove_sponsor_from_conference_confirm_{{sponsor.pk}}" class="remove-sponsor-from-conference-dialog" title="Remove Faculty Sponsor From Conference" sponsor="{{sponsor.pk}}">
+						<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 0 0;"></span> Please confirm that you want to remove {{sponsor.user.get_full_name}} from this conference registration and that this sponsor will not be attending the conference. This sponsor will still be able to access this school's registration data.</p>
+					</div>
 				</p>
+
 			{% endfor %}
 
 			<br/><br/>	
-			<button id="add_sponsor" class="button" onclick="$('.add-sponsor-dialog').dialog('open')">Add Sponsor</button>
-			<div style="display: none" id="add_sponsor_dialog" class="add-sponsor-dialog" title="Grant Access to Faculty Sponsor">
-				<p><span class="ui-icon ui-icon-info" style="float:left; margin:0 7px 0 0;"></span> All faculty sponsors must have a user account on this site. To grant school registration access to another sponsor, give them this access code. Once they create an account and go to this school's page, they will be asked for this code.</p>
-				<p><b>Access Code</b>: {{ school.access_code }}</p>
+			<div id="add_sponsor_buttons">
+				{% load listfilters %}
+				{% if conference|not_in_list:user.faculty_sponsor.conferences %}
+					<a id="add_me" class="button" href="add-me">Add Me</a>
+				{% endif %}
+				<button id="add_sponsor" class="button" onclick="$('.add-sponsor-dialog').dialog('open')">Add Sponsor</button>
+				<div style="display: none" id="add_sponsor_dialog" class="add-sponsor-dialog" title="Grant Access to Faculty Sponsor">
+					<p><span class="ui-icon ui-icon-info" style="float:left; margin:0 7px 0 0;"></span> All faculty sponsors must have a user account on this site. To grant school registration access to another sponsor, give them this access code. Once they create an account and go to this school's page, they will be asked for this code.</p>
+					<p><b>Access Code</b>: {{ school.access_code }}</p>
+					{% if other_sponsors|length > 0 %}
+						<div id="register-sponsors"><p><b>Register Sponsor for {{ conference.name }}:</b></p>
+						{% for sponsor in other_sponsors %}
+								<a href="javascript:void(0);" onclick="add_sponsor_to_conference({{ sponsor.pk }})" id="add-sponsor-{{ sponsor.pk }}">{{ sponsor.user.get_full_name }}</a><br/>
+						{% endfor %}
+						</div>
+					{% endif %}
+				</div>
 			</div>
 	</div>
 	

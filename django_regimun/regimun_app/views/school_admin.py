@@ -56,6 +56,7 @@ def school_admin(request, conference_slug, school_slug):
     school = get_object_or_404(School, url_name=school_slug)
     feestructure = conference.feestructure
     sponsors = FacultySponsor.objects.filter(school=school,conferences__id__exact=conference.id)
+    other_sponsors = FacultySponsor.objects.filter(school=school).exclude(conferences__id__exact=conference.id).exclude(user=request.user)
     fees_table = get_fees_table_from_data(school, \
                                           conference, \
                                           feestructure, \
@@ -70,9 +71,10 @@ def school_admin(request, conference_slug, school_slug):
                                                           'school' : school, 
                                                           'fees_table' : fees_table,
                                                           'country_preferences' : country_preferences,
-                                                          'sponsors' : sponsors})
+                                                          'sponsors' : sponsors,
+                                                          'other_sponsors':other_sponsors})
 
-def create_school(request, conference_slug):
+def register_school(request, conference_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     if request.method == 'POST': 
         school_form = NewSchoolForm(request.POST)
@@ -128,15 +130,29 @@ def create_school(request, conference_slug):
                     school_form._errors.setdefault("school_name", ErrorList()).append("The reCAPTCHA wasn't entered correctly.")
 
     else:
-        school_form = NewSchoolForm()
-        sponsor_form = NewFacultySponsorForm()
+        try:
+            school = request.user.faculty_sponsor.school
+            try:
+                school.conferences.get(id=conference.id)
+            except Conference.DoesNotExist:
+                school.conferences.add(conference)
+            try:
+                request.user.faculty_sponsor.conferences.get(id=conference.id)
+            except Conference.DoesNotExist:
+                request.user.faculty_sponsor.conferences.add(conference)
+            
+            return HttpResponseRedirect(reverse(school_admin, 
+                                                        args=(conference.url_name,school.url_name,)))
+        except ObjectDoesNotExist:
+            school_form = NewSchoolForm()
+            sponsor_form = NewFacultySponsorForm()
 
     return render_response(request, 'register-new-school.html', {
         'school_form': school_form, 'sponsor_form': sponsor_form, 'conference' : conference
     })
 
+@login_required
 def grant_school_access(request, conference_slug, school_slug):
-    conference = get_object_or_404(Conference, url_name=conference_slug)
     school = get_object_or_404(School, url_name=school_slug)
 
     if request.method == 'POST':
@@ -148,8 +164,7 @@ def grant_school_access(request, conference_slug, school_slug):
             sponsor.user = request.user
             sponsor.school = school
             sponsor.save()
-            sponsor.conferences.add(conference)
-
+            
             if not redirect_to or ' ' in redirect_to:
                 redirect_to = settings.LOGIN_REDIRECT_URL
             elif '//' in redirect_to and re.match(r'[^\?]*//', redirect_to):
@@ -157,7 +172,21 @@ def grant_school_access(request, conference_slug, school_slug):
             
             return HttpResponseRedirect(redirect_to)
 
-    return render_response(request, "school/wrong-access-code.html", {'conference' : conference, 'school' : school})
+    return render_response(request, "school/wrong-access-code.html", {'school' : school})
+
+@login_required
+def add_to_conference(request, conference_slug, school_slug):
+    conference = get_object_or_404(Conference, url_name=conference_slug)
+    school = get_object_or_404(School, url_name=school_slug)
+    
+    if school_authenticate(request, conference, school):
+        try:
+            request.user.faculty_sponsor.conferences.get(id=conference.id)
+        except Conference.DoesNotExist:
+            request.user.faculty_sponsor.conferences.add(conference)
+        
+        return HttpResponseRedirect(reverse(school_admin, 
+                                                args=(conference.url_name,school.url_name,)))
 
 @login_required
 def generate_invoice_html(request, conference_slug, school_slug, template):

@@ -7,6 +7,7 @@ from regimun_app.views.school_admin import *
 from regimun_app.views.secretariat_admin import *
 
 conferences = Conference.objects.all()
+schools = School.objects.all()
 
 @login_required
 def limited_object_detail(*args, **kwargs):
@@ -28,8 +29,11 @@ urlpatterns = patterns('',
    # conference was created
    # (r'^(?P<conference_slug>[-\w]+)/created$', conference_created),
     
-    # schools index
+    # conference index
     (r'^(?P<slug>[-\w]+)/$', object_detail, dict(queryset=conferences, slug_field='url_name', template_name='conference_detail.html')),
+
+    # school index
+    (r'^school/(?P<slug>[-\w]+)/$', object_detail, dict(queryset=schools, slug_field='url_name', template_name='school_detail.html')),
 
     # secretariat ajax calls
     (r'^(?P<conference_slug>[-\w]+)/secretariat/ajax/(?P<func_name>[-\w]+)$', conference_ajax_functions),
@@ -50,9 +54,10 @@ urlpatterns = patterns('',
     (r'^(?P<conference_slug>[-\w]+)/secretariat/see-school$', redirect_to_school),
 
     # register new school
-    (r'^(?P<conference_slug>[-\w]+)/new-school/$', create_school),
+    (r'^(?P<conference_slug>[-\w]+)/new-school/$', register_school),
 
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/grant-school-access$', grant_school_access),
+    (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/add-me$', add_to_conference),
 
     # school page - downloads
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/downloads/', school_spreadsheet_downloads),

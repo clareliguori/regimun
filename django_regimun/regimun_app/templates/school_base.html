@@ -5,9 +5,9 @@
 {% endblock %}
 
 {% block content %}
-
+{% load listfilters %}
 {% if user.is_authenticated and user.is_active %}
-	{% if user.is_staff or user.faculty_sponsor and user.faculty_sponsor.school.pk == school.pk or user.secretariat_member and user.secretariat_member.conference.pk == conference.pk %}
+	{% if user.is_staff or user.faculty_sponsor and user.faculty_sponsor.school.pk == school.pk or user.secretariat_member and conference|in_list:user.secretariat_member.conferences %}
 		{% block pagecontent %}{% endblock %}
 	{% else %}
 		<div style="text-align:center; width:400px; padding-top:20px; margin: 0 auto">
