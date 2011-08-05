@@ -143,7 +143,7 @@ def register_school(request, conference_slug):
             
             return HttpResponseRedirect(reverse(school_admin, 
                                                         args=(conference.url_name,school.url_name,)))
-        except ObjectDoesNotExist:
+        except:
             school_form = NewSchoolForm()
             sponsor_form = NewFacultySponsorForm()
 
