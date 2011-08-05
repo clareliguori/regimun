@@ -50,6 +50,10 @@ def is_school_registered(conference, school):
         return False
     return True 
 
+def school_index(request, slug):
+    school = get_object_or_404(School, url_name=slug)
+    return render_response(request, 'school_detail.html', {'school' : school})
+
 @login_required
 def school_admin(request, conference_slug, school_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)    

@@ -1,19 +1,19 @@
 {% extends "school_base.html" %}
 
 {% block title %}
-{{ object.name }} Registrations
+{{ school.name }} Registrations
 {% endblock %}
 
 {% block pagecontent %}
 <div class="header">
-<h1>Conferences for {{ object.name }}</h1>
+<h1>Conferences for {{ school.name }}</h1>
 
-{% if object.conferences.all %}
-    {% for conference in object.conferences.all %}
-        <p><a href="/{{ conference.url_name }}/{{ object.url_name }}">{{ conference.name }}</a></p>
+{% if school.conferences.all %}
+    {% for conference in school.conferences.all %}
+        <p><a href="/{{ conference.url_name }}/{{ school.url_name }}">{{ conference.name }}</a></p>
     {% endfor %}
 {% else %}
-    <p>No conferences are registered for {{ object.name }}.</p>
+    <p>No conferences are registered for {{ school.name }}.</p>
 {% endif %}
 
 </div>

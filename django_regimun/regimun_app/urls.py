@@ -7,7 +7,6 @@ from regimun_app.views.school_admin import *
 from regimun_app.views.secretariat_admin import *
 
 conferences = Conference.objects.all()
-schools = School.objects.all()
 
 @login_required
 def limited_object_detail(*args, **kwargs):
@@ -33,7 +32,7 @@ urlpatterns = patterns('',
     (r'^(?P<slug>[-\w]+)/$', object_detail, dict(queryset=conferences, slug_field='url_name', template_name='conference_detail.html')),
 
     # school index
-    (r'^school/(?P<slug>[-\w]+)/$', object_detail, dict(queryset=schools, slug_field='url_name', template_name='school_detail.html')),
+    (r'^school/(?P<slug>[-\w]+)/$', school_index),
 
     # secretariat ajax calls
     (r'^(?P<conference_slug>[-\w]+)/secretariat/ajax/(?P<func_name>[-\w]+)$', conference_ajax_functions),

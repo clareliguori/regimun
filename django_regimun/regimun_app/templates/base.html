@@ -53,7 +53,11 @@
 	<div class="ui-widget ui-widget-header ui-state-active ui-corner-all top-user-bar">
 		<div class="top-user-bar-left">
 			{% if user.username %}
-				You are logged in as <span style="font-weight: bold">{{ user.username }}</span> (<a href="{% url django.contrib.auth.views.logout_then_login %}">Logout</a> / <a href="{% url django.contrib.auth.views.password_change %}">Change Password</a>)
+				You are logged in as <span style="font-weight: bold">{{ user.username }}</span> 
+				( <a href="{% url django.contrib.auth.views.logout_then_login %}">Logout</a> / 
+				<a href="{% url django.contrib.auth.views.password_change %}">Change Password</a>
+				{% if user.faculty_sponsor %} / <a href="/school/{{ user.faculty_sponsor.school.url_name }}">Home</a>{% endif %}
+				)
 			{% else %}
 				<a href="{% url django.contrib.auth.views.login %}?next={{ request.path }}">Login</a> / 
 				<a href="/accounts/register/?next={{ request.path }}">Register</a>
