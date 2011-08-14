@@ -261,15 +261,21 @@ function get_school_country_assignments_callback(data, selectSource, dialog_elem
 }
 
 function get_individual_delegate_positions_callback(data, schoolSelectSource, countrySelectSource, committeeSelectSource, dialog_element) {
-    output = "<p>Click in the School column to change the school assigned to that country.</p>";
+    output = "<p>Edit individual delegate positions by clicking in any column. To edit a delegate's title, press Enter after entering the new title.</p>";
     
     // table headers
     output += "<table id=\"delegate_positions\">";
     output += data.table;
     output += "</table>";
     
+    output += "<form action=\"ajax/add-delegate-position\" method=\"post\" id=\"new_delegate_position_form\">";
+    output += data.form;
+    output += "<input value=\"Add\" type=\"submit\" id=\"add-delegate-position\"></form>";
+    
     $('.loading').remove();
     $('#delegate-positions-table').html(output);
+    $("input:submit").button();
+    form_cleanup();
     
 	data_table = $('table#delegate_positions').dataTable({
 		"bJQueryUI": true,
@@ -337,8 +343,46 @@ function get_individual_delegate_positions_callback(data, schoolSelectSource, co
 		"height": "25px",
 		"tooltip" : 'Click to edit'
 	} );
-		
+	$('a#delete_delegate_position').click(function(event) {
+		$.post(
+			'ajax/remove-delegate-position',
+			{'id': $(event.target.parentNode.parentNode).attr("id")},
+			function(data) {
+				var aTrs = data_table.fnGetNodes();
+				for ( var i=0 ; i<aTrs.length ; i++ )
+				{
+					if ( $(aTrs[i]).attr('id') == data.id )
+					{
+						data_table.fnDeleteRow( aTrs[i] );
+						break;
+					}
+				}
+			},
+			'json'
+		);
+		return false;
+	});
+    		
 	data_table.fnAdjustColumnSizing();
+	
+	$("#new_delegate_position_form").ajaxForm({ 
+    	dataType:	'json',
+        success:   function(return_data) {
+			if(return_data != null && return_data.form != null) {
+	  			// re-load form with errors
+				decoded = return_data.form;
+		        $("#new_delegate_position_form").html(decoded);
+	  			$("#new_delegate_position_form").append("<input value=\"Add\" type=\"submit\" id=\"add-delegate-position\">");
+	  		    $("input:submit").button();
+	  		    form_cleanup();
+			} else {
+				// add the new object to the table
+				$("#new_delegate_position_form").resetForm();
+				var row = return_data.row;
+				data_table.fnAddTr( $(row)[0] );
+			}
+		}
+    });
 }
 
 function form_dialog(dialog_width, dialog_element, dialog_link_element, form_element, ajax_get_url) {

@@ -6,7 +6,7 @@ from django.forms.models import ModelForm, modelformset_factory
 from django.forms.widgets import HiddenInput, TextInput, DateInput
 from django.template.defaultfilters import slugify
 from regimun_app.models import Conference, School, Committee, Country, \
-    FeeStructure, Delegate, Payment
+    FeeStructure, Delegate, Payment, DelegatePosition
 
 invalid_names = ["secretariat", "ajax-error", "new-conference", "upload-progress", "school", "new-school","admin", "accounts", "media"]
 
@@ -205,6 +205,18 @@ class DelegateNameForm(CleanModelForm):
     class Meta:
         model = Delegate
         fields=('first_name','last_name')
+
+def delegate_position_form_factory(conference):
+    class NewDelegatePositionForm(CleanModelForm):
+        country = forms.ModelChoiceField(queryset=Country.objects.filter(conference=conference))
+        committee = forms.ModelChoiceField(queryset=Committee.objects.filter(conference=conference))
+        school = forms.ModelChoiceField(queryset=School.objects.filter(conferences__id__exact=conference.id), required=False)
+        title = forms.CharField(max_length=200, initial="Delegate", help_text="Ambassador, Judge, etc")
+        
+        class Meta:
+            model = DelegatePosition
+ 
+    return NewDelegatePositionForm
 
 CommitteeFormSet = modelformset_factory(Committee, can_delete=True, fields=('name',))
 

@@ -435,7 +435,7 @@ function update_fees_table() {
 	<div id="delegations">
 
 		<table>
-		{% for country,positions in school.get_delegations %}
+		{% for country,positions in delegations %}
 			<tr>
 				<td style="padding-right:10px">{% if country.flag_icon %}<img src="{{ MEDIA_URL }}/{{ country.flag_icon }}"/>{% endif %}</td>
 				<td><b>{{ country.name }}</b></td>

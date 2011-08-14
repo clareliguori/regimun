@@ -8,7 +8,7 @@ from django.template.defaultfilters import slugify
 from django.utils import simplejson
 from regimun_app.forms import jEditableForm, BasicConferenceInfoForm, \
     NewCommitteeForm, NewCountryForm, FeeStructureForm, UploadFileForm, \
-    NewPaymentForm
+    NewPaymentForm, delegate_position_form_factory
 from regimun_app.models import Conference, Committee, Country, DelegatePosition, \
     School, Payment
 from regimun_app.views.school_admin import is_school_registered
@@ -239,29 +239,17 @@ def get_delegate_positions(request, conference):
 def get_individual_delegate_positions(request, conference):
     table_list = []
     
-    table_list.append("<thead><tr><th>Country</th><th>Committee</th><th>School</th><th>Title</th></tr></thead><tbody>");
+    table_list.append("<thead><tr><th>Country</th><th>Committee</th><th>School</th><th>Title</th><th>Delete</th></tr></thead><tbody>");
     
     positions = DelegatePosition.objects.select_related('country','committee','school','delegate').filter(country__conference=conference)
     
     for position in positions:
-        id = " id=\"" + str(position.pk) + "\">"
-        table_list.append("<tr><td class=\"delegate_position_country\"")
-        table_list.append(id)
-        table_list.append(position.country.name)
-        table_list.append("</td><td class=\"delegate_position_committee\"")
-        table_list.append(id)
-        table_list.append(position.committee.name)
-        table_list.append("</td><td class=\"delegate_position_school\"")
-        table_list.append(id)
-        if position.school != None:
-            table_list.append(position.school.name)
-        table_list.append("</td><td class=\"delegate_position_title\"")
-        table_list.append(id)
-        table_list.append(position.title)
-        table_list.append("</td></tr>")
+        table_list.append(delegate_position_row(position))
     table_list.append("</tbody>")
     
-    return simplejson.dumps({'table':''.join(table_list)})
+    formclass = delegate_position_form_factory(conference)
+    
+    return simplejson.dumps({'table':''.join(table_list), 'form':formclass().as_p()})
 
 def dictify_queryset(set, field):
     ret = dict()
@@ -392,26 +380,73 @@ def set_individual_delegate_positions(request, conference):
             if position.country.conference == conference:
                 if "title" in classes and len(value) > 0:
                     position.title = value
+                    position.save()
                     return HttpResponse(position.title)
                 elif "country" in classes:
                     country = get_object_or_404(Country, pk=value)
                     if country.conference == conference:
                         position.country = country
+                        position.save()
                         return HttpResponse(country.name)
                 elif "committee" in classes:
                     committee = get_object_or_404(Committee, pk=value)
                     if committee.conference == conference:
                         position.committee = committee
+                        position.save()
                         return HttpResponse(committee.name)
                 elif "school" in classes:
                     if value == "-1":
                         position.school = None
+                        position.save()
                         return HttpResponse("")
                     else:
                         school = get_object_or_404(School, pk=value)
                         if is_school_registered(conference, school):
                             position.school = school
+                            position.save()
                             return HttpResponse(school.name)
+
+def remove_delegate_position(request, conference):
+    if request.method == 'POST':
+        position_pk = request.POST.get('id', '')
+        position = get_object_or_404(DelegatePosition, pk=position_pk)
+        position.delete()
+        return simplejson.dumps({'id':position_pk})
+
+def delegate_position_row(position):
+    id = " id=\"" + str(position.pk) + "\">"
+    row = []
+    row.append("<tr")
+    row.append(id)
+    row.append("<td class=\"delegate_position_country\"")
+    row.append(id)
+    row.append(position.country.name)
+    row.append("</td><td class=\"delegate_position_committee\"")
+    row.append(id)
+    row.append(position.committee.name)
+    row.append("</td><td class=\"delegate_position_school\"")
+    row.append(id)
+    if position.school != None:
+        row.append(position.school.name)
+    row.append("</td><td class=\"delegate_position_title\"")
+    row.append(id)
+    row.append(position.title)
+    row.append("</td><td class=\"delegate_position_delete\"")
+    row.append(id)
+    row.append("<a href=\"delete\" id=\"delete_delegate_position\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>")
+    return ''.join(row)
+
+def add_delegate_position(request, conference):
+    if request.method == 'POST':
+        formclass = delegate_position_form_factory(conference)
+        form = formclass(request.POST, request.FILES)
+        if(form.is_valid()):
+            position = form.save()
+            print delegate_position_row(position)
+            return simplejson.dumps({'row':delegate_position_row(position)})
+        else:
+            print form.as_p()
+            return simplejson.dumps({'form':form.as_p()})
 
 def get_country_school_assignment_table(countries):
     table_list = ["<thead><tr><th>Country</th><th>School</th></tr></thead><tbody>"]

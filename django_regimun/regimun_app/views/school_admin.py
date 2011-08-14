@@ -71,12 +71,14 @@ def school_admin(request, conference_slug, school_slug):
                                           school.get_delegate_request_date(conference), \
                                           school.total_payments(conference))
     country_preferences = get_country_preferences_html(school,conference)
+    delegations = school.get_delegations(conference)
     return render_response(request, 'school/index.html', {'conference' : conference, 
                                                           'school' : school, 
                                                           'fees_table' : fees_table,
                                                           'country_preferences' : country_preferences,
                                                           'sponsors' : sponsors,
-                                                          'other_sponsors':other_sponsors})
+                                                          'other_sponsors':other_sponsors,
+                                                          'delegations':delegations})
 
 def register_school(request, conference_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
