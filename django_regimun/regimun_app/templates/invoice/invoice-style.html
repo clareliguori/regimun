@@ -55,7 +55,7 @@
 		
 		td.logo {
 			{% load mathfilters %} 
-			width: {{ conference.logo.width|mult:"100"|div:conference.logo.height }}px;
+			width: {{ conference.logo_width|mult:"100"|div:conference.logo_height }}px;
 			margin: 0;
 			padding-bottom: 5px;
 			text-align: right;

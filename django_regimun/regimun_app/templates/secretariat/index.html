@@ -260,6 +260,87 @@ function get_school_country_assignments_callback(data, selectSource, dialog_elem
 	data_table.fnAdjustColumnSizing();
 }
 
+function get_individual_delegate_positions_callback(data, schoolSelectSource, countrySelectSource, committeeSelectSource, dialog_element) {
+    output = "<p>Click in the School column to change the school assigned to that country.</p>";
+    
+    // table headers
+    output += "<table id=\"delegate_positions\">";
+    output += data.table;
+    output += "</table>";
+    
+    $('.loading').remove();
+    $('#delegate-positions-table').html(output);
+    
+	data_table = $('table#delegate_positions').dataTable({
+		"bJQueryUI": true,
+		"sPaginationType": "full_numbers",
+		"fnDrawCallback": function(){
+	     	$('td','table#delegate_positions').bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
+	     	$('td','table#delegate_positions').bind('mouseleave', function () { $(this).parent().children().each(function(){$(this).removeClass('datatablerowhighlight');}); });
+		}
+	});
+	
+	/* Apply the jEditable handlers to the table */
+	$('td.delegate_position_country', data_table.fnGetNodes()).editable( 'ajax/set-individual-delegate-positions', {
+		data   : countrySelectSource,
+	    type   : 'select',
+	    submit : 'OK',
+	    placeholder: "Click to assign country", 
+		"callback": function( sValue, y ) {
+			var aPos = data_table.fnGetPosition( this );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+		},
+		"submitdata": function ( value, settings ) {
+			return { "row_class": this.getAttribute('class') };
+		},
+		"height": "25px",
+		"tooltip" : 'Click to edit'
+	} );
+	$('td.delegate_position_committee', data_table.fnGetNodes()).editable( 'ajax/set-individual-delegate-positions', {
+		data   : committeeSelectSource,
+	    type   : 'select',
+	    submit : 'OK',
+	    placeholder: "Click to assign committee", 
+		"callback": function( sValue, y ) {
+			var aPos = data_table.fnGetPosition( this );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+		},
+		"submitdata": function ( value, settings ) {
+			return { "row_class": this.getAttribute('class') };
+		},
+		"height": "25px",
+		"tooltip" : 'Click to edit'
+	} );
+	$('td.delegate_position_school', data_table.fnGetNodes()).editable( 'ajax/set-individual-delegate-positions', {
+		data   : schoolSelectSource,
+	    type   : 'select',
+	    submit : 'OK',
+	    placeholder: "Click to assign school", 
+		"callback": function( sValue, y ) {
+			var aPos = data_table.fnGetPosition( this );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+		},
+		"submitdata": function ( value, settings ) {
+			return { "row_class": this.getAttribute('class') };
+		},
+		"height": "25px",
+		"tooltip" : 'Click to edit'
+	} );
+	$('td.delegate_position_title', data_table.fnGetNodes()).editable( 'ajax/set-individual-delegate-positions', {
+		"callback": function( sValue, y ) {
+			var aPos = data_table.fnGetPosition( this );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+		},
+		"submitdata": function ( value, settings ) {
+			return { "row_class": this.getAttribute('class') };
+		},
+		"height": "25px",
+		"tooltip" : 'Click to edit'
+	} );
+		
+	data_table.fnAdjustColumnSizing();
+}
+
 function form_dialog(dialog_width, dialog_element, dialog_link_element, form_element, ajax_get_url) {
 	$(dialog_element).dialog({
 		autoOpen: false,
@@ -386,6 +467,12 @@ $(function(){
 	var schoolSelectSource = "{ '-1':' ', {% for school in object.school_set.all %} \
 		'{{ school.pk }}':'{{ school.name }}', \
 	{% endfor %} }";
+	var countrySelectSource = "{ {% for country in object.country_set.all %} \
+		'{{ country.pk }}':'{{ country.name }}', \
+	{% endfor %} }";
+	var committeeSelectSource = "{ {% for committee in object.committee_set.all %} \
+		'{{ committee.pk }}':'{{ committee.name }}', \
+	{% endfor %} }";
  	
 	var availableSchools = [{% for school in object.school_set.all %}
 				"{{ school.name }}", 
@@ -495,6 +582,36 @@ $(function(){
 		}
 	});
 	
+	$('#edit-delegate-positions-form-dialog').dialog({
+		autoOpen: false,
+		width: 800,
+		modal: true,
+		resizable: false,
+		position: 'top',
+		close: function(event, ui) {
+			$('#delegate-positions-table').html("");
+		},
+		buttons: {
+			"Close": function() {
+				$(this).dialog("close");
+			}
+		}
+	});
+	
+	$('#edit-delegate-positions-form-dialog-link').click(function(){
+		$.get(
+			"ajax/get-individual-delegate-positions",
+			function(data) {
+				get_individual_delegate_positions_callback(data, schoolSelectSource, countrySelectSource, committeeSelectSource, '#edit-delegate-positions-form-dialog');
+			},
+			"json"
+		);
+	
+		$('#edit-delegate-positions-form-dialog').append('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
+		$('#edit-delegate-positions-form-dialog').dialog('open');
+		return false;
+	});
+					
 	$('#countries-to-schools-form-dialog-link').click(function(){
 		$.get(
 			"ajax/get-country-school-assignments",
@@ -622,6 +739,11 @@ $(function(){
 				<div id="upload-school-country-assignments-progress" class="upload-progress"></div>
 			</div>
 			<div id="school-country-assignment-table"></div>
+		</div>
+		
+		<p><a href="#" id="edit-delegate-positions-form-dialog-link">Edit Delegate Positions</a></p>
+		<div id="edit-delegate-positions-form-dialog" title="Edit Delegate Positions">
+			<div id="delegate-positions-table"></div>
 		</div>
 	</div>	
 

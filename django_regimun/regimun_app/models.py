@@ -23,6 +23,16 @@ class Conference(models.Model):
 	def __unicode__(self):
 		return self.name
 
+	def logo_width(self):
+		if self.logo:
+			return self.logo.width
+		return 1
+	
+	def logo_height(self):
+		if self.logo:
+			return self.logo.height
+		return 1
+
 	def delegates(self):
 		return Delegate.objects.filter(position_assignment__country__conference=self)
 	

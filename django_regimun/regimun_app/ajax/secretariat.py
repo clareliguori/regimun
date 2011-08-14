@@ -236,6 +236,33 @@ def get_delegate_positions(request, conference):
     countries = Country.objects.filter(conference=conference)
     return simplejson.dumps({'table':get_delegate_positions_table(committees, countries)})
 
+def get_individual_delegate_positions(request, conference):
+    table_list = []
+    
+    table_list.append("<thead><tr><th>Country</th><th>Committee</th><th>School</th><th>Title</th></tr></thead><tbody>");
+    
+    positions = DelegatePosition.objects.select_related('country','committee','school','delegate').filter(country__conference=conference)
+    
+    for position in positions:
+        id = " id=\"" + str(position.pk) + "\">"
+        table_list.append("<tr><td class=\"delegate_position_country\"")
+        table_list.append(id)
+        table_list.append(position.country.name)
+        table_list.append("</td><td class=\"delegate_position_committee\"")
+        table_list.append(id)
+        table_list.append(position.committee.name)
+        table_list.append("</td><td class=\"delegate_position_school\"")
+        table_list.append(id)
+        if position.school != None:
+            table_list.append(position.school.name)
+        table_list.append("</td><td class=\"delegate_position_title\"")
+        table_list.append(id)
+        table_list.append(position.title)
+        table_list.append("</td></tr>")
+    table_list.append("</tbody>")
+    
+    return simplejson.dumps({'table':''.join(table_list)})
+
 def dictify_queryset(set, field):
     ret = dict()
     for obj in set:
@@ -353,6 +380,38 @@ def set_delegate_positions(request, conference):
                         country_positions = DelegatePosition.objects.filter(country=country)
                     set_delegate_position_count(committee, country, current_positions, get_school_from_position_set(country_positions), new_count)
                     return HttpResponse(value)
+
+def set_individual_delegate_positions(request, conference):
+    if request.method == 'POST':
+        form = jEditableForm(data=request.POST)
+        if form.is_valid():
+            position_id = request.POST.get('id', '')
+            classes = request.POST.get('row_class', '')
+            value = form.cleaned_data['value']
+            position = get_object_or_404(DelegatePosition, pk=position_id)
+            if position.country.conference == conference:
+                if "title" in classes and len(value) > 0:
+                    position.title = value
+                    return HttpResponse(position.title)
+                elif "country" in classes:
+                    country = get_object_or_404(Country, pk=value)
+                    if country.conference == conference:
+                        position.country = country
+                        return HttpResponse(country.name)
+                elif "committee" in classes:
+                    committee = get_object_or_404(Committee, pk=value)
+                    if committee.conference == conference:
+                        position.committee = committee
+                        return HttpResponse(committee.name)
+                elif "school" in classes:
+                    if value == "-1":
+                        position.school = None
+                        return HttpResponse("")
+                    else:
+                        school = get_object_or_404(School, pk=value)
+                        if is_school_registered(conference, school):
+                            position.school = school
+                            return HttpResponse(school.name)
 
 def get_country_school_assignment_table(countries):
     table_list = ["<thead><tr><th>Country</th><th>School</th></tr></thead><tbody>"]
