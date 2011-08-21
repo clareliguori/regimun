@@ -12,6 +12,8 @@
 var committeeTable;
 var countryTable;
 var paymentTable;
+var feeTable;
+var datepenaltyTable;
 
 function form_cleanup() {
 	$('input#id_date').datepicker();
@@ -64,9 +66,34 @@ function form_payment_row(payment) {
 	return row_html;
 }
 
+function form_fee_row(fee) {
+	row_html = "<tr pk=\"" + fee.pk + "\">";
+	row_html += "<td class=\"name\" id=\"name_" + fee.pk + "\">" + fee.fields.name + "</td>";
+	row_html += "<td class=\"amount\" id=\"amount_" + fee.pk + "\">" + fee.fields.amount + "</td>";
+	row_html += "<td class=\"per\" id=\"per_" + fee.pk + "\">" + fee.fields.per + "</td>";
+	row_html += "<td class=\"delete\" id=\"" + fee.pk + "\"><a href=\"delete\" id=\"delete_fee\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
+	return row_html;
+}
+
+function form_datepenalty_row(fee) {
+	row_html = "<tr pk=\"" + fee.pk + "\">";
+	row_html += "<td class=\"name\" id=\"name_" + fee.pk + "\">" + fee.fields.name + "</td>";
+	row_html += "<td class=\"amount\" id=\"amount_" + fee.pk + "\">" + fee.fields.amount + "</td>";
+	row_html += "<td class=\"per\" id=\"per_" + fee.pk + "\">" + fee.fields.per + "</td>";
+	row_html += "<td class=\"based_on\" id=\"based_on_" + fee.pk + "\">" + fee.fields.based_on + "</td>";
+	row_html += "<td class=\"start_date\" id=\"start_date_" + fee.pk + "\">" + fee.fields.start_date + "</td>";
+	row_html += "<td class=\"end_date\" id=\"end_date_" + fee.pk + "\">" + fee.fields.end_date + "</td>";
+	row_html += "<td class=\"delete\" id=\"" + fee.pk + "\"><a href=\"delete\" id=\"delete_datepenalty\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
+	return row_html;
+}
+
 function get_formset_callback(data, table_headers, column_settings, column_sorting, data_table, object_name, dialog_element, form_element, row_renderer) {
 	output = ""
-	if(object_name != "payment")
+	if(object_name == 'fee')
+		output += "<p>Enter all fees to charge schools.</p>"
+	else if(object_name == 'datepenalty')
+		output += "<p>Enter all penalties and discounts to charge schools based on an action during a date range. For example, charge a $5 penalty per delegate if the school registers late. Enter discounts as a negative penalty (aka -$5.00).</p>"
+	else if(object_name != "payment")
     	output += "<p>Click on any " + object_name + " to edit it; press Enter to save your changes.</p>";
     output += "<table id=\"existing_" + object_name + "\"><thead><tr>";
     for(i = 0; i < table_headers.length; i++) {
@@ -145,19 +172,21 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
 		}
 	});
 	
-	/* Apply the jEditable handlers to the table */
-	$('td.name', data_table.fnGetNodes()).editable( 'ajax/edit-'+object_name, {
-		"callback": function( sValue, y ) {
-			var aPos = data_table.fnGetPosition( this );
-			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
-		},
-		"submitdata": function ( value, settings ) {
-			return { "row_id": this.parentNode.getAttribute('id') };
-		},
-		"height": "25px",
-		"tooltip" : 'Click to edit'
-	} );
-	
+	if(object_name != 'fee' && object_name.indexOf("penalty") == -1) {
+		/* Apply the jEditable handlers to the table */
+		$('td.name', data_table.fnGetNodes()).editable( 'ajax/edit-'+object_name, {
+			"callback": function( sValue, y ) {
+				var aPos = data_table.fnGetPosition( this );
+				data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+			},
+			"submitdata": function ( value, settings ) {
+				return { "row_id": this.parentNode.getAttribute('id') };
+			},
+			"height": "25px",
+			"tooltip" : 'Click to edit'
+		} );
+	}
+		
 	data_table.fnAdjustColumnSizing();
 }
 
@@ -474,8 +503,6 @@ var progressTimer;
 $(function(){
 	form_dialog(500, '#basic-conference-form-dialog', '#basic-conference-form-dialog-link', '#basic_conference_info_form', "get-basic-conference-form");
 
-	form_dialog(500, '#fee-form-dialog', '#fee-form-dialog-link', '#fee_structure_info_form', "get-fee-structure-form");
-
 	committeeHeaders = ['Name','Delete'];
 	committeeColumnSettings = [ 
 	               			/* Name */  	null,
@@ -525,6 +552,31 @@ $(function(){
 		source: availableSchools
 	});
 	
+	feeHeaders = ['Name','Amount','Per','Delete'];
+	feeSettings = [ 
+	               			/* Name */  	null,
+	               			/* Amount */  	null,
+	               			/* Per */  	null,
+	            			/* Delete */ 	{ "bSearchable": false, "bSortable": false }
+	            		];
+	feeColumnSorting = [[ 0, "asc" ]];
+	formset_dialog(800, '#fee-form-dialog', '#fee-form-dialog-link', '#new_fee_form',
+			"get-conference-fees", feeHeaders, feeSettings, feeColumnSorting, feeTable, 'fee', form_fee_row);
+
+	datepenaltyHeaders = ['Name','Amount','Per','Based On','Start Date','End Date','Delete'];
+	datepenaltySettings = [ 
+	               			/* Name */  	null,
+	               			/* Amount */  	null,
+	               			/* Per */  	null,
+	               			/* Based On */  	null,
+	               			/* Start Date */  	null,
+	               			/* End Date */  	null,
+	            			/* Delete */ 	{ "bSearchable": false, "bSortable": false }
+	            		];
+	datepenaltyColumnSorting = [[ 0, "asc" ]];
+	formset_dialog(800, '#datepenalty-form-dialog', '#datepenalty-form-dialog-link', '#new_datepenalty_form',
+			"get-conference-datepenalties", datepenaltyHeaders, datepenaltySettings, datepenaltyColumnSorting, datepenaltyTable, 'datepenalty', form_datepenalty_row);
+
 	$('#committees-to-countries-form-dialog').dialog({
 		autoOpen: false,
 		width: 800,
@@ -750,9 +802,6 @@ $(function(){
 		<p><a href="#" id="basic-conference-form-dialog-link">Basic Conference Information</a></p>
 		<div id="basic-conference-form-dialog" title="Basic Conference Information"></div>
 		
-		<p><a href="#" id="fee-form-dialog-link">Fee Structure</a></p>
-		<div id="fee-form-dialog" title="Conference Fee Structure"></div>
-		
 		<p><a href="#" id="countries-form-dialog-link">Countries</a></p>
 		<div id="countries-form-dialog" title="Conference Countries"></div>
 		
@@ -858,6 +907,12 @@ $(function(){
 		</table>
 		<p>Fees totaled above only include schools with registered delegates.</p> 
 		
+		<p><a href="#" id="fee-form-dialog-link">Fee Structure</a></p>
+		<div id="fee-form-dialog" title="Conference Fee Structure"></div>
+
+		<p><a href="#" id="datepenalty-form-dialog-link">Date-Based Penalties and Discounts</a></p>
+		<div id="datepenalty-form-dialog" title="Conference Date-Based Penalties"></div>
+
 		<p><a href="#" id="payments-form-dialog-link">Payments</a></p>
 		<div id="payments-form-dialog" title="Conference Fee Payments"></div>
 		

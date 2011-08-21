@@ -12,7 +12,8 @@ from django.template.defaultfilters import slugify, date
 from django.template.loader import render_to_string
 from regimun_app.forms import NewSchoolForm, NewFacultySponsorForm
 from regimun_app.models import Conference, School, FacultySponsor, Committee, \
-    DelegatePosition, Country, CountryPreference, DelegateCountPreference
+    DelegatePosition, Country, CountryPreference, DelegateCountPreference, Delegate, \
+    DelegationRequest
 from regimun_app.templatetags.currencyformat import currencyformat
 from regimun_app.utils import fetch_resources
 from regimun_app.views.general import render_response, get_recaptcha_response, \
@@ -64,11 +65,9 @@ def school_admin(request, conference_slug, school_slug):
     fees_table = get_fees_table_from_data(school, \
                                           conference, \
                                           feestructure, \
-                                          school.facultysponsor_set.filter(conferences__id__exact=conference.id).count(), \
                                           school.get_filled_delegate_positions_count(conference), \
                                           school.get_delegations_count(conference), \
-                                          school.get_late_delegate_registrations_count(feestructure.late_delegate_registration_start_date,conference), \
-                                          school.get_delegate_request_date(conference), \
+                                          school.get_sponsors_count(conference), \
                                           school.total_payments(conference))
     country_preferences = get_country_preferences_html(school,conference)
     delegations = school.get_delegations(conference)
@@ -208,11 +207,9 @@ def generate_invoice_html(request, conference_slug, school_slug, template):
         'fees_table' : get_fees_table_from_data(school, \
                                           conference, \
                                           feestructure, \
-                                          school.facultysponsor_set.filter(conferences__id__exact=conference.id).count(), \
                                           school.get_filled_delegate_positions_count(conference), \
                                           school.get_delegations_count(conference), \
-                                          school.get_late_delegate_registrations_count(feestructure.late_delegate_registration_start_date,conference), \
-                                          school.get_delegate_request_date(conference), \
+                                          school.get_sponsors_count(conference), \
                                           school.total_payments(conference))}
         return render_to_string(template, context_dict, context_instance=RequestContext(request))
     else:
@@ -311,11 +308,9 @@ def get_fees_table(request, conference_slug, school_slug):
         return HttpResponse(get_fees_table_from_data(school, \
                                           conference, \
                                           feestructure, \
-                                          school.facultysponsor_set.filter(conferences__id__exact=conference.id).count(), \
                                           school.get_filled_delegate_positions_count(conference), \
                                           school.get_delegations_count(conference), \
-                                          school.get_late_delegate_registrations_count(feestructure.late_delegate_registration_start_date,conference), \
-                                          school.get_delegate_request_date(conference), \
+                                          school.get_sponsors_count(conference), \
                                           school.total_payments(conference)))
     raise Http404
 
@@ -344,83 +339,84 @@ def get_country_preferences_html(school,conference):
         }
     return render_to_string('school/country-preferences.html', context_dict)
 
-def get_fees_table_from_data(school, conference, feestructure, sponsor_count, delegates_count, delegations_count, late_delegates_count, delegation_request_date, total_payments):
+def get_fees_table_from_data(school, conference, feestructure, delegatecount, countrycount, sponsorcount, total_payments):
     output = []
     
     left_style = "style=\"padding: 3px; text-align: left\""
     right_style = "style=\"padding: 3px; text-align: right\""
     
-    total_fee = 0.0
-
     output.append(fees_table_header())
+    
+    total = 0.0
+    
+    for fee in feestructure.fee_set.all():
+        count = 0
+        if fee.per == 'Sch':
+            count = 1
+        elif fee.per == 'Del':
+            count = delegatecount
+        elif fee.per == 'Cou':
+            count = countrycount
+        elif fee.per == 'Spo':
+            count = sponsorcount
+        fee_total = float(fee.amount * count)
+        total += fee_total
+        
+        output.append("<tr>")
+        output.append("<td " + left_style + ">" + fee.name  + "</td>")
+        output.append("<td " + right_style + ">" + str(currencyformat(fee.amount)) + "</td>")
+        output.append("<td " + right_style + ">" + str(count) + "</td>")
+        output.append("<td " + right_style + ">" + str(currencyformat(fee_total)) + "</td>")
+        output.append("</tr>")
+    
+    for penalty in feestructure.datepenalty_set.all():
+    
+        # figure out whether to charge this penalty
+        charge = False
+        late_delegates = 0
+        if penalty.based_on == 'Co1':
+            charge = DelegationRequest.objects.filter(school=school,conference=conference, created__gte=penalty.start_date, created__lte=penalty.end_date).count() > 0
+        elif penalty.based_on == 'Co2':
+            charge = CountryPreference.objects.filter(request__school=school,request__conference=conference, last_modified__gte=penalty.start_date, last_modified__lte=penalty.end_date).count() > 0
+        elif penalty.based_on == 'DSu':
+            late_delegates = Delegate.objects.filter(position_assignment__school=school,position_assignment__country__conference=conference, created__gte=penalty.start_date, created__lte=penalty.end_date).count()
+            charge = late_delegates > 0
+        elif penalty.based_on == 'DMo':
+            late_delegates = Delegate.objects.filter(position_assignment__school=school,position_assignment__country__conference=conference, last_modified__gte=penalty.start_date, last_modified__lte=penalty.end_date).count()
+            charge = late_delegates > 0
+        
+        # find the penalty count
+        count = 0
+        if charge:
+            if penalty.per == 'Sch':
+                count = 1
+            elif penalty.per == 'Del':
+                count = delegatecount
+            elif penalty.per == 'Cou':
+                count = countrycount
+            elif penalty.per == 'Spo':
+                count = sponsorcount
+            elif penalty.per == 'DLa' and penalty.based_on == 'DSu':
+                count = late_delegates
+            elif penalty.per == 'DLa' and penalty.based_on == 'DMo':
+                count = late_delegates
             
-    if feestructure.per_school != 0:
-        per_school = str(currencyformat(feestructure.per_school))
-        output.append("<tr>")
-        output.append("<td " + left_style + ">School Fee</td>")
-        output.append("<td " + right_style + ">" + per_school + "</td>")
-        output.append("<td " + right_style + ">1</td>")
-        output.append("<td " + right_style + ">" + per_school + "</td>")
-        output.append("</tr>")
-        total_fee += float(feestructure.per_school)
-        
-    if feestructure.per_country != 0:
-        per_country_fee = float(delegations_count * feestructure.per_country)
-        output.append("<tr>")
-        output.append("<td " + left_style + ">Country Fee</td>")
-        output.append("<td " + right_style + ">" + str(currencyformat(feestructure.per_country)) + "</td>")
-        output.append("<td " + right_style + ">" + str(delegations_count) + "</td>")
-        output.append("<td " + right_style + ">" + str(currencyformat(per_country_fee)) + "</td>")
-        output.append("</tr>")
-        total_fee += per_country_fee
-        
-    if feestructure.per_delegate != 0:
-        per_delegate_fee = float(delegates_count * feestructure.per_delegate)
-        output.append("<tr>")
-        output.append("<td " + left_style + ">Delegate Fee</td>")
-        output.append("<td " + right_style + ">" + str(currencyformat(feestructure.per_delegate)) + "</td>")
-        output.append("<td " + right_style + ">" + str(delegates_count) + "</td>")
-        output.append("<td " + right_style + ">" + str(currencyformat(per_delegate_fee)) + "</td>")
-        output.append("</tr>")
-        total_fee += per_delegate_fee
+            penalty_total = float(penalty.amount * count)
+            total += penalty_total
 
-    if feestructure.per_sponsor != 0:
-        per_sponsor_fee = float(sponsor_count * feestructure.per_sponsor)
-        output.append("<tr>")
-        output.append("<td " + left_style + ">Sponsor/Advisor Fee</td>")
-        output.append("<td " + right_style + ">" + str(currencyformat(feestructure.per_sponsor)) + "</td>")
-        output.append("<td " + right_style + ">" + str(sponsor_count) + "</td>")
-        output.append("<td " + right_style + ">" + str(currencyformat(per_sponsor_fee)) + "</td>")
-        output.append("</tr>")
-        total_fee += per_sponsor_fee
-    
-    if feestructure.per_school_late_fee > 0:
-        if delegation_request_date != None and delegation_request_date.date() >= feestructure.late_registration_start_date:
-            late_fee_str = str(currencyformat(feestructure.per_school_late_fee))
             output.append("<tr>")
-            output.append("<td " + left_style + ">School Registration Late Fee</td>")
-            output.append("<td " + right_style + ">" + late_fee_str + "</td>")
-            output.append("<td " + right_style + ">1</td>")
-            output.append("<td " + right_style + ">" + late_fee_str + "</td>")
+            output.append("<td " + left_style + ">" + penalty.name  + "</td>")
+            output.append("<td " + right_style + ">" + str(currencyformat(penalty.amount)) + "</td>")
+            output.append("<td " + right_style + ">" + str(count) + "</td>")
+            output.append("<td " + right_style + ">" + str(currencyformat(penalty_total)) + "</td>")
             output.append("</tr>")
-            total_fee += float(feestructure.per_school_late_fee)
-    
-    if feestructure.per_delegate_late_fee != 0 and late_delegates_count > 0:
-            late_reg_fee = float(late_delegates_count * feestructure.per_delegate_late_fee)
-            output.append("<tr>")
-            output.append("<td " + left_style + ">Delegate Registration Late Fee</td>")
-            output.append("<td " + right_style + ">" + str(currencyformat(feestructure.per_delegate_late_fee)) + "</td>")
-            output.append("<td " + right_style + ">" + str(late_delegates_count) + "</td>")
-            output.append("<td " + right_style + ">" + str(currencyformat(late_reg_fee)) + "</td>")
-            output.append("</tr>")
-            total_fee += late_reg_fee
     
     output.append("<tr><th style=\"font-weight: bold; padding: 3px; text-align: right\" colspan=\"3\">Total Fees</th><th style=\"font-weight: bold; padding: 3px; text-align: right\">")
-    output.append(currencyformat(total_fee) + "</th></tr>")
+    output.append(currencyformat(total) + "</th></tr>")
     output.append("<tr><th style=\"font-weight: bold; padding: 3px; text-align: right\" colspan=\"3\">Paid</th><th style=\"font-weight: bold; padding: 3px; text-align: right\">")
     output.append(currencyformat(total_payments) + "</th></tr>")
     output.append("<tr><th style=\"font-weight: bold; padding: 3px; text-align: right\" colspan=\"3\">Balance Due</th><th style=\"font-weight: bold; padding: 3px; text-align: right\">")
-    output.append(currencyformat(total_fee - total_payments) + "</th></tr>");
+    output.append(currencyformat(total - total_payments) + "</th></tr>");
     
     output.append(fees_table_footer(conference, feestructure))
     
@@ -432,72 +428,68 @@ def get_request_fees_table_from_data(school, conference, feestructure):
     left_style = "style=\"padding: 3px; text-align: left\""
     right_style = "style=\"padding: 3px; text-align: right\""
     
-    total_fee = 0.0
-
     output.append(fees_table_header())
+    
+    total = 0.0
+    
+    for fee in feestructure.fee_set.all():
+        count = 0
+        if fee.per == 'Sch':
+            count = 1
+        elif fee.per == 'Del':
+            count = school.get_delegate_request_count(conference)
+        elif fee.per == 'Cou':
+            count = school.get_assigned_countries_count(conference)
+        elif fee.per == 'Spo':
+            count = school.get_sponsors_count(conference)
+        fee_total = float(fee.amount * count)
+        total += fee_total
+        
+        output.append("<tr>")
+        output.append("<td " + left_style + ">" + fee.name  + "</td>")
+        output.append("<td " + right_style + ">" + str(currencyformat(fee.amount)) + "</td>")
+        output.append("<td " + right_style + ">" + str(count) + "</td>")
+        output.append("<td " + right_style + ">" + str(currencyformat(fee_total)) + "</td>")
+        output.append("</tr>")
+    
+    for penalty in feestructure.datepenalty_set.all():
+    
+        # figure out whether to charge this penalty
+        charge = False
+        if penalty.based_on == 'Co1':
+            charge = DelegationRequest.objects.filter(school=school,conference=conference, created__gte=penalty.start_date, created__lte=penalty.end_date).count() > 0
+        elif penalty.based_on == 'Co2':
+            charge = CountryPreference.objects.filter(request__school=school,request__conference=conference, last_modified__gte=penalty.start_date, last_modified__lte=penalty.end_date).count() > 0
+        
+        # find the penalty count
+        count = 0
+        if charge:
+            if penalty.per == 'Sch':
+                count = 1
+            elif penalty.per == 'Del':
+                count = school.get_delegate_request_count(conference)
+            elif penalty.per == 'Cou':
+                count = school.get_assigned_countries_count(conference)
+            elif penalty.per == 'Spo':
+                count = school.get_sponsors_count(conference)
             
-    if feestructure.per_school != 0:
-        per_school = str(currencyformat(feestructure.per_school))
-        output.append("<tr>")
-        output.append("<td " + left_style + ">School Fee</td>")
-        output.append("<td " + right_style + ">" + per_school + "</td>")
-        output.append("<td " + right_style + ">1</td>")
-        output.append("<td " + right_style + ">" + per_school + "</td>")
-        output.append("</tr>")
-        total_fee += float(feestructure.per_school)
-        
-    if feestructure.per_country != 0:
-        delegations_count = school.get_assigned_countries_count(conference)
-        per_country_fee = float(delegations_count * feestructure.per_country)
-        output.append("<tr>")
-        output.append("<td " + left_style + ">Country Fee</td>")
-        output.append("<td " + right_style + ">" + str(currencyformat(feestructure.per_country)) + "</td>")
-        output.append("<td " + right_style + ">" + str(delegations_count) + "</td>")
-        output.append("<td " + right_style + ">" + str(currencyformat(per_country_fee)) + "</td>")
-        output.append("</tr>")
-        total_fee += per_country_fee
-        
-    if feestructure.per_delegate != 0:
-        delegates_count = school.get_delegate_request_count(conference)
-        per_delegate_fee = float(delegates_count * feestructure.per_delegate)
-        output.append("<tr>")
-        output.append("<td " + left_style + ">Delegate Fee</td>")
-        output.append("<td " + right_style + ">" + str(currencyformat(feestructure.per_delegate)) + "</td>")
-        output.append("<td " + right_style + ">" + str(delegates_count) + "</td>")
-        output.append("<td " + right_style + ">" + str(currencyformat(per_delegate_fee)) + "</td>")
-        output.append("</tr>")
-        total_fee += per_delegate_fee
+            penalty_total = float(penalty.amount * count)
+            total += penalty_total
 
-    if feestructure.per_sponsor != 0:
-        sponsor_count = school.facultysponsor_set.filter(conferences__id__exact=conference.id).count()
-        per_sponsor_fee = float(sponsor_count * feestructure.per_sponsor)
-        output.append("<tr>")
-        output.append("<td " + left_style + ">Sponsor/Advisor Fee</td>")
-        output.append("<td " + right_style + ">" + str(currencyformat(feestructure.per_sponsor)) + "</td>")
-        output.append("<td " + right_style + ">" + str(sponsor_count) + "</td>")
-        output.append("<td " + right_style + ">" + str(currencyformat(per_sponsor_fee)) + "</td>")
-        output.append("</tr>")
-        total_fee += per_sponsor_fee
-    
-    if feestructure.per_school_late_fee > 0:
-        delegation_request_date = school.get_delegate_request_date(conference)
-        if delegation_request_date != None and delegation_request_date.date() >= feestructure.late_registration_start_date:
-            late_fee_str = str(currencyformat(feestructure.per_school_late_fee))
             output.append("<tr>")
-            output.append("<td " + left_style + ">School Registration Late Fee</td>")
-            output.append("<td " + right_style + ">" + late_fee_str + "</td>")
-            output.append("<td " + right_style + ">1</td>")
-            output.append("<td " + right_style + ">" + late_fee_str + "</td>")
+            output.append("<td " + left_style + ">" + penalty.name  + "</td>")
+            output.append("<td " + right_style + ">" + str(currencyformat(penalty.amount)) + "</td>")
+            output.append("<td " + right_style + ">" + str(count) + "</td>")
+            output.append("<td " + right_style + ">" + str(currencyformat(penalty_total)) + "</td>")
             output.append("</tr>")
-            total_fee += float(feestructure.per_school_late_fee)
-    
+
     total_payments = school.total_payments(conference)
     output.append("<tr><th style=\"font-weight: bold; padding: 3px; text-align: right\" colspan=\"3\">Total Fees</th><th style=\"font-weight: bold; padding: 3px; text-align: right\">")
-    output.append(currencyformat(total_fee) + "</th></tr>")
+    output.append(currencyformat(total) + "</th></tr>")
     output.append("<tr><th style=\"font-weight: bold; padding: 3px; text-align: right\" colspan=\"3\">Paid</th><th style=\"font-weight: bold; padding: 3px; text-align: right\">")
     output.append(currencyformat(total_payments) + "</th></tr>")
     output.append("<tr><th style=\"font-weight: bold; padding: 3px; text-align: right\" colspan=\"3\">Balance Due</th><th style=\"font-weight: bold; padding: 3px; text-align: right\">")
-    output.append(currencyformat(total_fee - total_payments) + "</th></tr>");
+    output.append(currencyformat(total - total_payments) + "</th></tr>");
     
     output.append(fees_table_footer(conference, feestructure))
     
@@ -520,13 +512,8 @@ def fees_table_header():
 def fees_table_footer(conference, feestructure):
     output = []
     output.append("</tbody></table><br/><br/>")
-    if feestructure.per_school_late_fee != 0:
-        output.append("Country preferences are due on " + date(feestructure.late_registration_start_date,"F jS") + ", after which late fees will be applied.<br/>")
-
-    if feestructure.per_delegate_late_fee != 0:
-        output.append("Delegate registration is due on " + date(feestructure.late_delegate_registration_start_date,"F jS") + ", after which late fees will be applied.<br/>")
     
-    output.append("No refunds will be issued past " + date(feestructure.no_refunds_start_date, "F jS")) 
+    output.append("No refunds will be issued past " + date(conference.no_refunds_start_date, "F jS")) 
     output.append(".<br/><br/>Please mail all payment to: <br/>")
     output.append("<span style=\"padding-left: 30pt;\">" + conference.address_line_1)
     if conference.address_line_2:

@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
+from django.core.serializers import register_serializer, get_serializer_formats
 from django.db.models.aggregates import Count
 from django.http import Http404, HttpResponse
 from django.middleware import csrf
@@ -7,10 +8,10 @@ from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import slugify
 from django.utils import simplejson
 from regimun_app.forms import jEditableForm, BasicConferenceInfoForm, \
-    NewCommitteeForm, NewCountryForm, FeeStructureForm, UploadFileForm, \
-    NewPaymentForm, delegate_position_form_factory
+    NewCommitteeForm, NewCountryForm, UploadFileForm, NewPaymentForm, \
+    delegate_position_form_factory, FeeForm, DatePenaltyForm
 from regimun_app.models import Conference, Committee, Country, DelegatePosition, \
-    School, Payment
+    School, Payment, Fee, DatePenalty
 from regimun_app.views.school_admin import is_school_registered
 from regimun_app.views.secretariat_admin import secretariat_authenticate
 import csv
@@ -18,6 +19,9 @@ import exceptions
 import inspect
 import settings
 import string
+
+if 'jsondisplay' not in get_serializer_formats():
+    register_serializer('jsondisplay', 'regimun_app.serializers.DisplayNameJsonSerializer')
 
 @login_required
 def conference_ajax_functions(request, conference_slug, func_name):
@@ -57,23 +61,55 @@ def save_basic_conference_form(request, conference):
     else:
         return simplejson.dumps({'form':form.as_p()})
 
-def get_fee_structure_form(request, conference):
-    form = FeeStructureForm(instance=conference.feestructure)
+def get_conference_fees(request, conference):
+    existing_fees = serializers.serialize('jsondisplay', Fee.objects.filter(feestructure__conference=conference), fields=('name','amount','per'))
+    form = FeeForm()
     
-    output = "<form action=\"ajax/save-fee-structure-form\" method=\"post\" id=\"fee_structure_info_form\"><table>"
-    output += form.as_table()
-    output += "</table></form>"
-    return simplejson.dumps({'form':output})
-
-def save_fee_structure_form(request, conference):
-    form = FeeStructureForm(request.POST, instance=conference.feestructure)
+    return simplejson.dumps({'form':form.as_p(), 'objects':existing_fees})
     
-    if form.is_valid():
-        fee_structure = form.save()
-        return simplejson.dumps({'fee_structure':fee_structure.pk})
-    else:
-        return simplejson.dumps({'form':form.as_p()})
+def remove_fee(request, conference):
+    if request.method == 'POST':
+        fee_pk = request.POST.get('pk', '')
+        fee = get_object_or_404(Fee, pk=fee_pk)
+        fee.delete()
+        return simplejson.dumps({'pk':fee_pk})
 
+def add_fee(request, conference):
+    if request.method == 'POST':
+        form = FeeForm(data=request.POST)
+        if(form.is_valid()):
+            fee = form.save(commit=False)
+            fee.feestructure = conference.feestructure
+            fee.save()
+            return serializers.serialize('jsondisplay', [fee], fields=('name','amount','per'))[1:-1]
+        else:
+            return simplejson.dumps({'form':form.as_p()})
+   
+def get_conference_datepenalties(request, conference):
+    existing_penalties = serializers.serialize('jsondisplay', DatePenalty.objects.filter(feestructure__conference=conference), 
+                                               fields=('name','amount','per','based_on','start_date','end_date'))
+    form = DatePenaltyForm()
+    
+    return simplejson.dumps({'form':form.as_p(), 'objects':existing_penalties})
+    
+def remove_datepenalty(request, conference):
+    if request.method == 'POST':
+        datepenalty_pk = request.POST.get('pk', '')
+        datepenalty = get_object_or_404(DatePenalty, pk=datepenalty_pk)
+        datepenalty.delete()
+        return simplejson.dumps({'pk':datepenalty_pk})
+
+def add_datepenalty(request, conference):
+    if request.method == 'POST':
+        form = DatePenaltyForm(data=request.POST)
+        if(form.is_valid()):
+            datepenalty = form.save(commit=False)
+            datepenalty.feestructure = conference.feestructure
+            datepenalty.save()
+            return serializers.serialize('jsondisplay', [datepenalty], fields=('name','amount','per','based_on','start_date','end_date'))[1:-1]
+        else:
+            return simplejson.dumps({'form':form.as_p()})
+   
 def get_conference_committees(request, conference):
     existing_committees = serializers.serialize('json', Committee.objects.filter(conference=conference), fields=('name'))
     form = NewCommitteeForm()
@@ -442,10 +478,8 @@ def add_delegate_position(request, conference):
         form = formclass(request.POST, request.FILES)
         if(form.is_valid()):
             position = form.save()
-            print delegate_position_row(position)
             return simplejson.dumps({'row':delegate_position_row(position)})
         else:
-            print form.as_p()
             return simplejson.dumps({'form':form.as_p()})
 
 def get_country_school_assignment_table(countries):

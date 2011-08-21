@@ -6,7 +6,7 @@ from django.forms.models import ModelForm, modelformset_factory
 from django.forms.widgets import HiddenInput, TextInput, DateInput
 from django.template.defaultfilters import slugify
 from regimun_app.models import Conference, School, Committee, Country, \
-    FeeStructure, Delegate, Payment, DelegatePosition
+    FeeStructure, Delegate, Payment, DelegatePosition, Fee, DatePenalty
 
 invalid_names = ["secretariat", "ajax-error", "new-conference", "upload-progress", "school", "new-school","admin", "accounts", "media"]
 
@@ -99,7 +99,7 @@ class EditFacultySponsorForm(CleanForm):
 class ConferenceForm(CleanModelForm):
     class Meta:
         model = Conference
-        exclude = ('url_name',)
+        exclude = ('url_name','no_refunds_start_date')
         widgets = {
             'start_date': DateInput(attrs={'class':'datepicker'}),
             'end_date': DateInput(attrs={'class':'datepicker'}),
@@ -123,23 +123,29 @@ class ConferenceForm(CleanModelForm):
 class BasicConferenceInfoForm(CleanModelForm):
     class Meta:
         model = Conference
-        fields = ('start_date','end_date','location','website_url','logo')
+        fields = ('start_date','end_date','location','website_url','logo','no_refunds_start_date')
         widgets = {
             'start_date': DateInput(attrs={'class':'datepicker'}),
             'end_date': DateInput(attrs={'class':'datepicker'}),
+            'no_refunds_start_date': DateInput(attrs={'class':'datepicker'}),
         }
 
-class FeeStructureForm(CleanModelForm):
+class FeeForm(CleanModelForm):
     class Meta:
-        model = FeeStructure
-        exclude = ('conference')
+        model = Fee
+        exclude = ('feestructure')
         widgets = {
-            'per_school': TextInput(attrs={'class': "auto {aSign: '$'}"}),
-            'per_country': TextInput(attrs={'class': "auto {aSign: '$'}"}),
-            'per_sponsor': TextInput(attrs={'class': "auto {aSign: '$'}"}),
-            'per_delegate': TextInput(attrs={'class': "auto {aSign: '$'}"}),
-            'per_school_late_fee': TextInput(attrs={'class': "auto {aSign: '$'}"}),
-            'per_delegate_late_fee': TextInput(attrs={'class': "auto {aSign: '$'}"}),            
+            'amount': TextInput(attrs={'class': "auto {aNeg: '-', aSign: '$'}"}),
+        }
+
+class DatePenaltyForm(CleanModelForm):
+    class Meta:
+        model = DatePenalty
+        exclude = ('feestructure')
+        widgets = {
+            'amount': TextInput(attrs={'class': "auto {aNeg: '-', aSign: '$'}"}),
+            'start_date': DateInput(attrs={'class':'datepicker'}),
+            'end_date': DateInput(attrs={'class':'datepicker'}),
         }
 
 class OrganizationInfoForm(CleanModelForm):
