@@ -13,6 +13,20 @@
 	{% load setting %}
 
 	<script type="text/javascript">
+		function form_styling() {
+			$('table.form td').addClass("bottom-valign");
+			$('table.form th').addClass("bottom-valign right-align");
+			$('ul.errorlist li').each(function() {
+				replace = '<div class="ui-state-error ui-corner-all"><p class="ui-state-margins"><span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>';
+				replace += $(this).text();
+				replace += '</p></div>';
+				$(this).replaceWith(replace);
+			});
+			$('ul.errorlist').each(function() {
+				$(this).replaceWith($(this).contents());
+			});
+		}
+	
 		$(function() {
 			$(this).ajaxError(
 				function(e, jqxhr, settings, exception) {
@@ -36,9 +50,7 @@
 			$("input.datepicker").datepicker();
 			$( ".button" ).button();
 			$('#tabs').tabs();
-			$('li', '.errorlist').each(function() {
-				$(this).replaceWith('<div class="ui-widget"><div class="ui-state-error ui-corner-all" style="padding: 0pt 0.7em;"><p><span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>' + this.innerHTML + '</p></div></div>');
-			});
+			form_styling();
 		});
 	</script>
 	<script type="text/javascript">

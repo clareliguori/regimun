@@ -10,6 +10,10 @@ body {
 	margin: 0;
 }
 
+table.datatable {
+	width: 100%;	
+}
+
 .ui-state-error {
 	font-size: 12px;
 }
@@ -28,8 +32,20 @@ tr,td {
 	text-align:left;
 }
 
+.right-align {
+	text-align: right;	
+}
+
+.bottom-valign {
+	vertical-align:bottom;	
+}
+
 .no-javascript, .container {
 	clear:both;
+}
+
+p.ui-state-margins {
+	margin: 3px;
 }
 
 .header {
@@ -93,4 +109,26 @@ img.tab-link {
 
 .datatablerowhighlight {
 	background-color: #ECFFB3 !important;
+}
+
+.fees-table-right {
+	padding: 3px;
+	text-align: right;
+}
+
+.fees-table-left {
+	padding: 3px;
+	text-align: left;
+}
+
+.fees-header-right {
+	font-weight: bold;
+	padding: 3px;
+	text-align: right;
+}
+
+.fees-header-left {
+	font-weight: bold;
+	padding: 3px;
+	text-align: left;
 }

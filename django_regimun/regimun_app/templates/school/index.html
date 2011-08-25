@@ -184,6 +184,7 @@ function get_school_mailing_address_form() {
 			output += "</form>";
 			$('#mailing_address').html(output);
 			toggle_school_mailing_address_buttons();
+			form_styling();
 		},
 		"json"
 	);
@@ -201,6 +202,7 @@ function send_school_mailing_address_form() {
 				output += data.form;
 				output += "</form>";
 				$('#mailing_address').html(output);
+				form_styling();
 			} else {
 				$('#mailing_address').html("<p>" + data.new_school_mailing_address + "</p>");
 				toggle_school_mailing_address_buttons();
@@ -225,6 +227,7 @@ function get_edit_sponsor_form(sponsor_pk) {
 			output += data.form;
 			output += "</form>";
 			$('#sponsor_'+data.sponsor_pk).html(output);
+			form_styling();
 			toggle_sponsor_buttons(data.sponsor_pk);
 		},
 		"json"
@@ -243,6 +246,7 @@ function send_edit_sponsor_form(sponsor_pk) {
 				output += data.form;
 				output += "</form>";
 				$('#sponsor_'+data.sponsor_pk).html(output);
+				form_styling();
 			} else {
 				output = "<b>" + data.full_name + "</b>";
 				if("{{ user.username }}" == data.username) {
@@ -268,6 +272,7 @@ function get_edit_delegate_form(position_pk) {
 			output += data.form;
 			output += "</form>";
 			$('#delegate-info-'+data.position_pk).html(output);
+			form_styling();
 			
 			$('#edit-delegate-'+position_pk).hide();
 			$('#remove-delegate-'+position_pk).hide();
@@ -292,6 +297,7 @@ function send_edit_delegate_form(position_pk) {
 				output += data.form;
 				output += "</form>";
 				$('#delegate-info-'+data.position_pk).html(output);
+				form_styling();
 				
 				$('#edit-delegate-'+position_pk).hide();
 				$('#remove-delegate-'+position_pk).hide();

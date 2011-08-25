@@ -26,6 +26,8 @@ function form_cleanup() {
 		$(this).autoNumeric();
 		$(this).val($.fn.autoNumeric.Format($(this).attr("id"), $(this).val()));
 	});
+	
+	form_styling();
 }
 
 function form_committee_row(committee) {
@@ -95,7 +97,7 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
 		output += "<p>Enter all penalties and discounts to charge schools based on an action during a date range. For example, charge a $5 penalty per delegate if the school registers late. Enter discounts as a negative penalty (aka -$5.00).</p>"
 	else if(object_name != "payment")
     	output += "<p>Click on any " + object_name + " to edit it; press Enter to save your changes.</p>";
-    output += "<table id=\"existing_" + object_name + "\"><thead><tr>";
+    output += "<table class=\"datatable\" id=\"existing_" + object_name + "\"><thead><tr>";
     for(i = 0; i < table_headers.length; i++) {
     	output += "<th>" + table_headers[i] + "</th>";
     }
@@ -207,7 +209,7 @@ function get_delegate_positions_callback(data, dialog_element) {
     output = "<p>Click on any number to edit the number of delegates represented by that country on that committee. Press Enter to save your changes.</p>";
     
     // table headers
-    output += "<table id=\"delegate_positions\">";
+    output += "<table class=\"datatable\" id=\"delegate_positions\">";
     output += data.table;
     output += "</table>";
     
@@ -253,7 +255,7 @@ function get_school_country_assignments_callback(data, selectSource, dialog_elem
     output = "<p>Click in the School column to change the school assigned to that country.</p>";
     
     // table headers
-    output += "<table id=\"school_country_assignments\">";
+    output += "<table class=\"datatable\" id=\"school_country_assignments\">";
     output += data.table;
     output += "</table>";
     
@@ -293,7 +295,7 @@ function get_individual_delegate_positions_callback(data, schoolSelectSource, co
     output = "<p>Edit individual delegate positions by clicking in any column. To edit a delegate's title, press Enter after entering the new title.</p>";
     
     // table headers
-    output += "<table id=\"delegate_positions\">";
+    output += "<table class=\"datatable\" id=\"delegate_positions\">";
     output += data.table;
     output += "</table>";
     
@@ -306,8 +308,17 @@ function get_individual_delegate_positions_callback(data, schoolSelectSource, co
     $("input:submit").button();
     form_cleanup();
     
+    column_settings = [ 
+   			/* Country */  	null,
+   			/* Committee */ null,
+   			/* School */  	null,
+   			/* Title */  	null,
+			/* Delete */ 	{ "bSearchable": false, "bSortable": false }
+		];
+    
 	data_table = $('table#delegate_positions').dataTable({
 		"bJQueryUI": true,
+		"aoColumns": column_settings,
 		"sPaginationType": "full_numbers",
 		"fnDrawCallback": function(){
 	     	$('td','table#delegate_positions').bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
@@ -509,7 +520,7 @@ $(function(){
 	            			/* Delete */ 	{ "bSearchable": false, "bSortable": false }
 	            		];
 	committeeColumnSorting = [[ 0, "asc" ]]
-	formset_dialog(800, '#committees-form-dialog', '#committees-form-dialog-link', '#new_conference_committees_form',
+	formset_dialog(900, '#committees-form-dialog', '#committees-form-dialog-link', '#new_conference_committees_form',
 		"get-conference-committees", committeeHeaders, committeeColumnSettings, committeeColumnSorting, committeeTable, 'committee', form_committee_row);
 
 	countryHeaders = ['Flag','Name','Delete'];
@@ -519,7 +530,7 @@ $(function(){
 	            			/* Delete */ 	{ "bSearchable": false, "bSortable": false }
 	            		];
 	countryColumnSorting = [[ 1, "asc" ]]
-	formset_dialog(800, '#countries-form-dialog', '#countries-form-dialog-link', '#new_conference_countries_form',
+	formset_dialog(900, '#countries-form-dialog', '#countries-form-dialog-link', '#new_conference_countries_form',
 		"get-conference-countries", countryHeaders, countryColumnSettings, countryColumnSorting, countryTable, 'country', form_country_row);
 
 	paymentHeaders = ['School','Payment Type','Date Received','Amount','Notes','Delete'];
@@ -532,7 +543,7 @@ $(function(){
 	            			/* Delete */ 	{ "bSearchable": false, "bSortable": false }
 	            		];
 	paymentColumnSorting = [[ 2, "desc" ]]
-	formset_dialog(800, '#payments-form-dialog', '#payments-form-dialog-link', '#new_conference_payments_form',
+	formset_dialog(900, '#payments-form-dialog', '#payments-form-dialog-link', '#new_conference_payments_form',
 		"get-conference-payments", paymentHeaders, paymentColumnSettings, paymentColumnSorting, paymentTable, 'payment', form_payment_row);
 
 	var schoolSelectSource = "{ '-1':' ', {% for school in object.school_set.all %} \
@@ -560,7 +571,7 @@ $(function(){
 	            			/* Delete */ 	{ "bSearchable": false, "bSortable": false }
 	            		];
 	feeColumnSorting = [[ 0, "asc" ]];
-	formset_dialog(800, '#fee-form-dialog', '#fee-form-dialog-link', '#new_fee_form',
+	formset_dialog(900, '#fee-form-dialog', '#fee-form-dialog-link', '#new_fee_form',
 			"get-conference-fees", feeHeaders, feeSettings, feeColumnSorting, feeTable, 'fee', form_fee_row);
 
 	datepenaltyHeaders = ['Name','Amount','Per','Based On','Start Date','End Date','Delete'];
@@ -574,12 +585,12 @@ $(function(){
 	            			/* Delete */ 	{ "bSearchable": false, "bSortable": false }
 	            		];
 	datepenaltyColumnSorting = [[ 0, "asc" ]];
-	formset_dialog(800, '#datepenalty-form-dialog', '#datepenalty-form-dialog-link', '#new_datepenalty_form',
+	formset_dialog(900, '#datepenalty-form-dialog', '#datepenalty-form-dialog-link', '#new_datepenalty_form',
 			"get-conference-datepenalties", datepenaltyHeaders, datepenaltySettings, datepenaltyColumnSorting, datepenaltyTable, 'datepenalty', form_datepenalty_row);
 
 	$('#committees-to-countries-form-dialog').dialog({
 		autoOpen: false,
-		width: 800,
+		width: 900,
 		modal: true,
 		resizable: false,
 		position: 'top',
@@ -664,7 +675,7 @@ $(function(){
 
 	$('#countries-to-schools-form-dialog').dialog({
 		autoOpen: false,
-		width: 800,
+		width: 900,
 		modal: true,
 		resizable: false,
 		position: 'top',
@@ -680,7 +691,7 @@ $(function(){
 	
 	$('#edit-delegate-positions-form-dialog').dialog({
 		autoOpen: false,
-		width: 800,
+		width: 900,
 		modal: true,
 		resizable: false,
 		position: 'top',

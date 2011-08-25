@@ -47,7 +47,7 @@ def get_basic_conference_form(request, conference):
         output += "<img src=\"" + settings.MEDIA_URL + conference.logo.url + "\" border=\"0\" width=\"100\" />"
     output += "<form action=\"ajax/save-basic-conference-form\" enctype=\"multipart/form-data\" method=\"post\" id=\"basic_conference_info_form\">"
     output += "<input type='hidden' name='csrfmiddlewaretoken' value='" + csrf.get_token(request) + "' />"
-    output += "<table>"
+    output += "<table class=\"form\">"
     output += form.as_table()
     output += "</table></form>"
     return simplejson.dumps({'form':output})
@@ -59,13 +59,13 @@ def save_basic_conference_form(request, conference):
         conference = form.save()
         return simplejson.dumps({'conference':conference.pk})
     else:
-        return simplejson.dumps({'form':form.as_p()})
+        return simplejson.dumps({'form':"<table class=\"form\">" + form.as_table() + "</table>"})
 
 def get_conference_fees(request, conference):
     existing_fees = serializers.serialize('jsondisplay', Fee.objects.filter(feestructure__conference=conference), fields=('name','amount','per'))
     form = FeeForm()
     
-    return simplejson.dumps({'form':form.as_p(), 'objects':existing_fees})
+    return simplejson.dumps({'form':"<table class=\"form\">" + form.as_table() + "</table>", 'objects':existing_fees})
     
 def remove_fee(request, conference):
     if request.method == 'POST':
@@ -83,14 +83,14 @@ def add_fee(request, conference):
             fee.save()
             return serializers.serialize('jsondisplay', [fee], fields=('name','amount','per'))[1:-1]
         else:
-            return simplejson.dumps({'form':form.as_p()})
+            return simplejson.dumps({'form':"<table class=\"form\">" + form.as_table() + "</table>"})
    
 def get_conference_datepenalties(request, conference):
     existing_penalties = serializers.serialize('jsondisplay', DatePenalty.objects.filter(feestructure__conference=conference), 
                                                fields=('name','amount','per','based_on','start_date','end_date'))
     form = DatePenaltyForm()
     
-    return simplejson.dumps({'form':form.as_p(), 'objects':existing_penalties})
+    return simplejson.dumps({'form':"<table class=\"form\">" + form.as_table() + "</table>", 'objects':existing_penalties})
     
 def remove_datepenalty(request, conference):
     if request.method == 'POST':
@@ -108,25 +108,25 @@ def add_datepenalty(request, conference):
             datepenalty.save()
             return serializers.serialize('jsondisplay', [datepenalty], fields=('name','amount','per','based_on','start_date','end_date'))[1:-1]
         else:
-            return simplejson.dumps({'form':form.as_p()})
+            return simplejson.dumps({'form':"<table class=\"form\">" + form.as_table() + "</table>"})
    
 def get_conference_committees(request, conference):
     existing_committees = serializers.serialize('json', Committee.objects.filter(conference=conference), fields=('name'))
     form = NewCommitteeForm()
     
-    return simplejson.dumps({'form':form.as_p(), 'objects':existing_committees})
+    return simplejson.dumps({'form':"<table class=\"form\">" + form.as_table() + "</table>", 'objects':existing_committees})
 
 def get_conference_countries(request, conference):
     existing_countries = serializers.serialize('json', Country.objects.filter(conference=conference), fields=('name','country_code'))
     form = NewCountryForm()
     
-    return simplejson.dumps({'form':form.as_p(), 'objects':existing_countries})
+    return simplejson.dumps({'form':"<table class=\"form\">" + form.as_table() + "</table>", 'objects':existing_countries})
 
 def get_conference_payments(request, conference):
     existing_payments = serializers.serialize('json', Payment.objects.select_related('school').filter(conference=conference), fields=('school','type','date','amount','notes'), use_natural_keys=True)
     form = NewPaymentForm()
     
-    return simplejson.dumps({'form':form.as_p(), 'objects':existing_payments})
+    return simplejson.dumps({'form':"<table class=\"form\">" + form.as_table() + "</table>", 'objects':existing_payments})
 
 def edit_committee(request, conference):
     # clean the POST data
@@ -161,7 +161,7 @@ def add_committee(request, conference):
             committee.save()
             return simplejson.dumps({'pk':committee.pk, 'name':committee.name})
         else:
-            return simplejson.dumps({'form':form.as_p()})
+            return simplejson.dumps({'form':"<table class=\"form\">" + form.as_table() + "</table>"})
    
 def edit_country(request, conference):
     # clean the POST data
@@ -196,7 +196,7 @@ def add_country(request, conference):
             country.save()
             return serializers.serialize('json', [country], fields=('name','country_code'))[1:-1]
         else:
-            return simplejson.dumps({'form':form.as_p()})
+            return simplejson.dumps({'form':"<table class=\"form\">" + form.as_table() + "</table>"})
 
 def edit_payment(request, conference):
     # clean the POST data
@@ -230,7 +230,7 @@ def add_payment(request, conference):
             payment.save()
             return serializers.serialize('json', [payment], fields=('school','type','date','amount','notes'), use_natural_keys=True)[1:-1]
         else:
-            return simplejson.dumps({'form':form.as_p()})
+            return simplejson.dumps({'form':"<table class=\"form\">" + form.as_table() + "</table>"})
 
 def get_delegate_positions_table(committees, countries):
     table_list = []
@@ -284,8 +284,8 @@ def get_individual_delegate_positions(request, conference):
     table_list.append("</tbody>")
     
     formclass = delegate_position_form_factory(conference)
-    
-    return simplejson.dumps({'table':''.join(table_list), 'form':formclass().as_p()})
+    form = "<table class=\"form\">" + formclass().as_table() + "</table>"
+    return simplejson.dumps({'table':''.join(table_list), 'form':form})
 
 def dictify_queryset(set, field):
     ret = dict()
@@ -480,7 +480,7 @@ def add_delegate_position(request, conference):
             position = form.save()
             return simplejson.dumps({'row':delegate_position_row(position)})
         else:
-            return simplejson.dumps({'form':form.as_p()})
+            return simplejson.dumps({'form':"<table class=\"form\">" + form.as_table() + "</table>"})
 
 def get_country_school_assignment_table(countries):
     table_list = ["<thead><tr><th>Country</th><th>School</th></tr></thead><tbody>"]
@@ -503,7 +503,7 @@ def get_country_school_assignment_table(countries):
             table_list.append("<td class=\"school_assignment\" id=\"")
             table_list.append(str(country.pk))
             table_list.append("\">")
-            table_list.append(','.join(assignment_dict[key]))
+            table_list.append(', '.join(assignment_dict[key]))
             table_list.append("</td></tr>")        
     table_list.append("</tbody>")
     
