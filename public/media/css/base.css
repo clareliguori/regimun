@@ -14,12 +14,23 @@ table.datatable {
 	width: 100%;	
 }
 
+table.form {
+	margin-bottom: 5px;	
+}
+
 .ui-state-error {
 	font-size: 12px;
 }
 
 .button {
 	font-size: 12px;	
+}
+
+.float-center {
+	width: 800px;
+	margin-left:auto;
+	margin-right:auto;
+	clear: both;	
 }
 
 .center {
@@ -30,6 +41,11 @@ table.datatable {
 
 tr,td {
 	text-align:left;
+}
+
+input {
+	margin-right: 5px;
+	margin-top: 5px;
 }
 
 .right-align {

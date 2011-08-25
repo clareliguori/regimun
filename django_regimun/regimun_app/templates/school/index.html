@@ -165,6 +165,9 @@ function save_country_preferences_form() {
 			$('#country-preferences-form').html(data.prefs);
 			toggle_country_preferences_buttons();
 			update_fees_table();
+		},
+		error:			function() {
+			cancel_country_preferences_form();
 		}
 	});
 }

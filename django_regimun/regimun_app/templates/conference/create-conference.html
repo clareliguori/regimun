@@ -7,22 +7,32 @@ Create New Conference
 {% block content %}
 {% if user.is_authenticated and user.is_active and user.is_staff %}
 
+<div class="float-center">
 <h1>Create New Conference</h1>
 
+<h2>Conference Information</h2>
 <form action="/new-conference/" method="post">{% csrf_token %}
-<table>
+<table class="form">
 {{ conference_form.as_table }}
 </table>
 
 <hr/>
-Secretariat Username
-<table>
+<h2>Secretariat Username</h2>
+<table class="form">
 {{ secretariat_form.as_table }}
 </table>
 
 <input type="submit" class="button" value="Submit" />
 </form>
+</div>
 {% else %}
-You do not have access to this page.
+	<div class="ui-widget" style="width:400px; margin:50px auto;">	
+		<div class="ui-state-error ui-corner-all no-javascript" style="padding: 0pt 0.7em; font-size: 14px;">
+			<p>
+			<span style="float: left; margin-right: 1em;" class="ui-icon ui-icon-alert"></span>
+			You do not have access to this page.
+			</p>
+		</div>
+	</div>
 {% endif %}
 {% endblock %}

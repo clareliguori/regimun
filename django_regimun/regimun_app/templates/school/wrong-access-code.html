@@ -5,8 +5,13 @@
 {% endblock %}
 
 {% block content %}
-<div class="header">
-You entered the wrong access code. You do not have access to this school.
-</div>
+	<div class="ui-widget" style="width:400px; margin:50px auto;">	
+		<div class="ui-state-error ui-corner-all no-javascript" style="padding: 0pt 0.7em; font-size: 14px;">
+			<p>
+			<span style="float: left; margin-right: 1em;" class="ui-icon ui-icon-alert"></span>
+			You entered the wrong access code. You do not have access to this school.
+			</p>
+		</div>
+	</div>
 
 {% endblock %}
