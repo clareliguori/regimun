@@ -9,10 +9,12 @@
 				</td>
 			</tr>
 			<tr><td colspan="2" class="header">
-				{{ conference.address_line_1 }}{% if conference.address_line_2 %}, {{ conference.address_line_2 }}{% endif %}, {{ conference.city }}, {{ conference.state }}{% if conference.zip %}, {{ conference.zip }}{% endif %}{% if conference.address_country %}, {{ conference.address_country }}{% endif %}
+			<hr/>
+			<p class="header">{{ conference.address_line_1 }}{% if conference.address_line_2 %}, {{ conference.address_line_2 }}{% endif %}, {{ conference.city }}, {{ conference.state }}{% if conference.zip %}, {{ conference.zip }}{% endif %}{% if conference.address_country %}, {{ conference.address_country }}{% endif %}
 				{% if conference.website_url %}
 					 &bull; {{ conference.website_url }}
-				{% endif %}			
+				{% endif %}		
+			</p>	
 			</td>
 			</tr>
 		</table>

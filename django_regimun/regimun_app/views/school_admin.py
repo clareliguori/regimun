@@ -194,13 +194,14 @@ def add_to_conference(request, conference_slug, school_slug):
                                                 args=(conference.url_name,school.url_name,)))
 
 @login_required
-def generate_invoice_html(request, conference_slug, school_slug, template):
+def generate_invoice_html(request, conference_slug, school_slug, template, format):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     school = get_object_or_404(School, url_name=school_slug)
     feestructure = conference.feestructure
     
     if school_authenticate(request, conference, school):
         context_dict = {
+        'format' : format,
         'pagesize' : 'letter',
         'conference' : conference,
         'school' : school, 
@@ -221,7 +222,7 @@ def generate_invoice_pdf(request, conference_slug, school_slug):
     response['Content-Type'] ='application/pdf'
     response['Content-Disposition'] = 'attachment; filename=invoice-' + conference_slug + "-" + school_slug + '.pdf'
     
-    html = generate_invoice_html(request, conference_slug, school_slug, 'invoice/invoice.html')
+    html = generate_invoice_html(request, conference_slug, school_slug, 'invoice/invoice.html', 'pdf')
     pdf = pisa.CreatePDF(src=html, dest=response, show_error_as_pdf=True, link_callback=fetch_resources)
     if not pdf.err:
         return response
@@ -232,7 +233,7 @@ def generate_invoice_pdf(request, conference_slug, school_slug):
 def generate_invoice_doc(request, conference_slug, school_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     filename = 'invoice-' + conference_slug + "-" + school_slug
-    html = generate_invoice_html(request, conference_slug, school_slug, 'invoice/invoice-doc.html')
+    html = generate_invoice_html(request, conference_slug, school_slug, 'invoice/invoice-doc.html', 'doc')
     return convert_html_to_doc(html, filename, conference)
 
 @login_required
@@ -247,6 +248,7 @@ def generate_request_based_invoice(request, conference_slug, school_slug):
     
     if school_authenticate(request, conference, school):
         context_dict = {
+        'format' : 'pdf',
         'pagesize' : 'letter',
         'conference' : conference,
         'school' : school, 
@@ -499,7 +501,7 @@ def fees_table_header():
     output = []
     output.append("<div id=\"fees-table\">")
     output.append("<h3 style=\"margin: 0; font-size: 100%;\" >Conference Fees:</h3>")
-    output.append("<table style=\"width: 100%; border: 1px solid; margin:0px; padding:6px;\">")
+    output.append("<table border=\"1\" style=\"width: 100%; border: 1px solid; margin:0px; padding:6px;\">")
     output.append("<tbody><tr>")
     output.append("<th style=\"font-weight: bold; padding: 3px; text-align: left\">Fee</th>")
     output.append("<th style=\"font-weight: bold; padding: 3px; text-align: right\">Rate</th>")
@@ -511,18 +513,18 @@ def fees_table_header():
 
 def fees_table_footer(conference, feestructure):
     output = []
-    output.append("</tbody></table><br/><br/>")
+    output.append("</tbody></table><br/>")
     
     output.append("No refunds will be issued past " + date(conference.no_refunds_start_date, "F jS")) 
     output.append(".<br/><br/>Please mail all payment to: <br/>")
-    output.append("<span style=\"padding-left: 30pt;\">" + conference.address_line_1)
+    output.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + conference.address_line_1)
     if conference.address_line_2:
         output.append(", " + conference.address_line_2)
-    output.append("<br/></span><span style=\"padding-left: 30pt;\">" + conference.city + ", " + conference.state)
+    output.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + conference.city + ", " + conference.state)
     if conference.zip:
         output.append(", " + conference.zip)
     if conference.address_country:
         output.append(", " + conference.address_country)
-    output.append("<br/></span>Checks should be made out to " + conference.organization_name + ".</div>")
+    output.append("<br/>Checks should be made out to " + conference.organization_name + ".</div>")
     
     return ''.join(output)

@@ -162,6 +162,7 @@ def generate_all_invoices_html(request, conference_slug, template):
 
         for school in schools:
             school_context_dict = {
+                'format' : format,
                 'pagesize' : 'letter',
                 'conference' : conference,
                 'school' : school, 
@@ -175,6 +176,7 @@ def generate_all_invoices_html(request, conference_slug, template):
             schools_output.append(render_to_string('invoice/invoice-body.html', school_context_dict, context_instance=RequestContext(request)))
         
         context_dict = {
+            'format' : format,
             'pagesize' : 'letter',
             'conference' : conference,
             'school_invoices' : schools_output
@@ -189,7 +191,7 @@ def generate_all_invoices_pdf(request, conference_slug):
     response['Content-Type'] ='application/pdf'
     response['Content-Disposition'] = 'attachment; filename=invoices-' + conference_slug + '.pdf'
     
-    html = generate_all_invoices_html(request, conference_slug, 'invoice/all-invoices.html')
+    html = generate_all_invoices_html(request, conference_slug, 'invoice/all-invoices.html','pdf')
     pdf = pisa.CreatePDF(src=html, dest=response, show_error_as_pdf=True, link_callback=fetch_resources)
     if not pdf.err:
         return response
@@ -200,7 +202,7 @@ def generate_all_invoices_pdf(request, conference_slug):
 def generate_all_invoices_doc(request, conference_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     filename = 'invoices-' + conference_slug
-    html = generate_all_invoices_html(request, conference_slug, 'invoice/all-invoices-doc.html')
+    html = generate_all_invoices_html(request, conference_slug, 'invoice/all-invoices-doc.html','doc')
     return convert_html_to_doc(html, filename, conference)
 
 @login_required

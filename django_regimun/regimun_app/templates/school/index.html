@@ -483,7 +483,8 @@ function update_fees_table() {
 	</div>
 
 	<div id="fees">
-		<p style="text-align:center"><a href="invoice">Download Invoice PDF</a></p>
+		<h3 style="margin: 0; font-size: 100%;">Download Invoice:</h3>
+		<p><a href="invoice">Download PDF</a> <a href="invoice-doc">Download Word Doc</a></p>
 		{% autoescape off %}{{ fees_table }}{% endautoescape %}
 		<p><i>Note:</i> Fees listed above reflect the number of delegates registered in the Delegations tab, not the number of delegate positions requested. If you need an invoice before registering your delegates, <a href="invoice-from-request">click here</a> to download an invoice based on the number of delegate positions you requested with your country preferences.</p>
 	</div>
