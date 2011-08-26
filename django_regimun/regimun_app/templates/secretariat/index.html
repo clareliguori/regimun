@@ -927,8 +927,19 @@ $(function(){
 		<p><a href="#" id="payments-form-dialog-link">Payments</a></p>
 		<div id="payments-form-dialog" title="Conference Fee Payments"></div>
 		
-		<h3 style="margin: 0; font-size: 100%;">Download All Invoices:</h3>
-		<p><a href="invoices">Download PDF</a> (slow) <a href="invoices-doc">Download Word Doc</a></p>
+		<h3 style="font-size: 100%;">Download All Invoices:</h3>
+		<table class="center">
+			<tr>
+				<td class="center" style="padding-right: 30px">
+					<a href="invoices"><img class="tab-link" src="{{MEDIA_URL}}/icons/pdf.png"/></a><br/>
+					<a href="invoices">Download PDF</a> (Slow)
+				</td>
+				<td class="center">
+					<a href="invoices-doc"><img class="tab-link" src="{{MEDIA_URL}}/icons/doc.png"/></a><br/>
+					<a href="invoices-doc">Download Word Doc</a>
+				</td>
+			</tr>
+		</table>
 	</div>
 
 	<!--<div id="store" class="secretariat-pane" >

@@ -136,7 +136,7 @@ def spreadsheet_downloads(request, conference_slug):
     return response
 
 @login_required
-def generate_all_invoices_html(request, conference_slug, template):
+def generate_all_invoices_html(request, conference_slug, template, format):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     
     if secretariat_authenticate(request, conference):

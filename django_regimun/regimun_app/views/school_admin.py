@@ -501,7 +501,7 @@ def fees_table_header():
     output = []
     output.append("<div id=\"fees-table\">")
     output.append("<h3 style=\"margin: 0; font-size: 100%;\" >Conference Fees:</h3>")
-    output.append("<table border=\"1\" style=\"width: 100%; border: 1px solid; margin:0px; padding:6px;\">")
+    output.append("<table border=\"1\" rules=none frame=box style=\"width: 100%; border: 1px solid; margin:0px; padding:6px;\">")
     output.append("<tbody><tr>")
     output.append("<th style=\"font-weight: bold; padding: 3px; text-align: left\">Fee</th>")
     output.append("<th style=\"font-weight: bold; padding: 3px; text-align: right\">Rate</th>")
