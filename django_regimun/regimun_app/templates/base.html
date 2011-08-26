@@ -4,10 +4,10 @@
 	<title>{% block title %}{% endblock %}</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<script src="{{ MEDIA_URL }}/js/jquery-1.6.2.min.js" type="text/javascript" charset="utf-8"></script>
-	<script src="{{ MEDIA_URL }}/js/jquery-ui-1.8.4.custom.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ MEDIA_URL }}/js/jquery-ui-1.8.16.custom.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ MEDIA_URL }}/js/jquery.form.js" type="text/javascript" charset="utf-8"></script>
 	<script src="{{ MEDIA_URL }}/js/jquery.jgrowl_minimized.js" type="text/javascript" charset="utf-8"></script>
-	<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}/css/custom-theme/jquery-ui-1.8.4.custom.css" />
+	<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}/css/custom-theme/jquery-ui-1.8.16.custom.css" />
 	<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}/css/jquery.jgrowl.css" />
 	<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}/css/base.css" />
 	{% load setting %}
@@ -69,7 +69,7 @@
 				You are logged in as <span style="font-weight: bold">{{ user.username }}</span> 
 				( <a href="{% url django.contrib.auth.views.logout_then_login %}">Logout</a> / 
 				<a href="{% url django.contrib.auth.views.password_change %}">Change Password</a>
-				{% if user.faculty_sponsor %} / <a href="/school/{{ user.faculty_sponsor.school.url_name }}">Home</a>{% endif %}
+				{% if user.faculty_sponsor and user.faculty_sponsor.school %} / <a href="/school/{{ user.faculty_sponsor.school.url_name }}">Home</a>{% endif %}
 				)
 			{% else %}
 				<a href="{% url django.contrib.auth.views.login %}?next={{ request.path }}">Login</a> / 

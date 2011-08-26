@@ -464,10 +464,10 @@ function update_fees_table() {
 					<!-- DelegatePosition object -->
 					{{ position.committee.name }}: <span id="delegate-info-{{ position.pk }}">No delegate registered</span>
 					<small>
-						&nbsp; &nbsp;<a style="display: none" onclick="get_edit_delegate_form({{ position.pk }})" id="edit-delegate-{{ position.pk }}" href="javascript:void(0);">Edit</a>  
-						&nbsp; &nbsp;<a style="display: none" onclick="remove_delegate({{ position.pk }})" id="remove-delegate-{{ position.pk }}" href="javascript:void(0);">Remove</a>
-						&nbsp; &nbsp;<a style="display: none" onclick="send_edit_delegate_form({{ position.pk }})" id="save-delegate-{{ position.pk }}" href="javascript:void(0);">Save</a>
-						&nbsp; &nbsp;<a onclick="get_edit_delegate_form({{ position.pk }})" id="add-delegate-{{ position.pk }}" href="javascript:void(0);">Register</a>
+						&nbsp;<a style="display: none" onclick="get_edit_delegate_form({{ position.pk }})" id="edit-delegate-{{ position.pk }}" href="javascript:void(0);">Edit</a>  
+						&nbsp;<a style="display: none" onclick="remove_delegate({{ position.pk }})" id="remove-delegate-{{ position.pk }}" href="javascript:void(0);">Remove</a>
+						<a style="display: none" onclick="send_edit_delegate_form({{ position.pk }})" id="save-delegate-{{ position.pk }}" href="javascript:void(0);">Save</a>
+						<a onclick="get_edit_delegate_form({{ position.pk }})" id="add-delegate-{{ position.pk }}" href="javascript:void(0);">Register</a>
 					</small>
 				{% endif %}
 				</td></tr>
