@@ -112,6 +112,8 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 
 DEFAULT_FROM_EMAIL='info@munsoftware.com'
+EMAIL_HOST="localhost"
+SERVER_EMAIL=DEFAULT_FROM_EMAIL
 
 #INTERNAL_IPS = ('127.0.0.1',)
 
