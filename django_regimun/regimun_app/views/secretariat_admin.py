@@ -29,6 +29,8 @@ def secretariat_authenticate(request, conference):
         request.user.secretariat_member.conferences.get(id=conference.id)
     except ObjectDoesNotExist:
         return False
+    
+    return True
 
 @login_required
 def spreadsheet_downloads(request, conference_slug):
