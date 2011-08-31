@@ -342,7 +342,7 @@ def upload_delegate_positions(request, conference):
                         try:
                             country = countries_dict[country_name]
                         except KeyError:
-                            errors.add("Could not find country " + country_name + " (skipping)")
+                            errors.add("Could not find country " + unicode(country_name, errors='replace') + " (skipping)")
                         else:
                             for committee_name,value in row.items():
                                 committee_name = committee_name.strip()
@@ -353,12 +353,12 @@ def upload_delegate_positions(request, conference):
                                     try:
                                         committee = committees_dict[committee_name]
                                     except KeyError:
-                                        errors.add("Could not find committee " + committee_name + " (skipping)") 
+                                        errors.add("Could not find committee " + unicode(committee_name, errors='replace') + " (skipping)") 
                                     else:
                                         try:
                                             new_count = int(value)
                                         except exceptions.ValueError:
-                                            errors.add("Invalid value for " + country.name + "/" + committee.name + ": " + value + " (skipping)")
+                                            errors.add("Invalid value for " + country.name + "/" + committee.name + ": " + unicode(value, errors='replace') + " (skipping)")
                                         else:
                                             set_delegate_position_count(committee, country, 
                                                                         positions_dict.get((country,committee),[]), 
@@ -561,7 +561,7 @@ def upload_school_country_assignments(request, conference):
                         try:
                             country = countries_dict[country_name]
                         except KeyError:
-                            errors.add("Could not find country " + country_name + " (skipping)")
+                            errors.add("Could not find country " + unicode(country_name, errors='replace') + " (skipping)")
                         else:
                             try:
                                 school_name = row["School"].strip()
@@ -576,9 +576,9 @@ def upload_school_country_assignments(request, conference):
                                     try:
                                         set_country_school_assignment(positions_dict[country], school)
                                     except KeyError:
-                                        errors.add("No positions for " + country_name + " - cannot assign to " + school_name)
+                                        errors.add("No positions for " + unicode(country_name, errors='replace') + " - cannot assign to " + unicode(school_name, errors='replace'))
                                 except KeyError:
-                                    errors.add("Could not find school " + school_name + " for " + country_name + " (skipping)")
+                                    errors.add("Could not find school " + unicode(school_name, errors='replace') + " for " + unicode(country_name, errors='replace') + " (skipping)")
             except csv.Error:
                 errors.add("Not a valid CSV file.")
             if len(errors) > 0:
