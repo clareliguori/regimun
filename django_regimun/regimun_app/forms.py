@@ -175,9 +175,9 @@ class NewCommitteeForm(CleanModelForm):
         if slug == '':
             raise forms.ValidationError("Invalid committee name.")
         
-        conf_id = self.cleaned_data['conference'].strip()
-        if Committee.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug),conference__pk=conf_id).count() > 0:
-            raise forms.ValidationError("A committee already exists with this name.")
+#        conf_id = self.cleaned_data['conference'].strip()
+#        if Committee.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug),conference__pk=conf_id).count() > 0:
+#            raise forms.ValidationError("A committee already exists with this name.")
         
         return data
 
@@ -193,9 +193,9 @@ class NewCountryForm(CleanModelForm):
         if slug == '':
             raise forms.ValidationError("Invalid country name.")
         
-        conf_id = self.cleaned_data['conference'].strip()
-        if Country.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug),conference__pk=conf_id).count() > 0:
-            raise forms.ValidationError("A country already exists with this name.")
+#        conf_id = self.cleaned_data['conference'].strip()
+#        if Country.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug),conference__pk=conf_id).count() > 0:
+#            raise forms.ValidationError("A country already exists with this name.")
         
         return data
 
