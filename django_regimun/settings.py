@@ -1,6 +1,7 @@
 # Django settings for django_regimun project.
 from django.conf import global_settings
 import os
+import re
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -114,6 +115,13 @@ LOGIN_REDIRECT_URL = '/'
 DEFAULT_FROM_EMAIL='info@munsoftware.com'
 EMAIL_HOST="localhost"
 SERVER_EMAIL=DEFAULT_FROM_EMAIL
+
+SEND_BROKEN_LINK_EMAILS=True
+IGNORABLE_404_URLS = (
+        re.compile(r'^/apple-touch-icon.*\.png$'),
+        re.compile(r'^/favicon\.ico$'),
+        re.compile(r'^/robots\.txt$'),
+)
 
 #INTERNAL_IPS = ('127.0.0.1',)
 
