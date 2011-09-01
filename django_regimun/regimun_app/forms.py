@@ -80,13 +80,13 @@ class NewFacultySponsorForm(CleanForm):
             User.objects.get(username=username)
         except User.DoesNotExist:
             return username
-        raise forms.ValidationError(_("A user with that username already exists."))
+        raise forms.ValidationError("A user with that username already exists.")
         
     def clean_password2(self):
         password1 = self.cleaned_data.get("sponsor_password", "")
         password2 = self.cleaned_data["password2"]
         if password1 != password2:
-            raise forms.ValidationError(_("The two password fields didn't match."))
+            raise forms.ValidationError("The two password fields didn't match.")
         return password2
     
 class EditFacultySponsorForm(CleanForm):
