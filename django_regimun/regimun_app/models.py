@@ -332,7 +332,7 @@ class Country(models.Model):
 	conference = models.ForeignKey(Conference)
 	name = models.CharField(max_length=200)
 	url_name = models.SlugField("Short Name", max_length=200, help_text="You will use this name in unique registration URLs. Only alphanumeric characters, underscores, and hyphens are allowed.")
-	country_code = models.CharField("ISO 3166-1 alpha-2 Country Code", max_length=2, blank=True, help_text='See the <a href="http://www.iso.org/iso/english_country_names_and_code_elements">official ISO 3166-1 alpha-2 code list</a>.')
+	country_code = models.CharField("ISO 3166-1 alpha-2 Country Code", max_length=2, blank=True, help_text='See the <a href="http://www.iso.org/iso/country_codes/iso_3166_code_lists/country_names_and_code_elements.htm">official ISO 3166-1 alpha-2 code list</a>.')
 	def __unicode__(self):
 		return self.name
 
