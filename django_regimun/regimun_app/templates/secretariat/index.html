@@ -118,7 +118,7 @@ function formset_row_handlers(object_name, data_table) {
 		$('td.name', data_table.fnGetNodes()).unbind("editable").editable( 'ajax/edit-'+object_name, {
 			"callback": function( sValue, y ) {
 				var aPos = data_table.fnGetPosition( this );
-				data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+				data_table.fnUpdate( sValue, aPos[0], aPos[1], false );
 			},
 			"submitdata": function ( value, settings ) {
 				return { "row_id": this.parentNode.getAttribute('id') };
@@ -248,7 +248,7 @@ function get_delegate_positions_callback(data, dialog_element) {
 	    },
 		"callback": function( sValue, y ) {
 			var aPos = data_table.fnGetPosition( this );
-			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1], false );
 		},
 		"submitdata": function ( value, settings ) {
 			return { "row_id": this.parentNode.getAttribute('id') };
@@ -288,7 +288,7 @@ function get_school_country_assignments_callback(data, selectSource, dialog_elem
 	    placeholder: "Click to assign school", 
 		"callback": function( sValue, y ) {
 			var aPos = data_table.fnGetPosition( this );
-			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1], false );
 		},
 		"submitdata": function ( value, settings ) {
 			return { "row_id": this.parentNode.getAttribute('id') };
@@ -309,7 +309,7 @@ function individual_delegate_positions_row_handlers(data_table, schoolSelectSour
 	    placeholder: "Click to assign country", 
 		"callback": function( sValue, y ) {
 			var aPos = data_table.fnGetPosition( this );
-			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1], false );
 		},
 		"submitdata": function ( value, settings ) {
 			return { "row_class": this.getAttribute('class') };
@@ -324,7 +324,7 @@ function individual_delegate_positions_row_handlers(data_table, schoolSelectSour
 	    placeholder: "Click to assign committee", 
 		"callback": function( sValue, y ) {
 			var aPos = data_table.fnGetPosition( this );
-			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1], false );
 		},
 		"submitdata": function ( value, settings ) {
 			return { "row_class": this.getAttribute('class') };
@@ -339,7 +339,7 @@ function individual_delegate_positions_row_handlers(data_table, schoolSelectSour
 	    placeholder: "Click to assign school", 
 		"callback": function( sValue, y ) {
 			var aPos = data_table.fnGetPosition( this );
-			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1], false );
 		},
 		"submitdata": function ( value, settings ) {
 			return { "row_class": this.getAttribute('class') };
@@ -350,7 +350,7 @@ function individual_delegate_positions_row_handlers(data_table, schoolSelectSour
 	$('td.delegate_position_title', data_table.fnGetNodes()).unbind("editable").editable( 'ajax/set-individual-delegate-positions', {
 		"callback": function( sValue, y ) {
 			var aPos = data_table.fnGetPosition( this );
-			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1], false );
 		},
 		"submitdata": function ( value, settings ) {
 			return { "row_class": this.getAttribute('class') };
