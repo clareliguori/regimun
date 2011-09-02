@@ -69,7 +69,8 @@
 				You are logged in as <span style="font-weight: bold">{{ user.username }}</span> 
 				( <a href="{% url django.contrib.auth.views.logout_then_login %}">Logout</a> / 
 				<a href="{% url django.contrib.auth.views.password_change %}">Change Password</a>
-				{% if user.faculty_sponsor and user.faculty_sponsor.school %} / <a href="/school/{{ user.faculty_sponsor.school.url_name }}">Home</a>{% endif %}
+				{% load userfilters %}
+				{% if user|is_faculty_sponsor %} / <a href="/school/{{ user.faculty_sponsor.school.url_name }}">Home</a>{% endif %}
 				)
 			{% else %}
 				<a href="{% url django.contrib.auth.views.login %}?next={{ request.path }}">Login</a> / 

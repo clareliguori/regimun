@@ -389,7 +389,8 @@ function update_fees_table() {
 					Phone Number: {{ sponsor.phone }}<br/>
 				</div>
 				<p id="buttons_sponsor_{{sponsor.pk}}">
-					{% if user.is_staff or user.secretariat_member or sponsor.user.username == user.username %}
+					{% load userfilters %}
+					{% if user.is_staff or user|is_secretariat_member or sponsor.user.username == user.username %}
 						<button id="edit_sponsor_{{sponsor.pk}}" class="button" onclick="get_edit_sponsor_form({{ sponsor.pk }})">Edit</button>
 					{% endif %}
 					<button id="save_sponsor_{{sponsor.pk}}" class="button" style="display: none" onclick="send_edit_sponsor_form({{sponsor.pk}})">Save</button>

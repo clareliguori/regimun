@@ -9,7 +9,8 @@
 <div class="float-center">
 <h1>Register new school for {{ conference.name }}</h1>
 
-{% if user.is_staff or user.secretariat_member %}
+{% load userfilters %}
+{% if user.is_staff or user|is_secretariat_member %}
 
 	<div class="ui-widget" style="width:400px; margin:50px auto;">	
 		<div class="ui-state-highlight ui-corner-all no-javascript" style="padding: 0pt 0.7em; font-size: 14px;">
@@ -22,10 +23,12 @@
 
 {% else %}
 
+{% if not user.is_authenticated %}
 <p>
 <b>Note: </b>If you already have a school account, you can register for multiple conferences from the same account.<br/>
 <a href="{% url django.contrib.auth.views.login %}?next={{ request.path }}">Login</a> to register for {{ conference.name }} using your existing account.
 </p>
+{% endif %}
 
 <form action="/{{ conference.url_name }}/new-school/" method="post">{% csrf_token %}
 <h2>School Information</h2>
