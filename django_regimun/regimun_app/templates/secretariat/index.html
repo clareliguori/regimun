@@ -39,7 +39,7 @@ function form_committee_row(committee) {
 
 	row_html = "<tr pk=\"" + committee.pk + "\">";
 	row_html += "<td class=\"name\" id=\"name_" + committee.pk + "\">" + name + "</td>";
-	row_html += "<td class=\"delete\" id=\"" + committee.pk + "\"><a href=\"delete\" id=\"delete_committee\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
+	row_html += "<td class=\"delete\" id=\"" + committee.pk + "\"><a href=\"delete-committee\" id=\"delete_committee\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
 	return row_html;
 }
 
@@ -52,7 +52,7 @@ function form_country_row(country) {
 	if(country_code.length > 0)
 		row_html += "<img src=\"{{ MEDIA_URL }}/icons/country_flags/flag-" + country_code + ".png\" />";
 	row_html += "</td><td class=\"name\" id=\"name_" + country.pk + "\">" + name + "</td>";
-	row_html += "<td class=\"delete\" id=\"" + country.pk + "\"><a href=\"delete\" id=\"delete_country\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
+	row_html += "<td class=\"delete\" id=\"" + country.pk + "\"><a href=\"delete-country\" id=\"delete_country\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
 	return row_html;
 }
 
@@ -64,7 +64,7 @@ function form_payment_row(payment) {
 	row_html += "<td class=\"date\" id=\"date_" + payment.pk + "\">" + payment.fields.date + "</td>";
 	row_html += "<td class=\"amount\" id=\"amount_" + payment.pk + "\">" + payment.fields.amount + "</td>";
 	row_html += "<td class=\"notes\" id=\"notes_" + payment.pk + "\">" + payment.fields.notes + "</td>";
-	row_html += "<td class=\"delete\" id=\"" + payment.pk + "\"><a href=\"delete\" id=\"delete_payment\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
+	row_html += "<td class=\"delete\" id=\"" + payment.pk + "\"><a href=\"delete-payment\" id=\"delete_payment\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
 	return row_html;
 }
 
@@ -73,7 +73,7 @@ function form_fee_row(fee) {
 	row_html += "<td class=\"name\" id=\"name_" + fee.pk + "\">" + fee.fields.name + "</td>";
 	row_html += "<td class=\"amount\" id=\"amount_" + fee.pk + "\">" + fee.fields.amount + "</td>";
 	row_html += "<td class=\"per\" id=\"per_" + fee.pk + "\">" + fee.fields.per + "</td>";
-	row_html += "<td class=\"delete\" id=\"" + fee.pk + "\"><a href=\"delete\" id=\"delete_fee\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
+	row_html += "<td class=\"delete\" id=\"" + fee.pk + "\"><a href=\"delete-fee\" id=\"delete_fee\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
 	return row_html;
 }
 
@@ -85,7 +85,7 @@ function form_datepenalty_row(fee) {
 	row_html += "<td class=\"based_on\" id=\"based_on_" + fee.pk + "\">" + fee.fields.based_on + "</td>";
 	row_html += "<td class=\"start_date\" id=\"start_date_" + fee.pk + "\">" + fee.fields.start_date + "</td>";
 	row_html += "<td class=\"end_date\" id=\"end_date_" + fee.pk + "\">" + fee.fields.end_date + "</td>";
-	row_html += "<td class=\"delete\" id=\"" + fee.pk + "\"><a href=\"delete\" id=\"delete_datepenalty\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
+	row_html += "<td class=\"delete\" id=\"" + fee.pk + "\"><a href=\"delete-datepenalty\" id=\"delete_datepenalty\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
 	return row_html;
 }
 

@@ -469,7 +469,7 @@ def delegate_position_row(position):
     row.append(position.title)
     row.append("</td><td class=\"delegate_position_delete\"")
     row.append(id)
-    row.append("<a href=\"delete\" id=\"delete_delegate_position\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>")
+    row.append("<a href=\"delete-delegate-position\" id=\"delete_delegate_position\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>")
     return ''.join(row)
 
 def add_delegate_position(request, conference):
