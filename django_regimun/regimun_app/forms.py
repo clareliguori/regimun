@@ -2,7 +2,9 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db.models.query_utils import Q
+from django.forms.forms import NON_FIELD_ERRORS
 from django.forms.models import ModelForm, modelformset_factory
+from django.forms.util import ErrorDict
 from django.forms.widgets import HiddenInput, TextInput, DateInput
 from django.template.defaultfilters import slugify
 from regimun_app.models import Conference, School, Committee, Country, \
@@ -23,6 +25,13 @@ class CleanForm(forms.Form):
 class CleanModelForm(ModelForm):
     def clean(self):
         return strip_data(self.cleaned_data)
+
+    def add_form_error(self, message):
+        if not self._errors:
+            self._errors = ErrorDict()
+        if not NON_FIELD_ERRORS in self._errors:
+            self._errors[NON_FIELD_ERRORS] = self.error_class()
+        self._errors[NON_FIELD_ERRORS].append(message)
 
 class jEditableForm(CleanForm):
     id = forms.CharField(max_length=200)
@@ -168,17 +177,29 @@ class NewCommitteeForm(CleanModelForm):
         model = Committee
         fields=('name',)
 
+    def is_valid(self, conference):
+        valid = CleanModelForm.is_valid(self)
+        if valid:
+            return self.check_duplicates(conference)
+        return valid
+
+    def check_duplicates(self, conference):
+        data = self.cleaned_data['name'].strip()
+        slug = slugify(data)
+        
+        if len(slug) > 0:
+            if Committee.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug),conference=conference).count() > 0:
+                self.add_form_error("A committee already exists with this name.")
+                return False
+        return True
+
     def clean_name(self):
         data = self.cleaned_data['name'].strip()
         slug = slugify(data)
         
         if slug == '':
             raise forms.ValidationError("Invalid committee name.")
-        
-#        conf_id = self.cleaned_data['conference'].strip()
-#        if Committee.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug),conference__pk=conf_id).count() > 0:
-#            raise forms.ValidationError("A committee already exists with this name.")
-        
+                
         return data
 
 class NewCountryForm(CleanModelForm):
@@ -186,16 +207,28 @@ class NewCountryForm(CleanModelForm):
         model = Country
         fields=('name','country_code',)
 
+    def is_valid(self, conference):
+        valid = CleanModelForm.is_valid(self)
+        if valid:
+            return self.check_duplicates(conference)
+        return valid
+
+    def check_duplicates(self, conference):
+        data = self.cleaned_data['name'].strip()
+        slug = slugify(data)
+        
+        if len(slug) > 0:
+            if Country.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug),conference=conference).count() > 0:
+                self.add_form_error("A country already exists with this name.")
+                return False
+        return True
+
     def clean_name(self):
         data = self.cleaned_data['name'].strip()
         slug = slugify(data)
         
         if slug == '':
             raise forms.ValidationError("Invalid country name.")
-        
-#        conf_id = self.cleaned_data['conference'].strip()
-#        if Country.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug),conference__pk=conf_id).count() > 0:
-#            raise forms.ValidationError("A country already exists with this name.")
         
         return data
 

@@ -154,7 +154,7 @@ def remove_committee(request, conference):
 def add_committee(request, conference):
     if request.method == 'POST':
         form = NewCommitteeForm(data=request.POST)
-        if(form.is_valid()):
+        if(form.is_valid(conference)):
             committee = form.save(commit=False)
             committee.conference = conference
             committee.url_name = slugify(committee.name)
@@ -189,7 +189,7 @@ def remove_country(request, conference):
 def add_country(request, conference):
     if request.method == 'POST':
         form = NewCountryForm(request.POST, request.FILES)
-        if(form.is_valid()):
+        if(form.is_valid(conference)):
             country = form.save(commit=False)
             country.conference = conference
             country.url_name = slugify(country.name)
