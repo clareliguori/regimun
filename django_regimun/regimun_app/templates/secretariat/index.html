@@ -89,6 +89,45 @@ function form_datepenalty_row(fee) {
 	return row_html;
 }
 
+function formset_row_handlers(object_name, data_table) {
+	$('a#delete_'+object_name).unbind("click").click(function(event) {
+		$.post(
+			'ajax/remove-'+object_name,
+			{'pk': $(event.target.parentNode.parentNode).attr("id")},
+			function(data) {
+				var aTrs = data_table.fnGetNodes();
+				for ( var i=0 ; i<aTrs.length ; i++ )
+				{
+					if ( $(aTrs[i]).attr('pk') == data.pk )
+					{
+						data_table.fnDeleteRow( aTrs[i] );
+						break;
+					}
+				}
+			},
+			'json'
+		);
+		return false;
+	});
+    
+	if(object_name != 'fee' && object_name.indexOf("penalty") == -1) {
+		/* Apply the jEditable handlers to the table */
+		$('td.name', data_table.fnGetNodes()).unbind("editable").editable( 'ajax/edit-'+object_name, {
+			"callback": function( sValue, y ) {
+				var aPos = data_table.fnGetPosition( this );
+				data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+			},
+			"submitdata": function ( value, settings ) {
+				return { "row_id": this.parentNode.getAttribute('id') };
+			},
+			"height": "25px",
+			"tooltip" : 'Click to edit'
+		} );
+	}
+		
+	data_table.fnAdjustColumnSizing();
+}
+
 function get_formset_callback(data, table_headers, column_settings, column_sorting, data_table, object_name, dialog_element, form_element, row_renderer) {
 	output = ""
 	if(object_name == 'fee')
@@ -139,29 +178,10 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
 				$(form_element).resetForm();
 				var row = row_renderer(return_data);
 				data_table.fnAddTr( $(row)[0] );
+				formset_row_handlers(object_name, data_table);
 			}
 		}
     });
-    
-	$('a#delete_'+object_name).click(function(event) {
-		$.post(
-			'ajax/remove-'+object_name,
-			{'pk': $(event.target.parentNode.parentNode).attr("id")},
-			function(data) {
-				var aTrs = data_table.fnGetNodes();
-				for ( var i=0 ; i<aTrs.length ; i++ )
-				{
-					if ( $(aTrs[i]).attr('pk') == data.pk )
-					{
-						data_table.fnDeleteRow( aTrs[i] );
-						break;
-					}
-				}
-			},
-			'json'
-		);
-		return false;
-	});
     
 	data_table = $('table#existing_'+object_name).dataTable({
 		"bJQueryUI": true,
@@ -174,22 +194,7 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
 		}
 	});
 	
-	if(object_name != 'fee' && object_name.indexOf("penalty") == -1) {
-		/* Apply the jEditable handlers to the table */
-		$('td.name', data_table.fnGetNodes()).editable( 'ajax/edit-'+object_name, {
-			"callback": function( sValue, y ) {
-				var aPos = data_table.fnGetPosition( this );
-				data_table.fnUpdate( sValue, aPos[0], aPos[1] );
-			},
-			"submitdata": function ( value, settings ) {
-				return { "row_id": this.parentNode.getAttribute('id') };
-			},
-			"height": "25px",
-			"tooltip" : 'Click to edit'
-		} );
-	}
-		
-	data_table.fnAdjustColumnSizing();
+	formset_row_handlers(object_name, data_table);
 }
 
 function isNumeric(value) {
@@ -291,6 +296,87 @@ function get_school_country_assignments_callback(data, selectSource, dialog_elem
 	data_table.fnAdjustColumnSizing();
 }
 
+function individual_delegate_positions_row_handlers(data_table, schoolSelectSource, countrySelectSource, committeeSelectSource) {
+	/* Apply the jEditable handlers to the table */
+	$('td.delegate_position_country', data_table.fnGetNodes()).unbind("editable").editable( 'ajax/set-individual-delegate-positions', {
+		data   : countrySelectSource,
+	    type   : 'select',
+	    submit : 'OK',
+	    placeholder: "Click to assign country", 
+		"callback": function( sValue, y ) {
+			var aPos = data_table.fnGetPosition( this );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+		},
+		"submitdata": function ( value, settings ) {
+			return { "row_class": this.getAttribute('class') };
+		},
+		"height": "25px",
+		"tooltip" : 'Click to edit'
+	} );
+	$('td.delegate_position_committee', data_table.fnGetNodes()).unbind("editable").editable( 'ajax/set-individual-delegate-positions', {
+		data   : committeeSelectSource,
+	    type   : 'select',
+	    submit : 'OK',
+	    placeholder: "Click to assign committee", 
+		"callback": function( sValue, y ) {
+			var aPos = data_table.fnGetPosition( this );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+		},
+		"submitdata": function ( value, settings ) {
+			return { "row_class": this.getAttribute('class') };
+		},
+		"height": "25px",
+		"tooltip" : 'Click to edit'
+	} );
+	$('td.delegate_position_school', data_table.fnGetNodes()).unbind("editable").editable( 'ajax/set-individual-delegate-positions', {
+		data   : schoolSelectSource,
+	    type   : 'select',
+	    submit : 'OK',
+	    placeholder: "Click to assign school", 
+		"callback": function( sValue, y ) {
+			var aPos = data_table.fnGetPosition( this );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+		},
+		"submitdata": function ( value, settings ) {
+			return { "row_class": this.getAttribute('class') };
+		},
+		"height": "25px",
+		"tooltip" : 'Click to edit'
+	} );
+	$('td.delegate_position_title', data_table.fnGetNodes()).unbind("editable").editable( 'ajax/set-individual-delegate-positions', {
+		"callback": function( sValue, y ) {
+			var aPos = data_table.fnGetPosition( this );
+			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
+		},
+		"submitdata": function ( value, settings ) {
+			return { "row_class": this.getAttribute('class') };
+		},
+		"height": "25px",
+		"tooltip" : 'Click to edit'
+	} );
+	$('a#delete_delegate_position').unbind("click").click(function(event) {
+		$.post(
+			'ajax/remove-delegate-position',
+			{'id': $(event.target.parentNode.parentNode).attr("id")},
+			function(data) {
+				var aTrs = data_table.fnGetNodes();
+				for ( var i=0 ; i<aTrs.length ; i++ )
+				{
+					if ( $(aTrs[i]).attr('id') == data.id )
+					{
+						data_table.fnDeleteRow( aTrs[i] );
+						break;
+					}
+				}
+			},
+			'json'
+		);
+		return false;
+	});
+    		
+	data_table.fnAdjustColumnSizing();	
+}
+
 function get_individual_delegate_positions_callback(data, schoolSelectSource, countrySelectSource, committeeSelectSource, dialog_element) {
     output = "<p>Edit individual delegate positions by clicking in any column. To edit a delegate's title, press Enter after entering the new title.</p>";
     
@@ -326,84 +412,7 @@ function get_individual_delegate_positions_callback(data, schoolSelectSource, co
 		}
 	});
 	
-	/* Apply the jEditable handlers to the table */
-	$('td.delegate_position_country', data_table.fnGetNodes()).editable( 'ajax/set-individual-delegate-positions', {
-		data   : countrySelectSource,
-	    type   : 'select',
-	    submit : 'OK',
-	    placeholder: "Click to assign country", 
-		"callback": function( sValue, y ) {
-			var aPos = data_table.fnGetPosition( this );
-			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
-		},
-		"submitdata": function ( value, settings ) {
-			return { "row_class": this.getAttribute('class') };
-		},
-		"height": "25px",
-		"tooltip" : 'Click to edit'
-	} );
-	$('td.delegate_position_committee', data_table.fnGetNodes()).editable( 'ajax/set-individual-delegate-positions', {
-		data   : committeeSelectSource,
-	    type   : 'select',
-	    submit : 'OK',
-	    placeholder: "Click to assign committee", 
-		"callback": function( sValue, y ) {
-			var aPos = data_table.fnGetPosition( this );
-			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
-		},
-		"submitdata": function ( value, settings ) {
-			return { "row_class": this.getAttribute('class') };
-		},
-		"height": "25px",
-		"tooltip" : 'Click to edit'
-	} );
-	$('td.delegate_position_school', data_table.fnGetNodes()).editable( 'ajax/set-individual-delegate-positions', {
-		data   : schoolSelectSource,
-	    type   : 'select',
-	    submit : 'OK',
-	    placeholder: "Click to assign school", 
-		"callback": function( sValue, y ) {
-			var aPos = data_table.fnGetPosition( this );
-			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
-		},
-		"submitdata": function ( value, settings ) {
-			return { "row_class": this.getAttribute('class') };
-		},
-		"height": "25px",
-		"tooltip" : 'Click to edit'
-	} );
-	$('td.delegate_position_title', data_table.fnGetNodes()).editable( 'ajax/set-individual-delegate-positions', {
-		"callback": function( sValue, y ) {
-			var aPos = data_table.fnGetPosition( this );
-			data_table.fnUpdate( sValue, aPos[0], aPos[1] );
-		},
-		"submitdata": function ( value, settings ) {
-			return { "row_class": this.getAttribute('class') };
-		},
-		"height": "25px",
-		"tooltip" : 'Click to edit'
-	} );
-	$('a#delete_delegate_position').click(function(event) {
-		$.post(
-			'ajax/remove-delegate-position',
-			{'id': $(event.target.parentNode.parentNode).attr("id")},
-			function(data) {
-				var aTrs = data_table.fnGetNodes();
-				for ( var i=0 ; i<aTrs.length ; i++ )
-				{
-					if ( $(aTrs[i]).attr('id') == data.id )
-					{
-						data_table.fnDeleteRow( aTrs[i] );
-						break;
-					}
-				}
-			},
-			'json'
-		);
-		return false;
-	});
-    		
-	data_table.fnAdjustColumnSizing();
+	individual_delegate_positions_row_handlers(data_table, schoolSelectSource, countrySelectSource, committeeSelectSource);
 	
 	$("#new_delegate_position_form").ajaxForm({ 
     	dataType:	'json',
@@ -420,6 +429,7 @@ function get_individual_delegate_positions_callback(data, schoolSelectSource, co
 				$("#new_delegate_position_form").resetForm();
 				var row = return_data.row;
 				data_table.fnAddTr( $(row)[0] );
+				individual_delegate_positions_row_handlers(data_table, schoolSelectSource, countrySelectSource, committeeSelectSource);
 			}
 		}
     });
