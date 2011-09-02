@@ -89,7 +89,7 @@ function form_datepenalty_row(fee) {
 	return row_html;
 }
 
-function formset_row_handlers(object_name, data_table) {
+function formset_click_handler(object_name, data_table) {
 	$('a#delete_'+object_name).unbind("click").click(function(event) {
 		$.post(
 			'ajax/remove-'+object_name,
@@ -108,7 +108,10 @@ function formset_row_handlers(object_name, data_table) {
 			'json'
 		);
 		return false;
-	});
+	});	
+}
+
+function formset_row_handlers(object_name, data_table) {
     
 	if(object_name != 'fee' && object_name.indexOf("penalty") == -1) {
 		/* Apply the jEditable handlers to the table */
@@ -189,6 +192,7 @@ function get_formset_callback(data, table_headers, column_settings, column_sorti
 		"aoColumns": column_settings,
 		"aaSorting": column_sorting,
 		"fnDrawCallback": function(){
+			formset_click_handler(object_name, this);
 	     	$('td','table#existing_'+object_name).bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
 	     	$('td','table#existing_'+object_name).bind('mouseleave', function () { $(this).parent().children().each(function(){$(this).removeClass('datatablerowhighlight');}); });
 		}
@@ -354,6 +358,11 @@ function individual_delegate_positions_row_handlers(data_table, schoolSelectSour
 		"height": "25px",
 		"tooltip" : 'Click to edit'
 	} );
+    		
+	data_table.fnAdjustColumnSizing();	
+}
+
+function delete_delegate_positions_handler(data_table) {
 	$('a#delete_delegate_position').unbind("click").click(function(event) {
 		$.post(
 			'ajax/remove-delegate-position',
@@ -372,9 +381,7 @@ function individual_delegate_positions_row_handlers(data_table, schoolSelectSour
 			'json'
 		);
 		return false;
-	});
-    		
-	data_table.fnAdjustColumnSizing();	
+	});	
 }
 
 function get_individual_delegate_positions_callback(data, schoolSelectSource, countrySelectSource, committeeSelectSource, dialog_element) {
@@ -407,6 +414,7 @@ function get_individual_delegate_positions_callback(data, schoolSelectSource, co
 		"aoColumns": column_settings,
 		"sPaginationType": "full_numbers",
 		"fnDrawCallback": function(){
+			delete_delegate_positions_handler(this);
 	     	$('td','table#delegate_positions').bind('mouseenter', function () { $(this).parent().children().each(function(){ $(this).addClass('datatablerowhighlight'); }); });
 	     	$('td','table#delegate_positions').bind('mouseleave', function () { $(this).parent().children().each(function(){$(this).removeClass('datatablerowhighlight');}); });
 		}
