@@ -121,7 +121,11 @@ IGNORABLE_404_URLS = (
         re.compile(r'^/apple-touch-icon.*\.png$'),
         re.compile(r'^/favicon\.ico$'),
         re.compile(r'^/robots\.txt$'),
+	re.compile(r'country_flags.*\.png$'),
 )
+
+IGNORABLE_404_ENDS = ('favicon.ico', 'apple-touch-icon.png', 'robots.txt')
+IGNORABLE_404_STARTS = (MEDIA_URL+'/country_flags/')
 
 #INTERNAL_IPS = ('127.0.0.1',)
 
