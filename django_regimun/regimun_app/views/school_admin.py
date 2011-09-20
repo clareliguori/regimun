@@ -34,6 +34,7 @@ def school_authenticate(request, conference, school):
         secretariat_member = request.user.secretariat_member
         try:
             secretariat_member.conferences.get(id=conference.id)
+	    return True
         except Conference.DoesNotExist:
             return False
     except ObjectDoesNotExist:
