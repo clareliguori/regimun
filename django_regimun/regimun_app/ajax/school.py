@@ -72,6 +72,7 @@ def save_edit_sponsor_form(request, school, conference):
                 data = dict(username=sponsor.user.username, sponsor_pk=str(sponsor_pk), full_name=sponsor.user.get_full_name(), email=sponsor.user.email, phone=sponsor.phone)        
                 return simplejson.dumps(data)
         else:
+	    sponsor_pk = request.POST.get('sponsor_pk','')
             return simplejson.dumps({'form':form.as_p(), 'sponsor_pk':sponsor_pk})
 
 def remove_sponsor_from_school(request, school, conference):
