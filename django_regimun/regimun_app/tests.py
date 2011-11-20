@@ -1,23 +1,10 @@
-"""
-This file demonstrates two different styles of tests (one doctest and one
-unittest). These will both pass when you run "manage.py test".
+from regimun_app.test.conference_views import ConferenceTest
+from regimun_app.test.create_models import AccountManagementTest
+from regimun_app.test.login import LoginTestCase
+from unittest import TestSuite
 
-Replace these with more appropriate tests for your application.
-"""
-
-from django.test import TestCase
-
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
-        """
-        Tests that 1 + 1 always equals 2.
-        """
-        self.failUnlessEqual(1 + 1, 2)
-
-__test__ = {"doctest": """
-Another way to test that 1 + 1 is equal to 2.
-
->>> 1 + 1 == 2
-True
-"""}
-
+def suite():
+    suite = TestSuite()
+    suite.addTests(LoginTestCase.parametrize(AccountManagementTest))
+    suite.addTests(LoginTestCase.parametrize(ConferenceTest))
+    return suite
