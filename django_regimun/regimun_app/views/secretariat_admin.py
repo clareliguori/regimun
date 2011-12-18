@@ -21,6 +21,9 @@ from settings import MEDIA_ROOT
 from xhtml2pdf import pisa
 import csv
 
+def staff_authenticate(request):
+    return request.user.is_staff
+
 def secretariat_authenticate(request, conference):
     if request.user.is_staff:
         return True
@@ -219,8 +222,9 @@ def redirect_to_school(request, conference_slug):
 
     raise Http404
 
+@login_required
 def create_conference(request):
-    if request.method == 'POST': 
+    if request.method == 'POST' and staff_authenticate(request): 
         conference_form = ConferenceForm(request.POST)
         user_form = SecretariatUserForm(request.POST)
         

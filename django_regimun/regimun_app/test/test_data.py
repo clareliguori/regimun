@@ -28,6 +28,8 @@ users_sponsors_by_school = {'School 1' : [sponsor1, sponsor6],
 # Secretariat
 secretariat1 = {'username': 'secretariat1','password': 'secretariat123'}
 secretariat2 = {'username': 'secretariat2','password': 'secretariat456'}
+secretariat3 = {'username': 'secretariat3','password': 'secretariat789'}
+users_secretariat = [secretariat1, secretariat2, secretariat3]
 secretariat_by_conference = {'TestMUN 1' : secretariat1,
-                             'TestMUN 2' : secretariat1,
-                             'TestMUN 3' : secretariat2} 
+                             'TestMUN 2' : secretariat2,
+                             'TestMUN 3' : secretariat3} 

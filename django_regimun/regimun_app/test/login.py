@@ -19,12 +19,26 @@ class LoginTestCase(TestCase):
     def _fixture_teardown(self):
         pass 
     
+    def _user_data(self):
+        return {'username': self.username, 'password': self.password}
+    
+    def is_logged_in(self):
+        return '_auth_user_id' in self.client.session
+    
+    def is_staff_client(self):
+        return self._user_data() == user_staff
+    
+    def is_secretariat_client(self):
+        return self._user_data() in users_secretariat
+    
+    def is_sponsor_client(self):
+        return self._user_data() in users_sponsors
+    
     @staticmethod
-    def parametrize(testcase_class):
+    def parametrize(testcase_class, users):
         """ Create a suite containing all tests taken from the given
             subclass, passing them the parameter 'client'.
         """
-        users = [user_staff, user_staff, secretariat1, secretariat2, user_none] + users_sponsors
         
         testloader = TestLoader()
         testnames = testloader.getTestCaseNames(testcase_class)
