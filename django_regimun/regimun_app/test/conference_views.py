@@ -81,6 +81,28 @@ class ConferenceTest(LoginTestCase):
                     self.assertContains(response, "You do not have access to this page.")
             else:
                 self.assertRedirects(response, settings.LOGIN_URL + '?next=' + secretariat_url)
+    
+    def test_secretariat_school_view(self):
+        if self.username is not None:
+            self.assertTrue(self.client.login(username=self.username, password=self.password), msg='Failed to login ' + self.username + ', ' + self.password)
+            
+        for conference_name in conferences:
+            school_view_url  = '/' + slugify(conference_name) + '/secretariat/see-school'
+            
+            for school_name in schools:
+                response = self.client.post(school_view_url, {'name' : school_name }, follow=True)
+                
+                if self.is_logged_in() and (self.is_staff_client() or self.is_secretariat_of_conference(conference_name)):
+                    self.assertRedirects(response, '/' + slugify(conference_name) + '/' + slugify(school_name) + '/')
+                    self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+                    self.assertTemplateUsed(response, 'school/index.html')
+                    self.assertContains(response, conference_name)
+                    self.assertContains(response, school_name)
+                    self.assertNotContains(response, "You do not have access to this page.")
+                elif self.is_logged_in():
+                    self.assertEquals(response.status_code, 404)
+                else:
+                    self.assertRedirects(response, settings.LOGIN_URL + '?next=' + school_view_url)
                 
     def test_school_admin_page(self):
         if self.username is not None:
@@ -91,7 +113,7 @@ class ConferenceTest(LoginTestCase):
                 school_admin_url = '/' + slugify(conference_name) + '/' + slugify(school_name) + '/'
                 response = self.client.get(school_admin_url, follow=True)
                 
-                self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID, msg_prefix='URL ' + school_admin_url + ", user " + str(self.username))
+                self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
                 
                 if self.is_logged_in():
                     self.assertTemplateUsed(response, 'school/index.html')
