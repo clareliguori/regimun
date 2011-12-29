@@ -198,11 +198,7 @@ class CreateSchoolTest(LoginTestCase):
                                     # sponsor object should exist now, but not registered for conference
                                     user = User.objects.get(username=self.username)
                                     self.assertTrue(user.faculty_sponsor.school.name == school_name)
-                                    try:
-                                        user.faculty_sponsor.conferences.get(id=conference.id)
-                                        self.fail(msg="Faculty sponsor should not be registered for the conference here.")
-                                    except Conference.DoesNotExist:
-                                        pass
+                                    self.assertEqual(user.faculty_sponsor.conferences.filter(id=conference.id).count(), 0)
                                     
                                     response = self.client.get(school_admin_url, follow=True)
                                     self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
@@ -270,11 +266,7 @@ class CreateSchoolTest(LoginTestCase):
                                 # sponsor object should exist now, but not registered for conference
                                 user = User.objects.get(username=self.username)
                                 self.assertTrue(user.faculty_sponsor.school.name == school_name)
-                                try:
-                                    user.faculty_sponsor.conferences.get(id=conference.id)
-                                    self.fail(msg="Faculty sponsor should not be registered for the conference here.")
-                                except Conference.DoesNotExist:
-                                    pass
+                                self.assertEqual(user.faculty_sponsor.conferences.filter(id=conference.id).count(), 0)
                                 
                                 response = self.client.get(school_admin_url, follow=True)
                                 self.assertNotContains(response, "You do not have access to this page.")

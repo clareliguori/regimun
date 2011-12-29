@@ -31,8 +31,6 @@ class AccountManagementTest(LoginTestCase):
             User.objects.get(username=self.username)
         except User.DoesNotExist:
             user_exists = False
-        except MultipleObjectsReturned:
-            self.fail("Multiple users with same username " + self.username)
         
         # submit the registration form
         self.email = self.username + "@test.com"
