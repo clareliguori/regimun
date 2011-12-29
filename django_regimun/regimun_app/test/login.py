@@ -37,6 +37,9 @@ class LoginTestCase(TestCase):
     def is_sponsor_of_school(self, school_name):
         return self.is_sponsor_client() and self._user_data() in users_sponsors_by_school[school_name]
     
+    def is_secretariat_of_conference(self, conference_name):
+        return self.is_secretariat_client() and self._user_data() == secretariat_by_conference[conference_name]
+    
     @staticmethod
     def parametrize(testcase_class, users):
         """ Create a suite containing all tests taken from the given

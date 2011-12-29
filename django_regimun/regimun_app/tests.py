@@ -10,6 +10,7 @@ import settings
 def suite():
     users = [user_staff, user_staff, user_none] + users_sponsors + users_secretariat
     settings.ENABLE_CAPTCHA = False
+    settings.TEMPLATE_STRING_IF_INVALID = "BAD TEMPLATE"
     
     suite = TestSuite()
     suite.addTests(LoginTestCase.parametrize(AccountManagementTest, [user_staff, user_staff, user_none]))

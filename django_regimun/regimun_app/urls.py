@@ -25,9 +25,6 @@ urlpatterns = patterns('',
      # upload progress
     (r'^upload-progress/$', upload_progress),
 
-   # conference was created
-   # (r'^(?P<conference_slug>[-\w]+)/created$', conference_created),
-    
     # conference index
     (r'^(?P<slug>[-\w]+)/$', object_detail, dict(queryset=conferences, slug_field='url_name', template_name='conference_detail.html')),
 

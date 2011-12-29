@@ -300,6 +300,18 @@ class CreateSchoolTest(LoginTestCase):
                         self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
                         self.assertTemplateUsed(response, 'school/index.html')
                         self.assertNotContains(response, "You do not have access to this page.")
+                        
+                        # remove some sponsors from some conferences
+                        if self._user_data() not in users_sponsors_by_conference[conference_name]:
+                            response = self.client.post(school_admin_url + 'ajax/remove-sponsor-from-conference', 
+                                                        {'sponsor_pk':user.faculty_sponsor.pk}, follow=True)
+                            self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+                            self.assertContains(response, '"success": "true"', msg_prefix=str(response))
+                            
+                            user = User.objects.get(username=self.username)
+                            self.assertTrue(user.faculty_sponsor.school.name == school_name)
+                            self.assertEqual(user.faculty_sponsor.conferences.filter(id=conference.id).count(), 0)
+                            
             elif self.is_secretariat_client() or self.is_staff_client():
                 # secretariat and staff can't register schools
                 response = self.client.get(new_school_url, follow=True)

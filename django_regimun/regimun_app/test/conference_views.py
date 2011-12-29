@@ -57,4 +57,51 @@ class ConferenceTest(LoginTestCase):
                     self.assertContains(response, "You do not have access to this page.")
             else:
                 self.assertRedirects(response, settings.LOGIN_URL + '?next=' + school_index_url)
+    
+    def test_secretariat_admin_page(self):
+        if self.username is not None:
+            self.assertTrue(self.client.login(username=self.username, password=self.password), msg='Failed to login ' + self.username + ', ' + self.password)
+            
+        for conference_name in conferences:
+            secretariat_url = '/' + slugify(conference_name) + "/secretariat/"
+            response = self.client.get(secretariat_url, follow=True)
+            self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+            
+            if self.is_logged_in():
+                self.assertTemplateUsed(response, 'secretariat/index.html')
+                self.assertContains(response, conference_name)
+                
+                if self.is_secretariat_of_conference(conference_name) or self.is_staff_client():
+                    for school_name in schools:
+                        if school_name in schools_by_conference[conference_name]:
+                            self.assertContains(response, school_name)
+                        else:
+                            self.assertNotContains(response, school_name)
+                else:
+                    self.assertContains(response, "You do not have access to this page.")
+            else:
+                self.assertRedirects(response, settings.LOGIN_URL + '?next=' + secretariat_url)
+                
+    def test_school_admin_page(self):
+        if self.username is not None:
+            self.assertTrue(self.client.login(username=self.username, password=self.password), msg='Failed to login ' + self.username + ', ' + self.password)
+            
+        for conference_name in conferences:
+            for school_name in schools_by_conference[conference_name]:
+                school_admin_url = '/' + slugify(conference_name) + '/' + slugify(school_name) + '/'
+                response = self.client.get(school_admin_url, follow=True)
+                
+                self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID, msg_prefix='URL ' + school_admin_url + ", user " + str(self.username))
+                
+                if self.is_logged_in():
+                    self.assertTemplateUsed(response, 'school/index.html')
+                    self.assertContains(response, conference_name)
+                    self.assertContains(response, school_name)
+                    
+                    if self.is_secretariat_of_conference(conference_name) or self.is_staff_client() or self.is_sponsor_of_school(school_name):
+                        self.assertContains(response, "School Mailing Address")
+                    else:
+                        self.assertContains(response, "You do not have access to this page.")
+                else:
+                    self.assertRedirects(response, settings.LOGIN_URL + '?next=' + school_admin_url)
                 
