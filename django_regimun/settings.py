@@ -134,3 +134,7 @@ DEBUG_TOOLBAR_CONFIG = {
 }
 
 TEMPLATE_STRING_IF_INVALID = "BAD TEMPLATE"
+
+ENABLE_CAPTCHA = True
+
+TEST_RUNNER = 'django-test-coverage.runner.run_tests'

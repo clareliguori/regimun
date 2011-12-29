@@ -10,7 +10,7 @@
 
 {% if school.conferences.all %}
     {% for conference in school.conferences.all %}
-        <p><a href="/{{ conference.url_name }}/{{ school.url_name }}">{{ conference.name }}</a></p>
+        <p><a href="/{{ conference.url_name }}/{{ school.url_name }}/">{{ conference.name }}</a></p>
     {% endfor %}
 {% else %}
     <p>No conferences are registered for {{ school.name }}.</p>

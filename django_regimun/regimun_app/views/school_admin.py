@@ -52,6 +52,7 @@ def is_school_registered(conference, school):
         return False
     return True 
 
+@login_required
 def school_index(request, slug):
     school = get_object_or_404(School, url_name=slug)
     return render_response(request, 'school_detail.html', {'school' : school})
@@ -61,7 +62,7 @@ def school_admin(request, conference_slug, school_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)    
     school = get_object_or_404(School, url_name=school_slug)
     feestructure = conference.feestructure
-    sponsors = FacultySponsor.objects.filter(school=school,conferences__id__exact=conference.id)
+    sponsors = FacultySponsor.objects.filter(school=school, conferences__id__exact=conference.id)
     other_sponsors = FacultySponsor.objects.filter(school=school).exclude(conferences__id__exact=conference.id).exclude(user=request.user)
     fees_table = get_fees_table_from_data(school, \
                                           conference, \
@@ -70,10 +71,10 @@ def school_admin(request, conference_slug, school_slug):
                                           school.get_delegations_count(conference), \
                                           school.get_sponsors_count(conference), \
                                           school.total_payments(conference))
-    country_preferences = get_country_preferences_html(school,conference)
+    country_preferences = get_country_preferences_html(school, conference)
     delegations = school.get_delegations(conference)
-    return render_response(request, 'school/index.html', {'conference' : conference, 
-                                                          'school' : school, 
+    return render_response(request, 'school/index.html', {'conference' : conference,
+                                                          'school' : school,
                                                           'fees_table' : fees_table,
                                                           'country_preferences' : country_preferences,
                                                           'sponsors' : sponsors,
@@ -89,7 +90,7 @@ def register_school(request, conference_slug):
         
         if school_form.is_valid():
             if request.user.is_authenticated() or sponsor_form.is_valid():
-                if captcha_response.is_valid:
+                if captcha_response.is_valid or not settings.ENABLE_CAPTCHA:
                     new_school = School()
                     new_school.name = school_form.cleaned_data['school_name']
                     new_school.url_name = slugify(school_form.cleaned_data['school_name'])
@@ -105,7 +106,7 @@ def register_school(request, conference_slug):
                     
                     new_sponsor = FacultySponsor()
                     new_sponsor.school = new_school
-                    if hasattr(sponsor_form,'cleaned_data'):
+                    if hasattr(sponsor_form, 'cleaned_data'):
                         new_sponsor.phone = sponsor_form.cleaned_data['sponsor_phone']
                     
                     new_user = request.user
@@ -130,8 +131,8 @@ def register_school(request, conference_slug):
                     new_sponsor.save()
                     new_sponsor.conferences.add(conference)
        
-                    return HttpResponseRedirect(reverse(school_admin, 
-                                                        args=(conference.url_name,new_school.url_name,)))
+                    return HttpResponseRedirect(reverse(school_admin,
+                                                        args=(conference.url_name, new_school.url_name,)))
                 else:
                     school_form._errors.setdefault("school_name", ErrorList()).append("The reCAPTCHA wasn't entered correctly.")
 
@@ -147,8 +148,8 @@ def register_school(request, conference_slug):
             except Conference.DoesNotExist:
                 request.user.faculty_sponsor.conferences.add(conference)
             
-            return HttpResponseRedirect(reverse(school_admin, 
-                                                        args=(conference.url_name,school.url_name,)))
+            return HttpResponseRedirect(reverse(school_admin,
+                                                        args=(conference.url_name, school.url_name,)))
         except:
             school_form = NewSchoolForm()
             sponsor_form = NewFacultySponsorForm()
@@ -162,7 +163,7 @@ def grant_school_access(request, conference_slug, school_slug):
     school = get_object_or_404(School, url_name=school_slug)
 
     if request.method == 'POST':
-        access_code = request.POST.get("access_code","")
+        access_code = request.POST.get("access_code", "")
         redirect_to = request.POST.get("next", '')
         if access_code == school.access_code:
             # grant access to this school
@@ -191,8 +192,8 @@ def add_to_conference(request, conference_slug, school_slug):
         except Conference.DoesNotExist:
             request.user.faculty_sponsor.conferences.add(conference)
         
-        return HttpResponseRedirect(reverse(school_admin, 
-                                                args=(conference.url_name,school.url_name,)))
+        return HttpResponseRedirect(reverse(school_admin,
+                                                args=(conference.url_name, school.url_name,)))
 
 @login_required
 def generate_invoice_html(request, conference_slug, school_slug, template, format):
@@ -205,7 +206,7 @@ def generate_invoice_html(request, conference_slug, school_slug, template, forma
         'format' : format,
         'pagesize' : 'letter',
         'conference' : conference,
-        'school' : school, 
+        'school' : school,
         'fees_table' : get_fees_table_from_data(school, \
                                           conference, \
                                           feestructure, \
@@ -220,7 +221,7 @@ def generate_invoice_html(request, conference_slug, school_slug, template, forma
 @login_required
 def generate_invoice_pdf(request, conference_slug, school_slug):
     response = http.HttpResponse()
-    response['Content-Type'] ='application/pdf'
+    response['Content-Type'] = 'application/pdf'
     response['Content-Disposition'] = 'attachment; filename=invoice-' + conference_slug + "-" + school_slug + '.pdf'
     
     html = generate_invoice_html(request, conference_slug, school_slug, 'invoice/invoice.html', 'pdf')
@@ -240,7 +241,7 @@ def generate_invoice_doc(request, conference_slug, school_slug):
 @login_required
 def generate_request_based_invoice(request, conference_slug, school_slug):
     response = http.HttpResponse()
-    response['Content-Type'] ='application/pdf'
+    response['Content-Type'] = 'application/pdf'
     response['Content-Disposition'] = 'attachment; filename=invoice-' + conference_slug + "-" + school_slug + '.pdf'
     
     conference = get_object_or_404(Conference, url_name=conference_slug)
@@ -252,7 +253,7 @@ def generate_request_based_invoice(request, conference_slug, school_slug):
         'format' : 'pdf',
         'pagesize' : 'letter',
         'conference' : conference,
-        'school' : school, 
+        'school' : school,
         'fees_table' : get_request_fees_table_from_data(school, \
                                           conference, \
                                           feestructure)}
@@ -284,11 +285,11 @@ def school_spreadsheet_downloads(request, conference_slug, school_slug):
                 headers.append(committee.name)
             writer.writerow(headers)
 
-            counts = DelegatePosition.objects.values('committee','country').annotate(count=Count('id'))
+            counts = DelegatePosition.objects.values('committee', 'country').annotate(count=Count('id'))
             
             count_dict = dict()
             for item in counts:
-                count_dict[(item['country'],item['committee'])] = item['count']
+                count_dict[(item['country'], item['committee'])] = item['count']
             
             for country in countries:
                 row = [country.name]
@@ -317,10 +318,10 @@ def get_fees_table(request, conference_slug, school_slug):
                                           school.total_payments(conference)))
     raise Http404
 
-def get_country_preferences_html(school,conference):
+def get_country_preferences_html(school, conference):
     
     country_preferences = []
-    preferences = CountryPreference.objects.select_related('country').filter(request__school=school,request__conference=conference)
+    preferences = CountryPreference.objects.select_related('country').filter(request__school=school, request__conference=conference)
     if len(preferences) == 0:
         country_preferences.append("<i>No country preferences have been submitted.</i>")
     else:
@@ -331,7 +332,7 @@ def get_country_preferences_html(school,conference):
     
     delegate_count = 0
     try:
-        delegate_count = DelegateCountPreference.objects.get(request__school=school,request__conference=conference).delegate_count
+        delegate_count = DelegateCountPreference.objects.get(request__school=school, request__conference=conference).delegate_count
     except ObjectDoesNotExist:
         pass
     
@@ -366,7 +367,7 @@ def get_fees_table_from_data(school, conference, feestructure, delegatecount, co
         total += fee_total
         
         output.append("<tr>")
-        output.append("<td " + left_style + ">" + fee.name  + "</td>")
+        output.append("<td " + left_style + ">" + fee.name + "</td>")
         output.append("<td " + right_style + ">" + str(currencyformat(fee.amount)) + "</td>")
         output.append("<td " + right_style + ">" + str(count) + "</td>")
         output.append("<td " + right_style + ">" + str(currencyformat(fee_total)) + "</td>")
@@ -378,14 +379,14 @@ def get_fees_table_from_data(school, conference, feestructure, delegatecount, co
         charge = False
         late_delegates = 0
         if penalty.based_on == 'Co1':
-            charge = DelegationRequest.objects.filter(school=school,conference=conference, created__gte=penalty.start_date, created__lte=penalty.end_date).count() > 0
+            charge = DelegationRequest.objects.filter(school=school, conference=conference, created__gte=penalty.start_date, created__lte=penalty.end_date).count() > 0
         elif penalty.based_on == 'Co2':
-            charge = CountryPreference.objects.filter(request__school=school,request__conference=conference, last_modified__gte=penalty.start_date, last_modified__lte=penalty.end_date).count() > 0
+            charge = CountryPreference.objects.filter(request__school=school, request__conference=conference, last_modified__gte=penalty.start_date, last_modified__lte=penalty.end_date).count() > 0
         elif penalty.based_on == 'DSu':
-            late_delegates = Delegate.objects.filter(position_assignment__school=school,position_assignment__country__conference=conference, created__gte=penalty.start_date, created__lte=penalty.end_date).count()
+            late_delegates = Delegate.objects.filter(position_assignment__school=school, position_assignment__country__conference=conference, created__gte=penalty.start_date, created__lte=penalty.end_date).count()
             charge = late_delegates > 0
         elif penalty.based_on == 'DMo':
-            late_delegates = Delegate.objects.filter(position_assignment__school=school,position_assignment__country__conference=conference, last_modified__gte=penalty.start_date, last_modified__lte=penalty.end_date).count()
+            late_delegates = Delegate.objects.filter(position_assignment__school=school, position_assignment__country__conference=conference, last_modified__gte=penalty.start_date, last_modified__lte=penalty.end_date).count()
             charge = late_delegates > 0
         
         # find the penalty count
@@ -408,7 +409,7 @@ def get_fees_table_from_data(school, conference, feestructure, delegatecount, co
             total += penalty_total
 
             output.append("<tr>")
-            output.append("<td " + left_style + ">" + penalty.name  + "</td>")
+            output.append("<td " + left_style + ">" + penalty.name + "</td>")
             output.append("<td " + right_style + ">" + str(currencyformat(penalty.amount)) + "</td>")
             output.append("<td " + right_style + ">" + str(count) + "</td>")
             output.append("<td " + right_style + ">" + str(currencyformat(penalty_total)) + "</td>")
@@ -449,7 +450,7 @@ def get_request_fees_table_from_data(school, conference, feestructure):
         total += fee_total
         
         output.append("<tr>")
-        output.append("<td " + left_style + ">" + fee.name  + "</td>")
+        output.append("<td " + left_style + ">" + fee.name + "</td>")
         output.append("<td " + right_style + ">" + str(currencyformat(fee.amount)) + "</td>")
         output.append("<td " + right_style + ">" + str(count) + "</td>")
         output.append("<td " + right_style + ">" + str(currencyformat(fee_total)) + "</td>")
@@ -460,9 +461,9 @@ def get_request_fees_table_from_data(school, conference, feestructure):
         # figure out whether to charge this penalty
         charge = False
         if penalty.based_on == 'Co1':
-            charge = DelegationRequest.objects.filter(school=school,conference=conference, created__gte=penalty.start_date, created__lte=penalty.end_date).count() > 0
+            charge = DelegationRequest.objects.filter(school=school, conference=conference, created__gte=penalty.start_date, created__lte=penalty.end_date).count() > 0
         elif penalty.based_on == 'Co2':
-            charge = CountryPreference.objects.filter(request__school=school,request__conference=conference, last_modified__gte=penalty.start_date, last_modified__lte=penalty.end_date).count() > 0
+            charge = CountryPreference.objects.filter(request__school=school, request__conference=conference, last_modified__gte=penalty.start_date, last_modified__lte=penalty.end_date).count() > 0
         
         # find the penalty count
         count = 0
@@ -480,7 +481,7 @@ def get_request_fees_table_from_data(school, conference, feestructure):
             total += penalty_total
 
             output.append("<tr>")
-            output.append("<td " + left_style + ">" + penalty.name  + "</td>")
+            output.append("<td " + left_style + ">" + penalty.name + "</td>")
             output.append("<td " + right_style + ">" + str(currencyformat(penalty.amount)) + "</td>")
             output.append("<td " + right_style + ">" + str(count) + "</td>")
             output.append("<td " + right_style + ">" + str(currencyformat(penalty_total)) + "</td>")

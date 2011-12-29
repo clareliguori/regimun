@@ -34,6 +34,9 @@ class LoginTestCase(TestCase):
     def is_sponsor_client(self):
         return self._user_data() in users_sponsors
     
+    def is_sponsor_of_school(self, school_name):
+        return self.is_sponsor_client() and self._user_data() in users_sponsors_by_school[school_name]
+    
     @staticmethod
     def parametrize(testcase_class, users):
         """ Create a suite containing all tests taken from the given

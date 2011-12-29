@@ -7,6 +7,8 @@ from django.forms.models import ModelForm, modelformset_factory
 from django.forms.util import ErrorDict
 from django.forms.widgets import HiddenInput, TextInput, DateInput
 from django.template.defaultfilters import slugify
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
 from regimun_app.models import Conference, School, Committee, Country, \
     FeeStructure, Delegate, Payment, DelegatePosition, Fee, DatePenalty
 
@@ -61,7 +63,7 @@ class NewSchoolForm(CleanForm):
             raise forms.ValidationError("Invalid school name.")
         
         if School.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug)).count() > 0:
-            raise forms.ValidationError("School name is not available.")
+            raise forms.ValidationError(mark_safe('School name already exists. <a href="/school/'+escape(slug)+'/">Click here</a> to see this school.'))
         
         if Conference.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug)).count() > 0:
             raise forms.ValidationError("School name is not available.")
@@ -125,7 +127,7 @@ class ConferenceForm(CleanModelForm):
             raise forms.ValidationError("Conference name is not available.")
         
         if Conference.objects.filter(Q(name__exact=data) | Q(url_name__exact=slug)).count() > 0:
-            raise forms.ValidationError("Conference name is not available.")
+            raise forms.ValidationError(mark_safe('Conference name already exists. <a href="/'+escape(slug)+'/">Click here</a> to see this conference.'))
         
         return data
     
