@@ -74,7 +74,7 @@ def ajax_error(request):
 def convert_html_to_doc(html, filename, conference):
     response = http.HttpResponse()
     response['Content-Type'] ='application/msword'
-    response['Content-Disposition'] = 'filename=' + filename + '.doc'
+    response['Content-Disposition'] = 'attachment; filename=' + filename + '.doc'
 
     if conference.logo:
         image_filepath = "media/" + os.path.basename(conference.logo.url)

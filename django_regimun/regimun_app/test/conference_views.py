@@ -103,7 +103,53 @@ class ConferenceTest(LoginTestCase):
                     self.assertEquals(response.status_code, 404)
                 else:
                     self.assertRedirects(response, settings.LOGIN_URL + '?next=' + school_view_url)
+    
+    def test_secretariat_downloads(self):
+        if self.username is not None:
+            self.assertTrue(self.client.login(username=self.username, password=self.password), msg='Failed to login ' + self.username + ', ' + self.password)
+        
+        valid_spreadsheets = ['country-committee-assignments','school-country-assignments','sponsor-contacts','delegates','country-preferences','delegate-count-requests']
+        
+        for conference_name in conferences:
+            # spreadsheet downloads
+            conference_slug = slugify(conference_name)
+            downloads_url  = '/' + conference_slug + '/secretariat/downloads/?'
+            
+            for spreadsheet in valid_spreadsheets:
+                response = self.client.get(downloads_url + spreadsheet, follow=True)
                 
+                if self.is_logged_in() and (self.is_staff_client() or self.is_secretariat_of_conference(conference_name)):
+                    self.assertEquals(response.status_code, 200)
+                    self.assertEquals(response['Content-Type'], 'text/csv')
+                    self.assertEquals(response['Content-Disposition'], 'attachment; filename=' + spreadsheet + '-' + conference_slug + ".csv")
+                elif self.is_logged_in():
+                    self.assertEquals(response.status_code, 404)
+            
+            # invalid download URLs
+            if self.is_logged_in():
+                response = self.client.get(downloads_url + "aaaa", follow=True)
+                self.assertEquals(response.status_code, 404)
+                
+                downloads_url  = '/' + conference_slug + '/secretariat/downloads/'
+                response = self.client.get(downloads_url, follow=True)
+                self.assertEquals(response.status_code, 404)
+                
+                response = self.client.post(downloads_url, follow=True)
+                self.assertEquals(response.status_code, 404)
+            
+            # invoice downloads
+            invoice_types = [{'url':'invoices', 'app_type':'pdf', 'file_ext':'pdf'}
+                            , {'url':'invoices-doc', 'app_type':'msword', 'file_ext':'doc'}]
+            for invoice_type in invoice_types:
+                invoices_url  = '/' + conference_slug + '/secretariat/' + invoice_type['url']
+                response = self.client.get(invoices_url, follow=True)
+                if self.is_logged_in() and (self.is_staff_client() or self.is_secretariat_of_conference(conference_name)):
+                    self.assertEquals(response.status_code, 200)
+                    self.assertEquals(response['Content-Type'], 'application/' + invoice_type['app_type'])
+                    self.assertEquals(response['Content-Disposition'], 'attachment; filename=invoices-' + conference_slug + "." + invoice_type['file_ext'])
+                elif self.is_logged_in():
+                    self.assertEquals(response.status_code, 404)
+            
     def test_school_admin_page(self):
         if self.username is not None:
             self.assertTrue(self.client.login(username=self.username, password=self.password), msg='Failed to login ' + self.username + ', ' + self.password)
