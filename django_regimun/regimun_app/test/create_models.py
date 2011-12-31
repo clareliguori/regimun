@@ -4,6 +4,8 @@ from django.template.defaultfilters import slugify
 from regimun_app.models import Conference, Committee, Country, School
 from regimun_app.test.login import LoginTestCase
 from regimun_app.test.test_data import *
+from regimun_app.test.utils import file_len
+from settings import MEDIA_ROOT
 import datetime
 import settings
 
@@ -72,8 +74,14 @@ class CreateConferenceTest(LoginTestCase):
                     
                     secretariat_user.secretariat_member.conferences.get(id=conference.id)
                     
-                    self.assertTrue(Committee.objects.filter(conference=conference).count() > 0)
-                    self.assertTrue(Country.objects.filter(conference=conference).count() > 0)
+                    countries_count = file_len(MEDIA_ROOT + "default_countries.csv")
+                    committees_count = file_len(MEDIA_ROOT + "default_committees.csv")
+                    
+                    self.assertTrue(committees_count > 0)
+                    self.assertTrue(countries_count > 0)
+                    
+                    self.assertEquals(Committee.objects.filter(conference=conference).count(), committees_count)
+                    self.assertEquals(Country.objects.filter(conference=conference).count(), countries_count)
                 else:
                     self.assertTemplateUsed(response, 'conference/create-conference.html')
                     self.assertContains(response, "You do not have access to this page")
@@ -81,7 +89,7 @@ class CreateConferenceTest(LoginTestCase):
                 self.assertRedirects(response, settings.LOGIN_URL + '?next=/new-conference/')
         
         # try creating duplicate conference
-        conference_name = str.lower(conferences[0])
+        conference_name = conferences[0].lower()
         secretariat_user = secretariat1
         conf_dict = {'name': conference_name,
                        'start_date': conference_date_1.strftime("%m/%d/%Y"),
@@ -143,8 +151,8 @@ class CreateSchoolTest(LoginTestCase):
                         user_dict = {'sponsor_username' : self.username,
                                      'sponsor_password' : self.password,
                                      'password2' : self.password,
-                                     'sponsor_first_name' : self.username + " First",
-                                     'sponsor_last_name'  : self.username + " Last",
+                                     'sponsor_first_name' : self.username + first_name,
+                                     'sponsor_last_name'  : self.username + last_name,
                                      'sponsor_email' : self.username + "@test.com",
                                      'sponsor_phone' : "555-555-5555"}
                         
@@ -243,8 +251,8 @@ class CreateSchoolTest(LoginTestCase):
                                                             {'username' : self.username,
                                                              'password1' : self.password,
                                                              'password2' : self.password,
-                                                             'first_name' : self.username + " First",
-                                                             'last_name' : self.username + " Last",
+                                                             'first_name' : self.username + first_name,
+                                                             'last_name' : self.username + last_name,
                                                              'email' : self.email}, follow=True)
                                 self.assertRedirects(response, settings.LOGIN_URL)
                                 self.assertTrue(self.client.login(username=self.username, password=self.password))
@@ -325,3 +333,92 @@ class CreateSchoolTest(LoginTestCase):
                 self.assertTemplateUsed(response, 'register-new-school.html')
                 self.assertContains(response, "School Information")
                 self.assertContains(response, "Faculty Sponsor Information")
+                
+class RegistrationTest(LoginTestCase):
+    def test_ajax(self):
+        pass
+    
+    def test_configure_registration(self):
+        self.configure_conference()
+        self.configure_committees()
+        self.configure_countries()
+        self.configure_fees()
+        self.configure_delegate_positions()
+    
+    def configure_conference(self):
+        # /conference/secretariat/ajax/get-basic-conference-form
+        # /conference/secretariat/ajax/save-basic-conference-form
+        pass
+    
+    def configure_fees(self):
+        # /conference/secretariat/ajax/get-conference-fees
+        # /conference/secretariat/ajax/remove-fee
+        # /conference/secretariat/ajax/add-fee
+        # /conference/secretariat/ajax/get-conference-datepenalties
+        # /conference/secretariat/ajax/remove-datepenalty
+        # /conference/secretariat/ajax/add-datepenalty    
+        pass
+    
+    def configure_committees(self):
+        # /conference/secretariat/ajax/get-conference-committees
+        # /conference/secretariat/ajax/edit-committee
+        # /conference/secretariat/ajax/remove-committee
+        # /conference/secretariat/ajax/add-committee
+        pass
+    
+    def configure_countries(self):
+        # /conference/secretariat/ajax/get-conference-countries
+        # /conference/secretariat/ajax/edit-country
+        # /conference/secretariat/ajax/remove-country
+        # /conference/secretariat/ajax/add-country
+        pass
+    
+    def configure_delegate_positions(self):
+        # /conference/secretariat/ajax/get-delegate-positions-table
+        # /conference/secretariat/ajax/get-delegate-positions
+        # /conference/secretariat/ajax/get-individual-delegate-positions
+        # /conference/secretariat/ajax/upload-delegate-positions
+        # /conference/secretariat/ajax/set-delegate-position-count
+        # /conference/secretariat/ajax/set-delegate-positions
+        # /conference/secretariat/ajax/set-individual-delegate-positions
+        # /conference/secretariat/ajax/remove-delegate-position
+        # /conference/secretariat/ajax/add-delegate-position
+        pass
+    
+    def test_school_registration(self):
+        # /conference/school/ajax/get-school-mailing-address-form
+        # /conference/school/ajax/save-school-mailing-address-form
+        # /conference/school/ajax/get-edit-sponsor-form
+        # /conference/school/ajax/save-edit-sponsor-form
+        # /conference/school/ajax/remove-sponsor-from-school
+        # /conference/school/ajax/remove-sponsor-from-conference
+        # /conference/school/ajax/add-sponsor-to-conference
+        pass
+    
+    def test_submit_country_preferences(self):
+        # /conference/school/ajax/get-country-preferences
+        # /conference/school/ajax/set-country-preferences
+        # /conference/school/ajax/get-country-preferences-html-ajax
+        pass
+    
+    def test_country_assignment(self):
+        # /conference/secretariat/ajax/get-country-school-assignments
+        # /conference/secretariat/ajax/set-country-school-assignments
+        # /conference/secretariat/ajax/upload-school-country-assignments
+        pass
+    
+    def test_delegate_registration(self):
+        # /conference/school/ajax/edit-delegate
+        # /conference/school/ajax/get-edit-delegate-form
+        # /conference/school/ajax/remove-delegate
+        
+        pass
+    
+    def test_payments(self):
+        # /conference/secretariat/ajax/get-conference-payments
+        # /conference/secretariat/ajax/edit-payment
+        # /conference/secretariat/ajax/remove-payment
+        # /conference/secretariat/ajax/add-payment
+        pass
+    
+    

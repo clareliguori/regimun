@@ -13,7 +13,8 @@ from regimun_app.forms import ConferenceForm, SecretariatUserForm, \
 from regimun_app.models import Conference, FacultySponsor, Delegate, Country, \
     Committee, Secretariat, School, FeeStructure, DelegatePosition, \
     CountryPreference, DelegateCountPreference, DelegationRequest, Payment
-from regimun_app.utils import fetch_resources
+from regimun_app.utils import fetch_resources, UnicodeCSVWriter, \
+    UnicodeCSVReader
 from regimun_app.views.general import render_response, convert_html_to_doc
 from regimun_app.views.school_admin import school_admin, \
     get_fees_table_from_data
@@ -40,7 +41,7 @@ def spreadsheet_downloads(request, conference_slug):
     conference = get_object_or_404(Conference, url_name=conference_slug)
     if secretariat_authenticate(request, conference):
         response = HttpResponse(mimetype='text/csv')
-        writer = csv.writer(response)
+        writer = UnicodeCSVWriter(response)
         
         if 'sponsor-contacts' in request.GET:
             response['Content-Disposition'] = 'attachment; filename=sponsor-contacts-' + conference_slug + ".csv"            
@@ -236,7 +237,7 @@ def create_conference(request):
             
             # create default countries
             defaultCountriesList = MEDIA_ROOT + "default_countries.csv"
-            countriesListReader = csv.reader(open(defaultCountriesList))
+            countriesListReader = UnicodeCSVReader(open(defaultCountriesList))
             for row in countriesListReader:
                 new_country = Country()
                 new_country.conference = new_conference
@@ -247,7 +248,7 @@ def create_conference(request):
                 
             # create default committees and delegate positions
             defaultCommitteesList = MEDIA_ROOT + "default_committees.csv"
-            committeesListReader = csv.reader(open(defaultCommitteesList))
+            committeesListReader = UnicodeCSVReader(open(defaultCommitteesList))
             for row in committeesListReader:
                 new_committee = Committee()
                 new_committee.conference = new_conference

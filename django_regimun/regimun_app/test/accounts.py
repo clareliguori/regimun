@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.core import mail
 from django.core.exceptions import MultipleObjectsReturned
 from regimun_app.test.login import LoginTestCase
+from regimun_app.test.test_data import first_name, last_name
 import re
 import settings
 
@@ -38,8 +39,8 @@ class AccountManagementTest(LoginTestCase):
                                     {'username' : self.username,
                                      'password1' : self.password1,
                                      'password2' : self.password1,
-                                     'first_name' : self.username + " First",
-                                     'last_name' : self.username + " Last",
+                                     'first_name' : self.username + first_name,
+                                     'last_name' : self.username + last_name,
                                      'email' : self.email}, follow=True)
         self.assertEquals(response.status_code, 200)
         self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)

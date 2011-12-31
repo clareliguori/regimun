@@ -15,7 +15,7 @@ from regimun_app.models import Conference, School, FacultySponsor, Committee, \
     DelegatePosition, Country, CountryPreference, DelegateCountPreference, Delegate, \
     DelegationRequest
 from regimun_app.templatetags.currencyformat import currencyformat
-from regimun_app.utils import fetch_resources
+from regimun_app.utils import fetch_resources, UnicodeCSVWriter
 from regimun_app.views.general import render_response, get_recaptcha_response, \
     convert_html_to_doc
 from xhtml2pdf import pisa
@@ -273,7 +273,7 @@ def school_spreadsheet_downloads(request, conference_slug, school_slug):
     
     if school_authenticate(request, conference, school):
         response = HttpResponse(mimetype='text/csv')
-        writer = csv.writer(response)
+        writer = UnicodeCSVWriter(response)
         
         if 'country-committee-assignments' in request.GET:
             response['Content-Disposition'] = 'attachment; filename=country-committee-assignments-' + conference_slug + ".csv"             

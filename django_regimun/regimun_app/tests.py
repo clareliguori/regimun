@@ -1,7 +1,6 @@
 from regimun_app.test.accounts import AccountManagementTest
 from regimun_app.test.conference_views import ConferenceTest
-from regimun_app.test.create_models import CreateConferenceTest, \
-    CreateSchoolTest
+from regimun_app.test.create_models import *
 from regimun_app.test.login import LoginTestCase
 from regimun_app.test.test_data import *
 from unittest import TestSuite
@@ -18,5 +17,7 @@ def suite():
     suite.addTests(LoginTestCase.parametrize(AccountManagementTest, [sponsor1, sponsor2, sponsor3, sponsor4]))
     suite.addTests(LoginTestCase.parametrize(CreateSchoolTest, users))
     suite.addTests(LoginTestCase.parametrize(AccountManagementTest, users_secretariat + users_sponsors))
+    suite.addTests(LoginTestCase.parametrize(ConferenceTest, users))
+    suite.addTests(LoginTestCase.parametrize(RegistrationTest, users))
     suite.addTests(LoginTestCase.parametrize(ConferenceTest, users))
     return suite

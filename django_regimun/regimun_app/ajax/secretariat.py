@@ -12,6 +12,7 @@ from regimun_app.forms import jEditableForm, BasicConferenceInfoForm, \
     delegate_position_form_factory, FeeForm, DatePenaltyForm
 from regimun_app.models import Conference, Committee, Country, DelegatePosition, \
     School, Payment, Fee, DatePenalty
+from regimun_app.utils import UnicodeCSVDictReader
 from regimun_app.views.school_admin import is_school_registered
 from regimun_app.views.secretariat_admin import secretariat_authenticate
 import csv
@@ -331,7 +332,7 @@ def upload_delegate_positions(request, conference):
             positions_by_country = sort_queryset(all_positions, 'country')
             
             try:
-                positions_reader = csv.DictReader(uploaded_file)
+                positions_reader = UnicodeCSVDictReader(uploaded_file)
                 for row in positions_reader:
                     try:
                         country_name = row["Country"].strip()
@@ -550,7 +551,7 @@ def upload_school_country_assignments(request, conference):
             positions_dict = sort_queryset(all_positions, 'country')
             
             try:
-                assignments_reader = csv.DictReader(uploaded_file)
+                assignments_reader = UnicodeCSVDictReader(uploaded_file)
                 for row in assignments_reader:
                     try:
                         country_name = row["Country"].strip()
