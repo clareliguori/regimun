@@ -38,3 +38,7 @@ secretariat_by_conference = {u'TéstMUN 1' : secretariat1,
 
 first_name = u" Fḭrst"
 last_name = u" Lâst"
+
+new_country_name = u"Médecins Sans Frontières"
+new_committee_name = u"L'Organisation des Nations unies pour l’éducation, la science et la culture (UNESCO)"
+new_country_code = 'ng'

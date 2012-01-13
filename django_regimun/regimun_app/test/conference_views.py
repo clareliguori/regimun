@@ -222,4 +222,7 @@ class ConferenceTest(LoginTestCase):
                         self.assertContains(response, "You do not have access to this page.")
                 else:
                     self.assertRedirects(response, settings.LOGIN_URL + '?next=' + school_admin_url)
-                
+    
+    def test_ajax(self):
+        # TODO test security (only secretariat can access secretariat ajax, etc)
+        pass

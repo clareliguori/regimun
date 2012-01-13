@@ -7,6 +7,7 @@ from regimun_app.test.test_data import *
 from regimun_app.test.utils import file_len
 from settings import MEDIA_ROOT
 import datetime
+import json
 import settings
 
 class CreateConferenceTest(LoginTestCase):
@@ -334,16 +335,28 @@ class CreateSchoolTest(LoginTestCase):
                 self.assertContains(response, "School Information")
                 self.assertContains(response, "Faculty Sponsor Information")
                 
-class RegistrationTest(LoginTestCase):
-    def test_ajax(self):
-        pass
-    
-    def test_configure_registration(self):
-        self.configure_conference()
-        self.configure_committees()
-        self.configure_countries()
-        self.configure_fees()
-        self.configure_delegate_positions()
+class ConfigureRegistrationTest(LoginTestCase):
+    def test_registration_configuration(self):
+        if self.username is not None:
+            self.client.login(username=self.username, password=self.password)
+            
+        if self.is_secretariat_client():
+            self.conference_name = ""
+            for conference in conferences:
+                if secretariat_by_conference[conference] == self._user_data():
+                    self.conference_name = conference
+                    break
+            
+            self.assertNotEqual(len(self.conference_name), 0)
+            self.conference_url = '/' + slugify(self.conference_name)
+            self.conference_obj = Conference.objects.get(name=self.conference_name)
+            
+            # configure registration
+            self.configure_conference()
+            self.configure_committees()
+            self.configure_countries()
+            self.configure_fees()
+            self.configure_delegate_positions()
     
     def configure_conference(self):
         # /conference/secretariat/ajax/get-basic-conference-form
@@ -360,18 +373,111 @@ class RegistrationTest(LoginTestCase):
         pass
     
     def configure_committees(self):
-        # /conference/secretariat/ajax/get-conference-committees
+        # Add new committee
+        new_committee_dict = {'name': new_committee_name}
+        response = self.client.post(self.conference_url+'/secretariat/ajax/add-committee', new_committee_dict, follow=True)
+        self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+        self.assertNotContains(response, "form")
+        response_json_dict = json.loads(response.content)
+        self.assertTrue(response_json_dict.has_key('pk'))
+        new_committee_pk = response_json_dict['pk']
+        self.assertTrue(response_json_dict.has_key('name'))
+        self.assertEquals(new_committee_name, response_json_dict['name'])
+        new_committee = Committee.objects.get(id=new_committee_pk)
+        self.assertEquals(new_committee_name, new_committee.name)
+        self.assertEqual(new_committee.conference, self.conference_obj)
+        
         # /conference/secretariat/ajax/edit-committee
-        # /conference/secretariat/ajax/remove-committee
-        # /conference/secretariat/ajax/add-committee
-        pass
+        edited_committee_name = new_committee_name + "123"
+        edit_committee_dict = {'id': "name_" + str(new_committee_pk),
+                               'value' : edited_committee_name}
+        response = self.client.post(self.conference_url+'/secretariat/ajax/edit-committee', edit_committee_dict, follow=True)
+        self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+        self.assertEqual(response.content.decode('utf-8'), edited_committee_name)
+        edited_committee = Committee.objects.get(id=new_committee_pk)
+        self.assertEquals(edited_committee_name, edited_committee.name)
+        self.assertEqual(edited_committee.conference, self.conference_obj)
+        
+        # Get conference committees
+        response = self.client.get(self.conference_url+'/secretariat/ajax/get-conference-committees', follow=True)
+        self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+        response_json_dict = json.loads(response.content)
+        self.assertTrue(response_json_dict.has_key('form'))
+        self.assertTrue(response_json_dict.has_key('objects'))
+        for committee_dict in json.loads(response_json_dict['objects']):
+            self.assertTrue(committee_dict.has_key('pk'))
+            self.assertTrue(committee_dict.has_key('fields'))
+            committee_fields = committee_dict['fields']
+            self.assertTrue(committee_fields.has_key('name'))
+            self.assertEqual(committee_dict['pk'], Committee.objects.get(name=committee_fields['name'], conference__name=self.conference_name).pk)
+        self.assertContains(response, new_committee_pk)
+        
+        # Remove committee
+        remove_committee_dict = {'pk': new_committee_pk}
+        response = self.client.post(self.conference_url+'/secretariat/ajax/remove-committee', remove_committee_dict, follow=True)
+        self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+        response_json_dict = json.loads(response.content)
+        self.assertTrue(response_json_dict.has_key('pk'))
+        self.assertEqual(int(response_json_dict['pk']), new_committee_pk)
+        self.assertRaises(Committee.DoesNotExist, Committee.objects.get, id=new_committee_pk)
+        self.assertRaises(Committee.DoesNotExist, Committee.objects.get, name=edited_committee_name,conference__name=self.conference_name)
     
     def configure_countries(self):
-        # /conference/secretariat/ajax/get-conference-countries
+        # Add new country
+        new_country_dict = {'name': new_country_name, 'country_code': new_country_code}
+        response = self.client.post(self.conference_url+'/secretariat/ajax/add-country', new_country_dict, follow=True)
+        self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+        self.assertNotContains(response, "form")
+        response_json_dict = json.loads(response.content)
+        self.assertTrue(response_json_dict.has_key('pk'))
+        new_country_pk = response_json_dict['pk']
+        self.assertTrue(response_json_dict.has_key('fields'))
+        response_json_dict = response_json_dict['fields']
+        self.assertTrue(response_json_dict.has_key('name'), msg=response_json_dict.keys())
+        self.assertEquals(new_country_name, response_json_dict['name'])
+        self.assertTrue(response_json_dict.has_key('country_code'))
+        self.assertEquals(new_country_code, response_json_dict['country_code'])
+        new_country = Country.objects.get(id=new_country_pk)
+        self.assertEquals(new_country_name, new_country.name)
+        self.assertEquals(new_country_code, new_country.country_code)
+        self.assertEqual(new_country.conference, self.conference_obj)
+        
         # /conference/secretariat/ajax/edit-country
-        # /conference/secretariat/ajax/remove-country
-        # /conference/secretariat/ajax/add-country
-        pass
+        edited_country_name = new_country_name + "123"
+        edit_country_dict = {'id': "name_" + str(new_country_pk),
+                               'value' : edited_country_name}
+        response = self.client.post(self.conference_url+'/secretariat/ajax/edit-country', edit_country_dict, follow=True)
+        self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+        self.assertEqual(response.content.decode('utf-8'), edited_country_name)
+        edited_country = Country.objects.get(id=new_country_pk)
+        self.assertEquals(edited_country_name, edited_country.name)
+        self.assertEqual(edited_country.conference, self.conference_obj)
+        
+        # Get conference countries
+        response = self.client.get(self.conference_url+'/secretariat/ajax/get-conference-countries', follow=True)
+        self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+        response_json_dict = json.loads(response.content)
+        self.assertTrue(response_json_dict.has_key('form'))
+        self.assertTrue(response_json_dict.has_key('objects'))
+        for country_dict in json.loads(response_json_dict['objects']):
+            self.assertTrue(country_dict.has_key('pk'))
+            self.assertTrue(country_dict.has_key('fields'))
+            country_fields = country_dict['fields']
+            self.assertTrue(country_fields.has_key('name'))
+            self.assertTrue(country_fields.has_key('country_code'))
+            self.assertEqual(country_dict['pk'], Country.objects.get(name=country_fields['name'], conference__name=self.conference_name).pk)
+        self.assertContains(response, new_country_pk)
+        self.assertContains(response, new_country_code)
+        
+        # Remove country
+        remove_country_dict = {'pk': new_country_pk}
+        response = self.client.post(self.conference_url+'/secretariat/ajax/remove-country', remove_country_dict, follow=True)
+        self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+        response_json_dict = json.loads(response.content)
+        self.assertTrue(response_json_dict.has_key('pk'))
+        self.assertEqual(int(response_json_dict['pk']), new_country_pk)
+        self.assertRaises(Country.DoesNotExist, Country.objects.get, id=new_country_pk)
+        self.assertRaises(Country.DoesNotExist, Country.objects.get, name=edited_country_name,conference__name=self.conference_name)
     
     def configure_delegate_positions(self):
         # /conference/secretariat/ajax/get-delegate-positions-table
@@ -385,7 +491,11 @@ class RegistrationTest(LoginTestCase):
         # /conference/secretariat/ajax/add-delegate-position
         pass
     
+class SchoolRegistrationTest(LoginTestCase):
     def test_school_registration(self):
+        if self.username is not None:
+            self.assertTrue(self.client.login(username=self.username, password=self.password), msg='Failed to login ' + self.username + ', ' + self.password)
+        
         # /conference/school/ajax/get-school-mailing-address-form
         # /conference/school/ajax/save-school-mailing-address-form
         # /conference/school/ajax/get-edit-sponsor-form
@@ -393,32 +503,40 @@ class RegistrationTest(LoginTestCase):
         # /conference/school/ajax/remove-sponsor-from-school
         # /conference/school/ajax/remove-sponsor-from-conference
         # /conference/school/ajax/add-sponsor-to-conference
-        pass
     
     def test_submit_country_preferences(self):
+        if self.username is not None:
+            self.assertTrue(self.client.login(username=self.username, password=self.password), msg='Failed to login ' + self.username + ', ' + self.password)
+        
         # /conference/school/ajax/get-country-preferences
         # /conference/school/ajax/set-country-preferences
         # /conference/school/ajax/get-country-preferences-html-ajax
-        pass
     
-    def test_country_assignment(self):
+class CountryAssignmentTest(LoginTestCase):
+    def test_country_assignments(self):
+        if self.username is not None:
+            self.assertTrue(self.client.login(username=self.username, password=self.password), msg='Failed to login ' + self.username + ', ' + self.password)
+        
         # /conference/secretariat/ajax/get-country-school-assignments
         # /conference/secretariat/ajax/set-country-school-assignments
         # /conference/secretariat/ajax/upload-school-country-assignments
-        pass
     
+class DelegateRegistrationTest(LoginTestCase):
     def test_delegate_registration(self):
+        if self.username is not None:
+            self.assertTrue(self.client.login(username=self.username, password=self.password), msg='Failed to login ' + self.username + ', ' + self.password)
+            
         # /conference/school/ajax/edit-delegate
         # /conference/school/ajax/get-edit-delegate-form
         # /conference/school/ajax/remove-delegate
-        
-        pass
     
+class PaymentsTest(LoginTestCase):
     def test_payments(self):
+        if self.username is not None:
+            self.assertTrue(self.client.login(username=self.username, password=self.password), msg='Failed to login ' + self.username + ', ' + self.password)
+        
         # /conference/secretariat/ajax/get-conference-payments
         # /conference/secretariat/ajax/edit-payment
         # /conference/secretariat/ajax/remove-payment
         # /conference/secretariat/ajax/add-payment
-        pass
-    
     
