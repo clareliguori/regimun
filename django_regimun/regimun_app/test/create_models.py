@@ -359,9 +359,41 @@ class ConfigureRegistrationTest(LoginTestCase):
             self.configure_delegate_positions()
     
     def configure_conference(self):
-        # /conference/secretariat/ajax/get-basic-conference-form
-        # /conference/secretariat/ajax/save-basic-conference-form
-        pass
+        # Save conference form
+        conference_date_1 = datetime.date.today() + datetime.timedelta(3*365/12)
+        conference_date_2 = conference_date_1 + datetime.timedelta(4)
+        conference_date_3 = conference_date_1 - datetime.timedelta(4)
+        new_location = self.conference_obj.location + " Street"
+        form_dict = {'start_date':conference_date_1.strftime("%m/%d/%Y"),
+                     'end_date':conference_date_2.strftime("%m/%d/%Y"),
+                     'location':new_location,
+                     'website_url':self.conference_obj.website_url,
+                     'no_refunds_start_date':conference_date_3.strftime("%m/%d/%Y")}
+        
+        response = self.client.post(self.conference_url+'/secretariat/ajax/save-basic-conference-form', form_dict, follow=True)
+        self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+        self.assertNotContains(response, "form")
+        response_json_dict = json.loads(response.content)
+        self.assertTrue(response_json_dict.has_key('conference'))
+        self.assertEqual(response_json_dict['conference'], self.conference_obj.pk)
+    
+        self.conference_obj = Conference.objects.get(name=self.conference_name)
+        self.assertEqual(self.conference_obj.start_date, conference_date_1)
+        self.assertEqual(self.conference_obj.end_date, conference_date_2)
+        self.assertEqual(self.conference_obj.no_refunds_start_date, conference_date_3)
+        self.assertEqual(self.conference_obj.location, new_location)
+
+        # Get conference form
+        response = self.client.get(self.conference_url+'/secretariat/ajax/get-basic-conference-form', follow=True)
+        self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+        self.assertContains(response, "form")
+        response_json_dict = json.loads(response.content)
+        self.assertTrue(response_json_dict.has_key('form'))
+        self.assertNotEqual(0, len(response_json_dict['form']))
+        self.assertContains(response, conference_date_1.strftime("%Y-%m-%d"))
+        self.assertContains(response, conference_date_2.strftime("%Y-%m-%d"))
+        self.assertContains(response, conference_date_3.strftime("%Y-%m-%d"))
+        self.assertContains(response, self.conference_obj.website_url)
     
     def configure_fees(self):
         # /conference/secretariat/ajax/get-conference-fees
