@@ -1,7 +1,7 @@
 {% extends "school_base.html" %}
 
 {% block headblock %}
-<script src="{{ MEDIA_URL }}/js/autoNumeric-1.6.2.js" type="text/javascript" charset="utf-8"></script>
+<script src="{{ STATIC_URL }}js/autoNumeric-1.6.2.js" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 
 {% block scriptblock %}
@@ -140,7 +140,7 @@ function open_country_preferences_form() {
 			},
 			"json"
 	);
-	$('#country-preferences-form').html('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
+	$('#country-preferences-form').html('<p style="text-align: center" class="loading"><img src="{{ STATIC_URL }}icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 }
 
 function cancel_country_preferences_form() {
@@ -152,14 +152,14 @@ function cancel_country_preferences_form() {
 		},
 		"json"
 	);
-	$('#country-preferences-form').html('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
+	$('#country-preferences-form').html('<p style="text-align: center" class="loading"><img src="{{ STATIC_URL }}icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 }
 
 function save_country_preferences_form() {
 	$('#country-preferences-form').ajaxSubmit({
 		dataType:'json',
 		beforeSubmit: 	function(arr, $form, options) { 
-			$('#country-preferences-form').html('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
+			$('#country-preferences-form').html('<p style="text-align: center" class="loading"><img src="{{ STATIC_URL }}icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 		},
 		success:		function(data) {
 			$('#country-preferences-form').html(data.prefs);
@@ -447,7 +447,7 @@ function update_fees_table() {
 		<table>
 		{% for country,positions in delegations %}
 			<tr>
-				<td style="padding-right:10px">{% if country.flag_icon %}<img src="{{ MEDIA_URL }}/{{ country.flag_icon }}"/>{% endif %}</td>
+				<td style="padding-right:10px">{% if country.flag_icon %}<img src="{{ STATIC_URL }}{{ country.flag_icon }}"/>{% endif %}</td>
 				<td><b>{{ country.name }}</b></td>
 			</tr>
 			{% for position in positions %}
@@ -488,11 +488,11 @@ function update_fees_table() {
 		<table class="center">
 			<tr>
 				<td class="center" style="padding-right: 30px">
-					<a href="invoice"><img class="tab-link" src="{{MEDIA_URL}}/icons/pdf.png"/></a><br/>
+					<a href="invoice"><img class="tab-link" src="{{ STATIC_URL }}icons/pdf.png"/></a><br/>
 					<a href="invoice">Download PDF</a>
 				</td>
 				<td class="center">
-					<a href="invoice-doc"><img class="tab-link" src="{{MEDIA_URL}}/icons/doc.png"/></a><br/>
+					<a href="invoice-doc"><img class="tab-link" src="{{ STATIC_URL }}icons/doc.png"/></a><br/>
 					<a href="invoice-doc">Download Word Doc</a>
 				</td>
 			</tr>

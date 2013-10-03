@@ -20,7 +20,7 @@ class Conference(models.Model):
 	state = models.CharField("State / Province / Region", max_length=200)
 	zip = models.CharField("ZIP / Postal Code", max_length=200,blank=True)
 	address_country = models.CharField("Country", max_length=200, blank=True)
-	no_refunds_start_date = models.DateField()
+	no_refunds_start_date = models.DateField(null=True, blank=True)
 
 	def __unicode__(self):
 		return self.name

@@ -1,11 +1,11 @@
 {% extends "secretariat_base.html" %}
 
 {% block headblock %}
-	<script src="{{ MEDIA_URL }}/js/jquery.dataTables.min.js" type="text/javascript" charset="utf-8"></script>	
-	<script src="{{ MEDIA_URL }}/js/dataTables.fnAddTr.js" type="text/javascript" charset="utf-8"></script>
-	<script src="{{ MEDIA_URL }}/js/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
-	<script src="{{ MEDIA_URL }}/js/jquery.metadata.js" type="text/javascript" charset="utf-8"></script>
-	<script src="{{ MEDIA_URL }}/js/autoNumeric-1.6.2.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ STATIC_URL }}js/jquery.dataTables.min.js" type="text/javascript" charset="utf-8"></script>	
+	<script src="{{ STATIC_URL }}js/dataTables.fnAddTr.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ STATIC_URL }}js/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ STATIC_URL }}js/jquery.metadata.js" type="text/javascript" charset="utf-8"></script>
+	<script src="{{ STATIC_URL }}js/autoNumeric-1.6.2.js" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 
 {% block scriptblock %}
@@ -50,7 +50,7 @@ function form_country_row(country) {
 	row_html = "<tr pk=\"" + country.pk + "\">";
 	row_html += "<td class=\"icon\" id=\"icon_" + country.pk + "\">";
 	if(country_code.length > 0)
-		row_html += "<img src=\"{{ MEDIA_URL }}/icons/country_flags/flag-" + country_code + ".png\" />";
+		row_html += "<img src=\"{{ STATIC_URL }}icons/country_flags/flag-" + country_code + ".png\" />";
 	row_html += "</td><td class=\"name\" id=\"name_" + country.pk + "\">" + name + "</td>";
 	row_html += "<td class=\"delete\" id=\"" + country.pk + "\"><a href=\"delete-country\" id=\"delete_country\" title=\"Delete\"><span class=\"ui-icon ui-icon-closethick\"></span></a></td></tr>";
 	return row_html;
@@ -489,7 +489,7 @@ function form_dialog(dialog_width, dialog_element, dialog_link_element, form_ele
 			"json"
 		);
 	
-		$(dialog_element).append('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
+		$(dialog_element).append('<p style="text-align: center" class="loading"><img src="{{ STATIC_URL }}icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 		$(dialog_element).dialog('open');
 		return false;
 	});
@@ -522,7 +522,7 @@ function formset_dialog(dialog_width, dialog_element, dialog_link_element, form_
 			"json"
 		);
 	
-		$(dialog_element).append('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
+		$(dialog_element).append('<p style="text-align: center" class="loading"><img src="{{ STATIC_URL }}icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 		$(dialog_element).dialog('open');
 		return false;
 	});
@@ -631,7 +631,7 @@ $(function(){
 			"json"
 		);
 	
-		$('#committees-to-countries-form-dialog').append('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
+		$('#committees-to-countries-form-dialog').append('<p style="text-align: center" class="loading"><img src="{{ STATIC_URL }}icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 		$('#committees-to-countries-form-dialog').dialog('open');
 		return false;
 	});
@@ -732,7 +732,7 @@ $(function(){
 			"json"
 		);
 	
-		$('#edit-delegate-positions-form-dialog').append('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
+		$('#edit-delegate-positions-form-dialog').append('<p style="text-align: center" class="loading"><img src="{{ STATIC_URL }}icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 		$('#edit-delegate-positions-form-dialog').dialog('open');
 		return false;
 	});
@@ -746,7 +746,7 @@ $(function(){
 			"json"
 		);
 	
-		$('#countries-to-schools-form-dialog').append('<p style="text-align: center" class="loading"><img src="{{MEDIA_URL}}/icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
+		$('#countries-to-schools-form-dialog').append('<p style="text-align: center" class="loading"><img src="{{ STATIC_URL }}icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 		$('#countries-to-schools-form-dialog').dialog('open');
 		return false;
 	});
@@ -819,12 +819,12 @@ $(function(){
 <div class="secretariat-content">
 <div id="tabs">
 	<ul class="tab-link">
-		<li><a href="#settings"><img class="tab-link" src="{{MEDIA_URL}}/icons/kcmsystem.png" /><br/>Settings</a></li> 
-		<li><a href="#stats"><img class="tab-link" src="{{MEDIA_URL}}/icons/kpercentage.png" /><br/>Statistics</a></li>
-		<li><a href="#spreadsheets"><img class="tab-link" src="{{MEDIA_URL}}/icons/kchart.png" /><br/>Spreadsheets</a></li>
-		<li><a href="#schools"><img class="tab-link" src="{{MEDIA_URL}}/icons/kdmconfig.png" /><br/>Schools</a></li>
-		<li><a href="#fees"><img class="tab-link" src="{{MEDIA_URL}}/icons/emblems-money.png" /><br/>Fees</a></li>
-		<!-- <li><a href="#store"><img class="tab-link" src="{{MEDIA_URL}}/icons/shopping_trolley.png" /><br/>Store</a></li> -->
+		<li><a href="#settings"><img class="tab-link" src="{{ STATIC_URL }}icons/kcmsystem.png" /><br/>Settings</a></li> 
+		<li><a href="#stats"><img class="tab-link" src="{{ STATIC_URL }}icons/kpercentage.png" /><br/>Statistics</a></li>
+		<li><a href="#spreadsheets"><img class="tab-link" src="{{ STATIC_URL }}icons/kchart.png" /><br/>Spreadsheets</a></li>
+		<li><a href="#schools"><img class="tab-link" src="{{ STATIC_URL }}icons/kdmconfig.png" /><br/>Schools</a></li>
+		<li><a href="#fees"><img class="tab-link" src="{{ STATIC_URL }}icons/emblems-money.png" /><br/>Fees</a></li>
+		<!-- <li><a href="#store"><img class="tab-link" src="{{ STATIC_URL }}icons/shopping_trolley.png" /><br/>Store</a></li> -->
 	</ul>
 	
 	<div id="settings" class="secretariat-pane" >
@@ -950,11 +950,11 @@ $(function(){
 		<table class="center">
 			<tr>
 				<td class="center" style="padding-right: 30px">
-					<a href="invoices"><img class="tab-link" src="{{MEDIA_URL}}/icons/pdf.png"/></a><br/>
+					<a href="invoices"><img class="tab-link" src="{{ STATIC_URL }}icons/pdf.png"/></a><br/>
 					<a href="invoices">Download PDF</a> (Slow)
 				</td>
 				<td class="center">
-					<a href="invoices-doc"><img class="tab-link" src="{{MEDIA_URL}}/icons/doc.png"/></a><br/>
+					<a href="invoices-doc"><img class="tab-link" src="{{ STATIC_URL }}icons/doc.png"/></a><br/>
 					<a href="invoices-doc">Download Word Doc</a>
 				</td>
 			</tr>
