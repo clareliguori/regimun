@@ -21,8 +21,10 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
-@property
-def DEBUG():
+
+def _get_debug():
     """Set DEBUG based on env vars"""
     debug = os.environment.get('DEBUG', False)
     return debug == 'True'
+
+DEBUG = _get_debug()
