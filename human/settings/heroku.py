@@ -24,7 +24,7 @@ STATICFILES_DIRS = (
 
 def _get_debug():
     """Set DEBUG based on env vars"""
-    debug = os.environment.get('DEBUG', False)
+    debug = os.environ.get('DEBUG', False)
     return debug == 'True'
 
 DEBUG = _get_debug()
