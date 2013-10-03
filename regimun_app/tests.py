@@ -4,7 +4,8 @@ from regimun_app.test.create_models import *
 from regimun_app.test.login import LoginTestCase
 from regimun_app.test.test_data import *
 from unittest import TestSuite
-import settings
+
+from django.conf import settings
 
 def suite():
     users = [user_staff, user_staff, user_none] + users_sponsors + users_secretariat

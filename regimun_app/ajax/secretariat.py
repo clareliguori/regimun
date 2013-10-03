@@ -18,8 +18,9 @@ from regimun_app.views.secretariat_admin import secretariat_authenticate
 import csv
 import exceptions
 import inspect
-import settings
 import string
+
+from django.conf import settings
 
 if 'jsondisplay' not in get_serializer_formats():
     register_serializer('jsondisplay', 'regimun_app.serializers.DisplayNameJsonSerializer')

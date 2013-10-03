@@ -18,9 +18,12 @@ from regimun_app.utils import fetch_resources, UnicodeCSVWriter, \
 from regimun_app.views.general import render_response, convert_html_to_doc
 from regimun_app.views.school_admin import school_admin, \
     get_fees_table_from_data
-from settings import MEDIA_ROOT
 from xhtml2pdf import pisa
 import csv
+
+from django.conf import settings
+
+MEDIA_ROOT = settings.MEDIA_ROOT
 
 def staff_authenticate(request):
     return request.user.is_staff

@@ -32,7 +32,7 @@
 {% else %}
 <div style="text-align:center">
     <p>You must be logged in to view this page.</p>
-    <p><a class="button" href="{% url django.contrib.auth.views.login %}?next={{ request.path }}">Login</a></p>
+    <p><a class="button" href="{% url "django.contrib.auth.views.login" %}?next={{ request.path }}">Login</a></p>
     <p><a class="button" href="/accounts/register/?next={{ request.path }}">Register</a></p>
 </div>
 {% endif %}

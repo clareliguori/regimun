@@ -4,7 +4,9 @@ from django.core.exceptions import MultipleObjectsReturned
 from regimun_app.test.login import LoginTestCase
 from regimun_app.test.test_data import first_name, last_name
 import re
-import settings
+
+from django.conf import settings
+
 
 class AccountManagementTest(LoginTestCase):
     password1 = "password1"

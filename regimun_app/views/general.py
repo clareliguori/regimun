@@ -14,7 +14,8 @@ import base64
 import mimetypes
 import os
 import re
-import settings
+
+from django.conf import settings
 
 def render_response(req, *args, **kwargs):
     kwargs['context_instance'] = RequestContext(req)

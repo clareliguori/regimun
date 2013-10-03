@@ -1,7 +1,8 @@
 from django.template.defaultfilters import slugify
 from regimun_app.test.login import LoginTestCase
 from regimun_app.test.test_data import *
-import settings
+
+from django.conf import settings
 
 class ConferenceTest(LoginTestCase):
     def test_conference_index(self):

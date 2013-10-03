@@ -5,10 +5,11 @@ from regimun_app.models import Conference, Committee, Country, School
 from regimun_app.test.login import LoginTestCase
 from regimun_app.test.test_data import *
 from regimun_app.test.utils import file_len
-from settings import MEDIA_ROOT
 import datetime
 import json
 import settings
+
+from django.conf import settings
 
 class CreateConferenceTest(LoginTestCase):
     def test_create_conference(self):

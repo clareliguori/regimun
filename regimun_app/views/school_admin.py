@@ -21,7 +21,8 @@ from regimun_app.views.general import render_response, get_recaptcha_response, \
 from xhtml2pdf import pisa
 import csv
 import re
-import settings
+
+from django.conf import settings
 
 def school_authenticate(request, conference, school):
     if not is_school_registered(conference, school):

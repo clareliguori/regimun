@@ -1,10 +1,11 @@
-from django.core.cache import cache
-from django.core.files.uploadhandler import FileUploadHandler
-import csv
 import codecs
 import cStringIO
+import csv
 import os
-import settings
+
+from django.conf import settings
+from django.core.cache import cache
+from django.core.files.uploadhandler import FileUploadHandler
 
 def fetch_resources(uri, rel):
     return os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, "").lstrip(os.path.sep))
