@@ -1,7 +1,10 @@
-# Django settings for human project.
+import os
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+
+# two levels up ...
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -61,7 +64,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
