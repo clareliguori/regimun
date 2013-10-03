@@ -17,7 +17,6 @@ instrumental.xml
 instrumental/
 .idea
 .env*
-static/*
 *.xml
 *.dump
 test.py
