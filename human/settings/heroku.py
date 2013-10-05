@@ -18,12 +18,8 @@ ALLOWED_HOSTS = ['*']
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, '..', 'static'),
 )
 
-def _get_debug():
-    """Set DEBUG based on env vars"""
-    debug = os.environ.get('DEBUG', False)
-    return debug == 'True'
-
-DEBUG = _get_debug()
+# make debug easier to flip on and off
+DEBUG = os.environ.get('DEBUG', False) == 'True'
