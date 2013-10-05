@@ -7,10 +7,12 @@ TEMPLATE_DEBUG = DEBUG
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('Jason Novinger', 'jnovinger+human@gmail.com'),
 )
 
-MANAGERS = ADMINS
+MANAGERS = (
+    ('Allyson Holley', 'allyson@ctmun.org'),
+)
 
 DATABASES = {
     'default': {
