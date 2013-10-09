@@ -1,5 +1,5 @@
 Django==1.5.4
-Jinja2==2.7
+Jinja2==2.7.1
 MarkupSafe==0.18
 Pillow==2.2.1
 Pillow-PIL==0.1dev
@@ -12,7 +12,7 @@ gevent==0.13.8
 greenlet==0.4.1
 gunicorn==18.0
 honcho==0.4.2
-html5lib==0.99
+html5lib==1.0b3
 ipdb==0.8
 ipython==1.1.0
 newrelic==2.0.0.1
