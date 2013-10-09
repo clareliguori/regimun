@@ -1,3 +1,5 @@
+[![Requirements Status](https://requires.io/github/jnovinger/human/requirements.png?branch=requires-io-master)](https://requires.io/github/jnovinger/human/requirements/?branch=requires-io-master)
+
 RegiMUN uses the following open-source libraries:
 
 Web Framework:
