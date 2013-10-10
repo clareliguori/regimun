@@ -143,6 +143,9 @@ EMAIL_HOST_USER = os.environ.get('GMAIL_USER', False)
 EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_PW', False)
 EMAIL_PORT = 587
 
+# turns out, this is important to regimun_app
+LOGIN_REDIRECT_URL = '/'
+
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
