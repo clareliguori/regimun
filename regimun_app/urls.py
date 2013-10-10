@@ -37,10 +37,12 @@ urlpatterns = patterns('',
     (r'^(?P<conference_slug>[-\w]+)/secretariat/ajax/(?P<func_name>[-\w]+)$', conference_ajax_functions),
 
     # secretariat admin page
-    (r'^(?P<slug>[-\w]+)/secretariat/$',
-        limited_object_detail,
-        dict(queryset=conferences, slug_field='url_name', template_name='secretariat/index.html')),
+    #(r'^(?P<slug>[-\w]+)/secretariat/$',
+    #    limited_object_detail,
+    #    dict(queryset=conferences, slug_field='url_name', template_name='secretariat/index.html')),
 
+    (r'^(?P<slug>[-\w]+)/secretariat/$',
+        DetailView.as_view(queryset=conferences, slug_field='url_name', template_name='secretariat/index.html')),
     # secretariat admin page - downloads
     (r'^(?P<conference_slug>[-\w]+)/secretariat/downloads/', spreadsheet_downloads),
 
