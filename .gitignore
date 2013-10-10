@@ -21,3 +21,4 @@ instrumental/
 *.dump
 test.py
 test_file.html
+media/
