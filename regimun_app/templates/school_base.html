@@ -8,7 +8,7 @@
 {% load listfilters %}
 {% load userfilters %}
 {% if user.is_authenticated and user.is_active %}
-	{% if user.is_staff or user|is_faculty_sponsor and user.faculty_sponsor.school.pk == school.pk or user|is_secretariat_member and conference|in_list:user.secretariat_member.conferences %}
+	{% if user|is_faculty_sponsor and user.faculty_sponsor.school.pk == school.pk or user|is_secretariat_member and conference|in_list:user.secretariat_member.conferences %}
 		{% block pagecontent %}{% endblock %}
 	{% else %}
 	<div class="ui-widget" style="width:400px; margin:50px auto;">	
