@@ -33,7 +33,7 @@ $(function(){
                 }
             }
         });
-        
+
         $('.remove-sponsor-from-conference-dialog').dialog({
             autoOpen: false,
             width: 400,
@@ -50,7 +50,7 @@ $(function(){
 				  			$('#sponsor_' + data.sponsor_pk).remove();
 				  			$('#buttons_sponsor_' + data.sponsor_pk).remove();
 				  			update_fees_table();
-				  			
+
 				  			if(data.sponsor_pk == "{{ user.faculty_sponsor.pk }}") {
 				  				$('#add_sponsor_buttons').prepend('<a id="add_me" class="button" href="add-me">Add Me</a>');
 				  				$( ".button" ).button();
@@ -109,30 +109,30 @@ function open_country_preferences_form() {
 			function(data) {
 				// build the form
 				output = "<h3>Country Preferences</h3>";
-				
+
 				if(data.available_countries.length > 0) {
 					output += "<p>Countries listed in the drop-down boxes are currently available. They have not yet been assigned to any school.</p>";
-					
+
 					output += "<table>";
 					for(i = 1; i <= 10; i++) {
 						output += "<tr><td>" + i + "</td><td><select id=\"id_pref_" + (i-1) + "\" name=\"pref_" + (i-1) + "\"><option value=\"-1\"> </option>";
 						output += data.available_countries;
 						output += "</select></td></tr>";
 					}
-					output += "</table>";					
+					output += "</table>";
 				} else {
 					output += "<i>No countries are currently available for selection.</i>";
 				}
 				output += "<p><a href=\"downloads/?country-committee-assignments\">Download country-committee assignments here.</a></p>";
 				output += "<h3>Delegate Request</h3><p>Total delegates requested: <input type=\"text\" class=\"auto\" name=\"total_count\" size=\"5\" value=\"" + data.delegate_count + "\" /></p>";
-								
+
 	  			// switch to country preferences form
 				$('#country-preferences-form').html(output);
-				
+
 				for(i = 0; i < data.preferences.length; i++) {
 					$('#id_pref_'+i+' option[value='+data.preferences[i]+']').attr('selected','selected');
 				}
-				
+
 				toggle_country_preferences_buttons();
 				$('input.auto').each(function() {
 					$(this).autoNumeric();
@@ -158,7 +158,7 @@ function cancel_country_preferences_form() {
 function save_country_preferences_form() {
 	$('#country-preferences-form').ajaxSubmit({
 		dataType:'json',
-		beforeSubmit: 	function(arr, $form, options) { 
+		beforeSubmit: 	function(arr, $form, options) {
 			$('#country-preferences-form').html('<p style="text-align: center" class="loading"><img src="{{ STATIC_URL }}icons/ajax-loader.gif"/><br/><br/>Loading...</p>');
 		},
 		success:		function(data) {
@@ -276,7 +276,7 @@ function get_edit_delegate_form(position_pk) {
 			output += "</form>";
 			$('#delegate-info-'+data.position_pk).html(output);
 			form_styling();
-			
+
 			$('#edit-delegate-'+position_pk).hide();
 			$('#remove-delegate-'+position_pk).hide();
 			$('#save-delegate-'+position_pk).show();
@@ -301,19 +301,19 @@ function send_edit_delegate_form(position_pk) {
 				output += "</form>";
 				$('#delegate-info-'+data.position_pk).html(output);
 				form_styling();
-				
+
 				$('#edit-delegate-'+position_pk).hide();
 				$('#remove-delegate-'+position_pk).hide();
 				$('#save-delegate-'+position_pk).show();
 				$('#add-delegate-'+position_pk).hide();
 			} else {
 				$('#delegate-info-'+data.position_pk).html(data.name);
-				
+
 				$('#edit-delegate-'+position_pk).show();
 				$('#remove-delegate-'+position_pk).show();
 				$('#save-delegate-'+position_pk).hide();
 				$('#add-delegate-'+position_pk).hide();
-				
+
 				update_fees_table();
 			}
 		},
@@ -333,7 +333,7 @@ function remove_delegate(position_pk) {
 			$('#remove-delegate-'+position_pk).hide();
 			$('#save-delegate-'+position_pk).hide();
 			$('#add-delegate-'+position_pk).show();
-			
+
 			update_fees_table();
 		},
 		"json"
@@ -376,7 +376,7 @@ function update_fees_table() {
 				<button id="edit_mailing_address" class="button" onclick="get_school_mailing_address_form()">Edit</button>
 				<button id="save_mailing_address" class="button" style="display: none" onclick="send_school_mailing_address_form()">Save</button>
 			</p>
-	
+
 		<h3>Faculty Sponsors</h3>
 			{% for sponsor in sponsors %}
 				<div id="sponsor_{{sponsor.pk}}">
@@ -395,10 +395,10 @@ function update_fees_table() {
 					{% endif %}
 					<button id="save_sponsor_{{sponsor.pk}}" class="button" style="display: none" onclick="send_edit_sponsor_form({{sponsor.pk}})">Save</button>
 					<button id="remove_sponsor_from_conference_{{sponsor.pk}}" class="button" onclick="$('#remove_sponsor_from_conference_confirm_{{sponsor.pk}}').dialog('open')">Remove From Conference</button>
-					
+
 					{% if sponsor.user.username != user.username %}
 						<button id="remove_sponsor_from_school_{{sponsor.pk}}" class="button" onclick="$('#remove_sponsor_from_school_confirm_{{sponsor.pk}}').dialog('open')">Revoke Access</button>
-						
+
 						<div style="display: none" id="remove_sponsor_from_school_confirm_{{sponsor.pk}}" class="remove-sponsor-from-school-dialog" title="Remove Faculty Sponsor From School" sponsor="{{sponsor.pk}}">
 							<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 0 0;"></span> Please confirm that you want to remove {{sponsor.user.get_full_name}} from this school. Removing this sponsor will revoke their access to {{school.name}}, and they will not be notified.</p>
 						</div>
@@ -410,7 +410,7 @@ function update_fees_table() {
 
 			{% endfor %}
 
-			<br/><br/>	
+			<br/><br/>
 			<div id="add_sponsor_buttons">
 				{% load listfilters %}
 				{% if conference|not_in_list:user.faculty_sponsor.conferences %}
@@ -430,7 +430,7 @@ function update_fees_table() {
 				</div>
 			</div>
 	</div>
-	
+
 	<div id="register">
 		<form action="ajax/set-country-preferences" method="post" id="country-preferences-form">
 		{% autoescape off %}{{ country_preferences }}{% endautoescape %}
@@ -454,9 +454,9 @@ function update_fees_table() {
 				<tr><td></td><td>
 				{% if position.first_name %}
 					<!-- Delegate object -->
-					{{ position.position_assignment.committee.name }}: <span id="delegate-info-{{ position.position_assignment.pk }}">{{ position.get_full_name }}</span> 
+					{{ position.position_assignment.committee.name }}: <span id="delegate-info-{{ position.position_assignment.pk }}">{{ position.get_full_name }}</span>
 					<small>
-						&nbsp; &nbsp;<a onclick="get_edit_delegate_form({{ position.position_assignment.pk }})" id="edit-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Edit</a>  
+						&nbsp; &nbsp;<a onclick="get_edit_delegate_form({{ position.position_assignment.pk }})" id="edit-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Edit</a>
 						&nbsp; &nbsp;<a onclick="remove_delegate({{ position.position_assignment.pk }})" id="remove-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Remove</a>
 						&nbsp; &nbsp;<a style="display: none" onclick="send_edit_delegate_form({{ position.position_assignment.pk }})" id="save-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Save</a>
 						&nbsp; &nbsp;<a style="display: none" onclick="get_edit_delegate_form({{ position.position_assignment.pk }})" id="add-delegate-{{ position.position_assignment.pk }}" href="javascript:void(0);">Register</a>
@@ -465,7 +465,7 @@ function update_fees_table() {
 					<!-- DelegatePosition object -->
 					{{ position.committee.name }}: <span id="delegate-info-{{ position.pk }}">No delegate registered</span>
 					<small>
-						&nbsp;<a style="display: none" onclick="get_edit_delegate_form({{ position.pk }})" id="edit-delegate-{{ position.pk }}" href="javascript:void(0);">Edit</a>  
+						&nbsp;<a style="display: none" onclick="get_edit_delegate_form({{ position.pk }})" id="edit-delegate-{{ position.pk }}" href="javascript:void(0);">Edit</a>
 						&nbsp;<a style="display: none" onclick="remove_delegate({{ position.pk }})" id="remove-delegate-{{ position.pk }}" href="javascript:void(0);">Remove</a>
 						<a style="display: none" onclick="send_edit_delegate_form({{ position.pk }})" id="save-delegate-{{ position.pk }}" href="javascript:void(0);">Save</a>
 						<a onclick="get_edit_delegate_form({{ position.pk }})" id="add-delegate-{{ position.pk }}" href="javascript:void(0);">Register</a>
@@ -480,7 +480,7 @@ function update_fees_table() {
 			No countries have been assigned to your school.
 			</td></tr>
 		{% endfor %}
-		</table>		
+		</table>
 	</div>
 
 	<div id="fees">
@@ -491,10 +491,15 @@ function update_fees_table() {
 					<a href="invoice"><img class="tab-link" src="{{ STATIC_URL }}icons/pdf.png"/></a><br/>
 					<a href="invoice">Download PDF</a>
 				</td>
+                {% comment %}
+                Removing this for now since it's not really useful anyway and
+                definitely not a high priority, and ... you know ... it's
+                broken
 				<td class="center">
 					<a href="invoice-doc"><img class="tab-link" src="{{ STATIC_URL }}icons/doc.png"/></a><br/>
 					<a href="invoice-doc">Download Word Doc</a>
 				</td>
+                {% endcomment %}
 			</tr>
 		</table>
 		<br/>
