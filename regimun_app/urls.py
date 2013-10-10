@@ -48,7 +48,8 @@ urlpatterns = patterns('',
 
     # invoices
     (r'^(?P<conference_slug>[-\w]+)/secretariat/invoices$', generate_all_invoices_pdf),
-    (r'^(?P<conference_slug>[-\w]+)/secretariat/invoices-doc$', generate_all_invoices_doc),
+    # Disabling .doc invoices for the time being
+    # (r'^(?P<conference_slug>[-\w]+)/secretariat/invoices-doc$', generate_all_invoices_doc),
 
     # redirect to school page
     (r'^(?P<conference_slug>[-\w]+)/secretariat/see-school$', redirect_to_school),
@@ -64,7 +65,8 @@ urlpatterns = patterns('',
 
     # school invoice
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/invoice$', generate_invoice_pdf),
-    (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/invoice-doc$', generate_invoice_doc),
+    # Disabling .doc invoices for the time being
+    # (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/invoice-doc$', generate_invoice_doc),
 
     # school invoice - based on delegate requests
     (r'^(?P<conference_slug>[-\w]+)/(?P<school_slug>[-\w]+)/invoice-from-request$', generate_request_based_invoice),
