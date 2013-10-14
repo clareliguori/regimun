@@ -143,7 +143,7 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = os.environ.get('GMAIL_USER', False)
-EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_PW', False)
+EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_PASSWORD', False)
 EMAIL_PORT = 587
 
 # turns out, this is important to regimun_app
