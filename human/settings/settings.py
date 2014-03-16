@@ -7,11 +7,11 @@ TEMPLATE_DEBUG = DEBUG
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 ADMINS = (
-    ('Jason Novinger', 'jnovinger+human@gmail.com'),
+    ('Clare Liguori', 'clare.admin@clareliguori.com'),
 )
 
 MANAGERS = (
-    ('Allyson Holley', 'allyson@ctmun.org'),
+    ('Clare Liguori', 'clare.manager@clareliguori.com'),
 )
 
 DATABASES = {
@@ -92,7 +92,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'meb230x9c8uhtyhszl80q+hfk6#sw!*y1sv8uauvtzf+&d^j#@'
+SECRET_KEY = '7l@fj)3v^9u(9))=rnj8f@=qmsq#nw%r&=l07=v86!1(^)8dnr'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
