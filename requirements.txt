@@ -10,6 +10,7 @@ dj-database-url==0.2.2
 dj-static==0.0.5
 django-storages==1.1.8
 django-toolbelt==0.0.1
+django-debug-toolbar=1.0.1
 gevent==0.13.8
 greenlet==0.4.1
 gunicorn==18.0
