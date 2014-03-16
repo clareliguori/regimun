@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ conference.name }} - Register New School
+{% endblock %}
+
+{% block content %}
+
+<div class="float-center">
+<h1>Register new school for {{ conference.name }}</h1>
+
+{% load userfilters %}
+{% if user.is_staff or user|is_secretariat_member %}
+
+	<div class="ui-widget" style="width:400px; margin:50px auto;">	
+		<div class="ui-state-highlight ui-corner-all no-javascript" style="padding: 0pt 0.7em; font-size: 14px;">
+			<p>
+			<span style="float: left; margin-right: 1em;" class="ui-icon ui-icon-info"></span>
+			You cannot create a new school as a staff member. Faculty sponsors must individually register their school.
+			</p>
+		</div>
+	</div>
+
+{% else %}
+
+{% if not user.is_authenticated %}
+<p>
+<b>Note: </b>If you already have a school account, you can register for multiple conferences from the same account.<br/>
+<a href="{% url "django.contrib.auth.views.login" %}?next={{ request.path }}">Login</a> to register for {{ conference.name }} using your existing account.
+</p>
+{% endif %}
+
+<form action="/{{ conference.url_name }}/new-school/" method="post">{% csrf_token %}
+<h2>School Information</h2>
+<table class="form">
+{{ school_form.as_table }}
+</table>
+
+{% if not user.is_authenticated %}
+<hr/>
+<h2>Faculty Sponsor Information</h2>
+Please enter information about yourself; you will have the opportunity to invite other sponsors to this school's account later.
+<table class="form">
+{{ sponsor_form.as_table }}
+</table>
+{% endif %}
+
+<p>
+  <script type="text/javascript"
+     src="http://www.google.com/recaptcha/api/challenge?k=6LeeursSAAAAAK4mIpjQvTSeXlbf9zBnOduzYbCq">
+  </script>
+  <noscript>
+     <iframe src="http://www.google.com/recaptcha/api/noscript?k=6LeeursSAAAAAK4mIpjQvTSeXlbf9zBnOduzYbCq"
+         height="300" width="500" frameborder="0"></iframe><br>
+     <textarea name="recaptcha_challenge_field" rows="3" cols="40">
+     </textarea>
+     <input type="hidden" name="recaptcha_response_field"
+         value="manual_challenge">
+  </noscript>
+</p>
+<input type="submit" class="button" value="Submit" />
+</form>
+</div>
+{% endif %}
+
+{% endblock %}

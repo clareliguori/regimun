@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ conference.name }} Registration - {{ school.name }}
+{% endblock %}
+
+{% block content %}
+{% load listfilters %}
+{% load userfilters %}
+{% if user.is_authenticated and user.is_active %}
+	{% if user|is_faculty_sponsor and user.faculty_sponsor.school.pk == school.pk or user|is_secretariat_member and conference|in_list:user.secretariat_member.conferences %}
+		{% block pagecontent %}{% endblock %}
+	{% else %}
+	<div class="ui-widget" style="width:400px; margin:50px auto;">	
+		<div class="ui-state-error ui-corner-all no-javascript" style="padding: 0pt 0.7em; font-size: 14px;">
+			<p>
+			<span style="float: left; margin-right: 1em;" class="ui-icon ui-icon-alert"></span>
+			You do not have access to this page.</p> 
+			{% if user|is_not_faculty_sponsor and user|is_not_secretariat_member %}
+				<p>If you are a faculty sponsor for this school, enter the access code for this school. The access code can be retrieved from existing sponsors linked to this school or from the conference secretariat.</p>
+				<form action="grant-school-access" method="post">{% csrf_token %}
+				<label for="access_code">Access Code:</label> <input type="text" name="access_code" />
+				<input type="hidden" name="next" value="{{ request.path }}" />
+				<input type="submit" class="button" value="Submit" />
+				</form>
+			{% else %}
+				<p>If you believe this is an error, please contact a secretariat member to have access granted on your user account.</p>
+			{% endif %}
+		</div>
+	</div>
+	{% endif %}
+{% else %}
+<div style="text-align:center">
+    <p>You must be logged in to view this page.</p>
+    <p><a class="button" href="{% url "django.contrib.auth.views.login" %}?next={{ request.path }}">Login</a></p>
+    <p><a class="button" href="/accounts/register/?next={{ request.path }}">Register</a></p>
+</div>
+{% endif %}
+
+{% endblock %}
